@@ -369,6 +369,13 @@ const volledig = (vk, indeling) => {
   return n === new Date(Date.UTC(Number(vk.van.slice(0, 4)), Number(vk.van.slice(5, 7)), 0)).getUTCDate();
 };
 
+/** Balkje met een breedte in procenten (via CSSOM: de Content-Security-Policy staat geen style-attributen toe). */
+function balk(pct) {
+  const i = h('i', {});
+  i.style.width = `${pct.toFixed(1)}%`;
+  return i;
+}
+
 const topSoort = {
   key: 'top',
   naam: 'Top-10: hoogste en laagste',
@@ -392,7 +399,7 @@ const topSoort = {
     const lijst = (titel, items) => h('div', { class: 'top-lijst' }, h('h3', { class: 'top-titel' }, titel),
       h('ol', {}, items.map((vk) => h('li', {},
         h('span', { class: 'top-naam', title: vk.label }, label(vk)),
-        h('span', { class: 'top-balk' }, h('i', { style: `width:${Math.max(2, (Math.abs(vk.v) / maxAbs) * 100).toFixed(1)}%` })),
+        h('span', { class: 'top-balk' }, balk(Math.max(2, (Math.abs(vk.v) / maxAbs) * 100))),
         h('span', { class: 'top-waarde num' }, fmt(vk.v))))));
     const mid = kandidaten.map((vk) => vk.v).sort((x, y) => x - y)[Math.floor(kandidaten.length / 2)];
     return kaart(`${m.naam}: top-${aantal}`,

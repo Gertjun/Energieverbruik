@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.22.1
+
+**Gecorrigeerd**
+- In de **heatmap** en de **top-10** werden de kleuren en balkjes in de geïnstalleerde app niet getoond, omdat de beveiligingsinstellingen van de app die manier van opmaken blokkeerden. Nu werkt het wel.
+
 ## 1.22.0
 
 **Toegevoegd**

@@ -259,7 +259,9 @@ export function heatmap({ rijen, fmt, deelbaar = false, breedte = null }) {
       return;
     }
     r.waarden.forEach((v, uur) => {
-      const rect = s('rect', { x: L + uur * cel, y, width: Math.max(1, cel - 1), height: Math.max(1, rh - 1), rx: 1.5, style: `fill:${kleur(v)}`, class: 'hm-cel' });
+      const rect = s('rect', { x: L + uur * cel, y, width: Math.max(1, cel - 1), height: Math.max(1, rh - 1), rx: 1.5, class: 'hm-cel' });
+      // Via CSSOM, niet als style-attribuut: de Content-Security-Policy staat geen inline stijlen toe.
+      rect.style.fill = kleur(v);
       const toon = () => {
         info.textContent = `${r.label}, ${String(uur).padStart(2, '0')}:00–${String((uur + 1) % 24).padStart(2, '0')}:00: ${fmt(v)} per uur (gemiddeld)`;
         svg.querySelectorAll('.hm-cel.is-actief').forEach((el) => el.classList.remove('is-actief'));
