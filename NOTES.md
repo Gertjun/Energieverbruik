@@ -61,6 +61,12 @@
   aangemaakt in een testbrowser) op laptop- en iPhone-breedte.
 - `import-vattenfall.js` stond niet in de offline-cache van sw.js; toegevoegd.
 
+## Stand (5 november 2026) – versie 1.4.1
+- Uitleg SolarEdge-export noemt het SolarEdge Monitoring platform (naam bevestigd door Geert).
+- Lage opbrengst aug/sep 2025 bevestigd: huis leeg, panelen uit. De melding over aug 2025 in het importrapport
+  is dus terecht; verder niets aan doen. Let op: zelfvoorzienendheid en verbruik van die maanden zijn niet
+  representatief bij vergelijkingen met vorig jaar.
+
 ## Openstaande punten
 - [ ] Geert: Historie op de iPhone bekijken; past de dagtabel met de kolom m³/gd? (°C valt daar al weg.)
 - [ ] Geert: Vattenfall-bestanden inlezen (kwartier/uur). Daarna HomeWizard alleen nog voor de laatste dagen.
@@ -76,9 +82,8 @@
       tarieven uit Blad1 (linkerkolom) zijn niet ingevoerd; als die voor een eerdere periode gelden,
       een extra contract met de juiste data toevoegen.
 - [ ] Geert: SolarEdge-export inlezen (Invoer → Maandgegevens); maandelijks herhalen na de 1e.
-- [ ] Geert: augustus 2025 = 0 kWh opbrengst: klopt dat (storing)? Zo ja, mag de melding zo blijven.
-- [ ] De uitleg "Hoe exporteer ik uit SolarEdge?" is algemeen gehouden; Geert laten bevestigen welke
-      menunamen het portaal gebruikt en de uitleg daarop aanpassen.
+- [ ] Geert zoekt uit of het SolarEdge Monitoring platform per dag kan exporteren (zie WISHLIST). Daarna de
+      precieze menunaam van de grafiek in de uitleg zetten.
 - [ ] Saldering met tijdvakken is een aanname (zie DECISIONS.md); vergelijken met de volgende jaarafrekening.
 
 ## Bronbestanden in het Claude-project

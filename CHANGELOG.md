@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.1
+
+**Gewijzigd**
+- Uitleg "Hoe exporteer ik uit SolarEdge?" noemt nu het SolarEdge Monitoring platform bij naam.
+
 ## 1.4.0
 
 **Toegevoegd**

@@ -1,5 +1,11 @@
 # Beslissingen
 
+## 2026-11-05 – Uitleg SolarEdge (versie 1.4.1)
+- **Naam van het portaal overgenomen van Geert** ("SolarEdge Monitoring platform"), zodat de uitleg aansluit bij wat hij
+  op zijn scherm ziet. **PATCH**: alleen tekst.
+- **Melding over 0 kWh blijft**: aug 2025 klopt (panelen uit), maar bij een volgende import is zo'n melding nog steeds
+  nuttig om een echte storing op te merken.
+
 ## 2026-11-05 – SolarEdge-import (versie 1.4.0)
 - **Maandbestand** (de export die Geert aanleverde: alle maanden van alle jaren in één bestand). Dagbestanden
   worden geweigerd met een duidelijke melding; per dag staat op de wishlist.

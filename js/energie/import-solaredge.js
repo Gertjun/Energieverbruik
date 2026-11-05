@@ -1,4 +1,4 @@
-// Import van een SolarEdge-export (monitoringportaal, grafiek "vergelijken" per maand → CSV).
+// Import van een SolarEdge-export (SolarEdge Monitoring platform, grafiek "vergelijken" per maand → CSV).
 //
 //   "Meettijd","Energy (kWh)"
 //   "jan. 2020","0"
