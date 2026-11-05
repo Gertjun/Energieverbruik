@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.2
+
+**Toegevoegd**
+- Logo, app-naam en versienummer bovenin de zijbalk op de laptop, zoals in Vaste Lasten. Bij een ingeklapte zijbalk blijft alleen het logo staan.
+- Op iPhone en iPad staan logo, naam en versienummer links in de kopbalk.
+
+**Gewijzigd**
+- De zijbalk op de laptop is iets breder (256 px), zodat de naam "Energieverbruik" er helemaal in past.
+
 ## 1.3.1
 
 **Gewijzigd**

@@ -16,7 +16,7 @@
 /* @accent-end */
 
 /* ---------- Navigatie: tabbalk (mobiel) / zijbalk (laptop) ---------- */
-:root { --nav-h: 58px; --zij-b: 216px; --zij-in: 68px; }
+:root { --nav-h: 58px; --zij-b: 256px; --zij-in: 68px; }
 
 .app-nav {
   position: fixed;
@@ -49,6 +49,14 @@
 .nav-knop[aria-current="page"] { color: var(--accent); }
 .nav-knop:focus-visible, .nav-inklap:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .nav-inklap { display: none; }
+.nav-merk { display: none; }
+
+/* Logo, naam en versie in de kopbalk (iPhone/iPad) */
+.app-merk { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.app-merk-logo { flex: none; width: 32px; height: 32px; border-radius: 8px; }
+.app-merk-tekst { display: grid; min-width: 0; line-height: 1.15; }
+.app-merk-tekst .app-title { font-size: 1.05rem; }
+.app-merk-versie, .nav-versie { font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24px + var(--safe-bottom)); }
 
 .scherm-titel { font-size: 1.5rem; margin: 4px 0 0; }
@@ -74,9 +82,18 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
   }
   .nav-knop:hover { background: var(--surface-2); }
   .nav-knop[aria-current="page"] { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  /* Merkblok bovenin de zijbalk; in de kopbalk is het dan overbodig */
+  .nav-merk {
+    display: flex; align-items: center; gap: 10px;
+    min-height: 48px; padding: 0 0 0 6px; margin-bottom: 12px;
+  }
+  .nav-logo { flex: none; width: 36px; height: 36px; border-radius: 9px; }
+  .nav-merk-tekst { display: grid; min-width: 0; line-height: 1.2; }
+  .nav-merk-tekst strong { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.energie-app .app-header .app-merk { visibility: hidden; }
   .nav-inklap {
-    display: inline-grid; place-items: center; justify-self: end;
-    width: 40px; height: 40px; margin-bottom: 8px;
+    display: inline-grid; place-items: center; flex: none; margin-left: auto;
+    width: 36px; height: 36px;
     color: var(--muted); background: transparent; border: 0; border-radius: var(--radius-sm); cursor: pointer;
   }
   .nav-inklap:hover { background: var(--surface-2); }
@@ -85,7 +102,9 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
   body.zijbalk-in .app-nav { width: var(--zij-in); padding-left: 10px; padding-right: 10px; }
   body.zijbalk-in .nav-knop { justify-content: center; padding: 0; }
   body.zijbalk-in .nav-knop span { display: none; }
-  body.zijbalk-in .nav-inklap { justify-self: center; }
+  body.zijbalk-in .nav-merk { flex-direction: column; gap: 8px; padding: 0; }
+  body.zijbalk-in .nav-merk-tekst { display: none; }
+  body.zijbalk-in .nav-inklap { margin-left: 0; }
   body.energie-app #screen-app .app-main { max-width: 1040px; padding-bottom: 32px; }
   body.energie-app #screen-app .app-header-inner { max-width: 1008px; }
 }

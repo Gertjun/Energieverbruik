@@ -47,12 +47,18 @@ function navigatie() {
     type: 'button', class: 'nav-knop', 'aria-current': staat.tab === t.key ? 'page' : null, title: t.label,
     onClick: () => { staat.tab = t.key; staat.open = null; opnieuw(); window.scrollTo({ top: 0 }); },
   }, icoon(t.icoon), h('span', {}, t.label));
-  return h('nav', { class: 'app-nav', 'aria-label': 'Schermen' },
+  // Logo, naam en versie bovenin de zijbalk (alleen laptop; op iPhone/iPad staat dit in de kopbalk).
+  const merk = h('div', { class: 'nav-merk' },
+    h('img', { src: 'icons/icon-192.png', alt: '', class: 'nav-logo', width: 36, height: 36 }),
+    h('div', { class: 'nav-merk-tekst' },
+      h('strong', {}, APP.name),
+      h('span', { class: 'nav-versie' }, `v${APP.version}`)),
     h('button', {
       type: 'button', class: 'nav-inklap', 'aria-label': ingeklapt ? 'Zijbalk uitklappen' : 'Zijbalk inklappen',
+      title: ingeklapt ? 'Zijbalk uitklappen' : 'Zijbalk inklappen',
       onClick: () => { try { localStorage.setItem(ZIJBALK_KEY, ingeklapt ? '0' : '1'); } catch { /* geen opslag */ } opnieuw(); },
-    }, icoon(ingeklapt ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6')),
-    TABS.map(knop));
+    }, icoon(ingeklapt ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6')));
+  return h('nav', { class: 'app-nav', 'aria-label': 'Schermen' }, merk, TABS.map(knop));
 }
 
 // ---------- Temperaturen automatisch aanvullen ----------
@@ -93,6 +99,7 @@ export const app = {
     else if (staat.tab === 'historie') inhoud = renderHistorie(a, staat, opnieuw, ctx);
     else if (staat.tab === 'instellingen') inhoud = renderInstellingen(a, staat, opnieuw, ctx);
     else inhoud = renderOverzicht(a, staat, opnieuw);
+    document.querySelectorAll('[data-app-version]').forEach((el) => { el.textContent = `v${APP.version}`; });
     root.replaceChildren(navigatie(), h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), ...inhoud);
     zorgVoorWeer(ctx, a);
   },

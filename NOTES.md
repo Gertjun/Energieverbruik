@@ -34,6 +34,10 @@
 ## Stand (5 november 2026) – versie 1.3.1
 - Grafiek Gas per graaddag in het Overzicht volgt de periodekeuze (dag/week/maand/jaar).
 
+## Stand (5 november 2026) – versie 1.3.2
+- Logo, naam en versie in de zijbalk (laptop) en in de kopbalk (iPhone/iPad). Visueel gecontroleerd met een
+  testpagina op laptop- (licht/donker, in- en uitgeklapt) en iPhone-breedte.
+
 ## Openstaande punten
 - [ ] Geert: Historie op de iPhone bekijken; past de dagtabel met de kolom m³/gd? (°C valt daar al weg.)
 - [ ] Geert: Vattenfall-bestanden inlezen (kwartier/uur). Daarna HomeWizard alleen nog voor de laatste dagen.

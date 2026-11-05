@@ -1,5 +1,17 @@
 # Beslissingen
 
+## 2026-11-05 – Logo en versienummer (versie 1.3.2)
+- **Zelfde opbouw als Vaste Lasten**: logo + naam + versie bovenin de zijbalk, inklapknop rechts ernaast.
+  Ingeklapt: alleen logo met de knop eronder.
+- **Logo = het app-icoon** (`icons/icon-192.png`), zodat het overeenkomt met het icoon op het beginscherm en al
+  offline in de cache staat.
+- **iPhone/iPad**: geen zijbalk, dus logo, naam en versie in de kopbalk. Op de laptop wordt dat deel van de kopbalk
+  verborgen (staat al in de zijbalk); de knoppen rechts blijven.
+- **Versie via `data-app-version`**, ingevuld vanuit `APP.version` in app.js; zo blijft config.js de enige plek
+  waar het nummer staat. Core-bestanden (shell.js) niet aangepast.
+- **Zijbalk 216 → 256 px**: anders werd "Energieverbruik" afgekapt.
+- **PATCH**: kleine verbetering, geen nieuwe functie.
+
 ## 2026-11-05 – Gas per graaddag volgt de periode (versie 1.3.1)
 - **Zelfde perioden als de hoofdgrafiek** (31 dagen, 13 weken, 12 maanden, 5 jaar), met vorig jaar ter vergelijking.
 - **Minimum graaddagen per periode**: dag 1, week 3, maand en jaar 5. In de grafiek zouden zachte dagen met een
