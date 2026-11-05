@@ -1,9 +1,15 @@
 # Changelog
 
+## 1.9.1
+
+**Gewijzigd**
+- De **indeling kies je nu op het Overzicht zelf**: rechts naast de titel staat "Indeling" met Eén kolom, Naast elkaar, Grafiek en lijst en Alles tegelijk. De keuze is weg uit Instellingen.
+- Die knoppen verschijnen alleen op een breed scherm (vanaf 1200 pixels); op iPhone en iPad zie je ze niet.
+
 ## 1.9.0
 
 **Toegevoegd**
-- **Indeling van het Overzicht op de laptop** kiezen (Instellingen → App en sync):
+- **Indeling van het Overzicht op de laptop** kiezen (in 1.9.1 verplaatst naar het Overzicht zelf):
   - **Eén kolom**: zoals voorheen (en zoals op de iPhone).
   - **Naast elkaar**: kaarten in twee kolommen over de volle breedte.
   - **Grafiek en lijst**: in elke kaart de grafiek met de lijst met getallen ernaast (de knop Grafiek/Lijst vervalt).

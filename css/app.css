@@ -304,10 +304,9 @@ input[type="month"] {
   .samen { display: grid; gap: 16px; }
 }
 
-/* Keuze indeling in Instellingen */
-.keus-lijst { display: grid; gap: 8px; }
-.keus-optie { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
-.keus-optie:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.keus-optie input { margin-top: 3px; accent-color: var(--accent); flex: none; }
-.keus-optie span { display: grid; gap: 2px; }
-.keus-optie small { color: var(--muted); }
+/* Keuze indeling bovenin het Overzicht (alleen op een breed scherm) */
+.scherm-kop { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.indeling-keus { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.indeling-keus > span { font-size: 0.85rem; }
+.indeling-keus .segmented { padding: 3px; }
+.indeling-keus .segmented button { min-height: 30px; padding: 0 12px; font-size: 0.8rem; }

@@ -241,6 +241,14 @@ export function renderOverzicht(a, staat, opnieuw) {
     : [maatKaart(staat.maat, 'hoofd')];
 
   const kaarten = [...grafieken]; // komen in het raster (één of twee kolommen)
+  // Keuze van de indeling: alleen op een breed scherm (daaronder is er maar één kolom).
+  const breed = window.matchMedia?.(BREED_SCHERM).matches;
+  const indelingKeus = breed
+    ? h('div', { class: 'indeling-keus' },
+      h('span', { class: 'muted' }, 'Indeling'),
+      segmented(INDELINGEN.map(([k, naam]) => [k, naam]), indeling, (v) => { bewaarIndeling(v); opnieuw(); }, 'Indeling Overzicht'))
+    : null;
+  staat.titelExtra = indelingKeus; // app.js zet dit rechts naast de titel
   const delen = [h('div', { class: `keuzes${maatKeus ? '' : ' keuzes-een'}` }, periodeKeus, maatKeus), kpis];
 
   // Gas per graaddag (volgt de gekozen periode)

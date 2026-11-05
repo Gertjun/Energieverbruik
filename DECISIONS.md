@@ -1,7 +1,16 @@
 # Beslissingen
 
+## 2026-11-05 – Indelingskeuze op het Overzicht (versie 1.9.1)
+- **Op verzoek van Geert op het Overzicht zelf**, niet in Instellingen: je ziet direct het effect van je keuze. Uit
+  Instellingen verwijderd, zodat er één plek is.
+- **Rechts naast de schermtitel**: app.js zet de titel in `.scherm-kop`; een scherm kan via `staat.titelExtra` iets
+  rechts naast de titel plaatsen (wordt bij elke render leeggemaakt). Zo staat de keuze niet tussen de andere knoppen
+  (Dag/Week… en Stroom/Terug…), die over de gegevens gaan in plaats van over de opmaak.
+- **Alleen vanaf 1200 px zichtbaar**: daaronder heeft de keuze geen effect.
+- **PATCH**: bestaande functie op een andere plek.
+
 ## 2026-11-05 – Indeling Overzicht op de laptop (versie 1.9.0)
-- **Op verzoek van Geert drie brede varianten naast de bestaande**, te kiezen in Instellingen → App en sync, zodat hij
+- **Op verzoek van Geert drie brede varianten naast de bestaande**, te kiezen in Instellingen → App en sync (sinds 1.9.1 op het Overzicht), zodat hij
   ze in de praktijk kan vergelijken. Weergavevoorkeur in localStorage (`energieverbruik.overzichtIndeling`), dus per
   apparaat en niet gesynchroniseerd: op de iPhone heeft de keuze geen zin.
 - **Alleen vanaf 1200 px vensterbreedte** (`BREED_SCHERM`): daaronder past een tweede kolom niet goed naast de zijbalk

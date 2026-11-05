@@ -109,6 +109,7 @@ export const app = {
     staat.tab ??= a.eerste ? 'overzicht' : 'invoer';
     staat.zijbalkIn = zijbalkIngeklapt();
     staat.indeling = 'standaard'; // het Overzicht zet hier zijn brede indeling in
+    staat.titelExtra = null; // een scherm kan hier iets rechts naast de titel zetten
     let inhoud;
     if (staat.tab === 'invoer') inhoud = renderInvoer(a, staat, opnieuw, ctx);
     else if (staat.tab === 'historie') inhoud = renderHistorie(a, staat, opnieuw, ctx);
@@ -118,7 +119,7 @@ export const app = {
     // Brede indeling van het Overzicht: de inhoud mag dan breder worden (zie app.css).
     document.body.dataset.indeling = staat.tab === 'overzicht' ? staat.indeling : 'standaard';
     document.querySelectorAll('[data-app-version]').forEach((el) => { el.textContent = `v${APP.version}`; });
-    root.replaceChildren(navigatie(), h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), ...inhoud.filter(Boolean));
+    root.replaceChildren(navigatie(), h('div', { class: 'scherm-kop' }, h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), staat.titelExtra), ...inhoud.filter(Boolean));
     ctx.toonSchilInstellingen?.(schilGroep(staat));
     zorgVoorWeer(ctx, a);
   },

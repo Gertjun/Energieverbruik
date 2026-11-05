@@ -97,10 +97,14 @@
 
 ## Stand (5 november 2026) – versie 1.9.0
 - Indeling Overzicht op de laptop instelbaar (Eén kolom / Naast elkaar / Grafiek en lijst / Alles tegelijk), in
-  Instellingen → App en sync. Getest met een testpagina met Geerts Excel en HomeWizard-bestanden op 1860 px (donker),
+  Instellingen → App en sync (sinds 1.9.1 op het Overzicht). Getest met een testpagina met Geerts Excel en HomeWizard-bestanden op 1860 px (donker),
   1280 px (licht) en iPhone-breedte: grafieken krijgen de breedte van hun kolom, iPhone ongewijzigd.
 - Grafieken passen hun breedte niet aan als het venster versleept wordt zonder de grens van 1200 px te passeren
   (was al zo); opnieuw openen van het scherm helpt.
+
+## Stand (5 november 2026) – versie 1.9.1
+- Indelingskeuze verplaatst van Instellingen naar het Overzicht, rechts naast de titel (op verzoek van Geert). Alleen
+  zichtbaar vanaf 1200 px. Bekeken op 1860 px (donker), 1280 px (licht) en iPhone-breedte.
 
 ## Openstaande punten
 - [ ] Geert: de vier indelingen op de laptop bekijken en er één kiezen; de andere eventueel later weer weghalen.

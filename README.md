@@ -19,12 +19,13 @@ Vervangt het Excel-bestand *Gasverbruik.xlsx*. Gebouwd op de eigen PWA-template.
   met geldigheidsperiode in te stellen.
 - **Overzicht**: kerncijfers en grafieken per dag, week, maand en jaar, steeds vergeleken met vorig jaar;
   gas per graaddag; zelfvoorzienendheid van de zonnepanelen; termijnbedragen tegenover de werkelijke kosten.
+  Op de laptop kies je rechtsboven de indeling: één kolom, naast elkaar, grafiek en lijst, of alles tegelijk.
 - **Historie**: tabel per dag, per maand te bladeren, met ontbrekende dagen gemarkeerd.
   Daarnaast *Maanden* (totalen om naast de Excel te leggen) en *Controle* (verdachte waarden,
   ontbrekende dagen, steekproef, vergelijking met de jaarafrekening en alle imports).
 - **Analyse**: zelf grafieken en tabellen samenstellen (verbruik, kosten, weer, per uur of tijdvak), vergelijken met
   vorig jaar, een andere periode of een tweede grootheid; als favoriet bewaren en als CSV downloaden.
-- **Instellingen** op één plek: Tarieven, Gegevens (export, temperatuurlocatie, back-up) en App en sync (ook de indeling van het Overzicht op de laptop: één kolom, naast elkaar, grafiek en lijst, of alles tegelijk).
+- **Instellingen** op één plek: Tarieven, Gegevens (export, temperatuurlocatie, back-up) en App en sync.
 - **Importcontrole**: na elke import een rapport; elke import (de laatste 10) is ongedaan te maken.
 - **Temperaturen** worden automatisch opgehaald bij Open-Meteo (gratis, geen account).
 - **Export** als CSV (opent in Excel) of JSON.
