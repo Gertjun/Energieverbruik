@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.3
+
+**Gecorrigeerd**
+- **Vaste terugleverkosten per dag** worden nu verdeeld zoals Vattenfall dat doet: per maand een twaalfde van het jaarbedrag, gedeeld door het aantal dagen van die maand. In oktober is dat € 1,24 per dag (was € 1,27), in februari € 1,38. Over een heel jaar blijft het totaal gelijk (€ 462).
+
 ## 1.9.2
 
 **Verbeterd**

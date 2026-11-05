@@ -110,7 +110,21 @@
 - Uitlijning in twee kolommen verbeterd (Geert: blokken niet even groot/uitgelijnd). Gemeten in de testpagina
   (1860 px): grafieken in dezelfde rij starten op dezelfde pixel; ook bekeken op 1280 px (licht).
 
+## Stand (5 november 2026) – versie 1.9.3
+- Dagkosten vergeleken met Vattenfall-schermafbeeldingen van 25, 28 en 31 oktober 2026 (Vattenfall-kwartierdata).
+  Gas en vaste kosten stroom/gas kloppen exact; stroom 31-10 exact (€ 11,33).
+- Vaste terugleverkosten per dag nu per maand ÷ dagen in de maand (zoals Vattenfall); 31-10 komt nu op € 19,72
+  (Vattenfall € 19,71: zij tellen afgeronde deelbedragen op).
+- 25-10 (wintertijd, 25 uur): stroom app € 1,94, Vattenfall € 1,96. Vattenfall deelt na het extra uur elk kwartier
+  vermoedelijk een uur te laat in (op kwartiervolgorde i.p.v. klok) en telt het dubbele uur 02:00 anders
+  (6,929 i.p.v. 6,924 kWh); zo kom je precies op € 1,96. App niet aangepast: die rekent hier juist.
+- 28-10: stroom app € 11,48, Vattenfall € 11,02 – nog niet verklaard. Doordeweeks, met overschot teruglevering in
+  dal dag (12–16 u). Zelfs alles verrekend tegen het duurste tarief geeft € 11,29, dus Vattenfall rekent een deel
+  van de afname tegen een lager tarief. Nachttarief 22–07 past op deze dag maar niet op de weekenddagen.
+
 ## Openstaande punten
+- [ ] Geert stuurt Vattenfall-dagkosten van een paar doordeweekse dagen (zonnig en somber, bijv. 26, 27, 29, 30 okt,
+      2 en 3 nov) om het verschil op 28-10 (€ 0,46 stroom) te verklaren.
 - [ ] Geert: de vier indelingen op de laptop bekijken en er één kiezen; de andere eventueel later weer weghalen.
 - [ ] Geert: Overzicht op iPhone/iPad bekijken; past de lijst (4 kolommen) en is de zon-grafiek leesbaar?
 - [ ] Geert: Analyse en Instellingen bekijken op iPhone en iPad. Na het bijwerken eenmaal alle apparaten openen

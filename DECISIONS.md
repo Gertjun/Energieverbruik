@@ -1,5 +1,12 @@
 # Beslissingen
 
+## 2026-11-05 – Vaste terugleverkosten per maand verdelen (versie 1.9.3)
+- **Zoals Vattenfall**: jaarbedrag ÷ 12 ÷ dagen in de maand, in plaats van ÷ 365. Zo komen de dagkosten overeen met
+  wat Geert in Mijn Vattenfall ziet; het jaartotaal blijft € 462 (ook in schrikkeljaren).
+- **Wintertijd-afwijking van Vattenfall niet nagebootst**: de app deelt kwartieren in op de kloktijd, wat volgens het
+  contract juist is. Verschil is enkele centen op één dag per jaar.
+- **PATCH**: bugfix in de berekening, geen schemawijziging.
+
 ## 2026-11-05 – Kaarten uitlijnen in twee kolommen (versie 1.9.2)
 - **CSS subgrid**: elke kaart heeft vier vaste vakken (kop, extra knoppen, inhoud, toelichting; `vakKaart`) en deelt
   die rijen met de kaart ernaast. Daardoor gelijke hoogte en uitlijning zonder vaste pixelhoogtes. Een leeg vak is een

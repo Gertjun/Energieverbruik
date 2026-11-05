@@ -6,6 +6,9 @@
 
 import { isZomer, isWeekend } from './tijd.js';
 
+/** Aantal dagen in de maand van een datum ("2026-10-31" → 31). */
+const dagenInMaand = (iso) => new Date(Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)), 0)).getUTCDate();
+
 export const TIJDVAKKEN = [
   { key: 'zomerNormaal', label: 'Zomer normaal', uren: '00–12 en 16–24 uur' },
   { key: 'zomerDalWeek', label: 'Zomer dal week', uren: '12–16 uur, ma–vr' },
@@ -118,7 +121,8 @@ const n = (v) => (Number.isFinite(v) ? v : 0);
  * Kosten van één dag in euro's.
  * Saldering (tot 2027): teruggeleverde stroom wordt verrekend tegen het tarief
  * van hetzelfde tijdvak (levering + energiebelasting); vaste terugleverkosten
- * per jaar worden per dag verdeeld.
+ * per jaar worden zoals bij Vattenfall verdeeld: per maand een twaalfde, gedeeld
+ * door het aantal dagen van die maand (oktober € 462 / 12 / 31 = € 1,24 per dag).
  * Na saldering: afname tegen het tijdvaktarief, teruglevering tegen
  * (kosten − vergoeding) per kWh.
  */
@@ -138,7 +142,7 @@ export function kostenDag(dag, contract, profielen) {
   const gas = n(dag.gas) * (n(contract.gasLevering) + n(contract.gasEb));
   const vs = contract.vastStroom || {}; const vg = contract.vastGas || {};
   const vast = n(vs.levering) + n(vs.netbeheer) - n(vs.verminderingEb) + n(vg.levering) + n(vg.netbeheer)
-    + (t.regeling === 'saldering' ? n(t.vasteKostenJaar) / 365 : 0);
+    + (t.regeling === 'saldering' ? n(t.vasteKostenJaar) / 12 / dagenInMaand(dag.datum) : 0);
   return { stroom, terug, gas, vast, totaal: stroom + terug + gas + vast, geschat: tv.geschat, contract: true };
 }
 
