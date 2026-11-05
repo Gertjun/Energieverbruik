@@ -1,5 +1,66 @@
 # Beslissingen
 
+## 2026-11-05 – Uitbreiding Analyse (versies 1.10.0 t/m 1.22.1)
+Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
+
+### 1.10.0 Sluipverbruik
+- Laagste uur tussen 00:00 en 05:00 (kWh × 1000 = W): dan geen zon, dus de netto meterwaarde is echt verbruik. Uurdata is de fijnste resolutie die bewaard wordt.
+- Per week/maand/jaar de mediaan van de dagen, niet het gemiddelde: in Geerts data trekken nachten met de auto aan de lader (bijv. 8-5-2026: 1.857 W) het gemiddelde omhoog (mei 252 W gemiddeld vs 172 W mediaan).
+- Omrekening naar euro's tegen het "vlakke" stroomtarief: gemiddelde van alle uren van het laatste jaar (levering + EB), omdat sluipverbruik elk uur even groot is.
+### 1.11.0 Piekvermogen
+- Nieuwe groep `p` (veld `piek` op de dag: `{ f: [L1, L2, L3] W, t: 'hh:mm', som }`), alleen uit HomeWizard. Staat los van de voorrang bij stroom: Vattenfall heeft geen pieken. Geen schemawijziging: oudere versies laten het veld staan.
+- Negatieve waarden (teruglevering op een fase, bij Geert L3) tellen als 0. `som` = hoogste som van de drie fasepieken binnen één kwartier: een bovengrens, want de pieken kunnen binnen het kwartier op verschillende momenten vallen.
+- Grens 3×25 A × 230 V = 5.750 W per fase als constante in analyse.js (Enexis 3x25 van de tariefkaart). Bij Geert kwam L2 in 10 weken boven de 5.750 W (hoogste 6.463 W op 8-1-2026 19:15).
+- Bestaande dagen krijgen pas pieken na het opnieuw inlezen van de HomeWizard-export.
+### 1.12.0 Per dag van de week
+- Gemiddelde per dag over de dagen van die weekdag die gegevens hebben (sluipverbruik: mediaan, piek: hoogste, gas per graaddag: som gas ÷ som graaddagen). Werkdagen en weekend als extra regels onder het totaal, niet in de grafiek (die blijft ma–zo).
+- Feestdagen niet apart: dat vraagt een feestdagenlijst die per jaar verandert; het effect op een jaargemiddelde is klein.
+### 1.13.0 Heatmap en "Soort analyse"
+- Analyse heeft nu een keuze **Soort analyse**: "Zelf samenstellen" (de bestaande bouwer) plus vaste analyses die niet in het schema grootheid × indeling passen. Nieuwe soorten staan in `analyse-soorten.js` (eigen keuzes + resultaat); hun keuzes gaan mee in favorieten via `SOORT_STANDAARD`. Oude favorieten openen als "Zelf samenstellen".
+- Heatmap alleen uit dagen met echte uurgegevens: het geschatte profiel zou voor Excel-dagen een nep-patroon tekenen.
+- Rijen per dag tot 62 dagen, per week tot 400 dagen, anders per maand: zo blijft het op de iPhone leesbaar (max. ~560 px hoog).
+- Kleur: één kleur licht→donker (accent) voor afname of teruglevering; netto twee kleuren met een neutraal midden (oranje = afname, accent = terug). Wortelschaal, zodat ook kleine waarden zichtbaar zijn naast een paar uitschieters.
+### 1.14.0 Wat als de saldering stopt
+- Zelfde verbruik, twee regelingen. Levering en energiebelasting zijn in beide gevallen die van het contract op die dag; alleen de terugleverregeling wisselt (die van het nieuwste contract met `perKwh`). Zo is het verschil zuiver het effect van het einde van de saldering, ook als Geert later nieuwe tarieven invoert.
+- Met saldering tellen de vaste terugleverkosten (€ 462/jaar) mee, want die vervallen in 2027. Vaste kosten en gas tellen niet mee.
+- Uitkomst met Geerts data (1-12-2025 t/m 4-11-2026): met saldering € 1.397, na einde € 1.600, verschil +€ 203 (≈ € 18 per maand). In de wintermaanden is het na 2027 zelfs goedkoper (geen vaste terugleverkosten).
+### 1.15.0 Eigen verbruik in de zonuren
+- Zonuur = uur met > 0,05 kWh teruglevering op die dag (per dag bepaald, dus seizoen en bewolking tellen vanzelf mee).
+- "Te verschuiven" = per dag min(afname buiten de zonuren, teruglevering): een bovengrens, want niet alle verbruik is verplaatsbaar. Bewust per dag, niet over de hele periode: zonnestroom van vandaag kan niet de afname van morgen dekken.
+- Waarde na 2027 = verschoven kWh × (gewogen afnametarief van de uren waar het vandaan komt − vergoeding + terugleverkosten). Met saldering alleen het verschil tussen de tijdvaktarieven van die uren en de zonuren.
+- Met Geerts data: 1.957 kWh te verschuiven, € 526 per jaar waard na 2027 (nu € 87).
+### 1.16.0 Stooklijn
+- Model per dag: gas = vast + k × max(0, stookgrens − Tgem), kleinste kwadraten; stookgrens gezocht tussen 10 en 20 °C in stappen van 0,5. Gewone (ongewogen) temperatuur, want de weegfactoren van graaddagen zouden de lijn per maand verschuiven.
+- Minimaal 14 dagen; geen stooklijn als k ≤ 0 (bijv. alleen zomer).
+- Met Geerts data (12 maanden, deels nagemaakte temperaturen in de test): vast 0,46 m³/dag, stookgrens 12,5 °C, 0,64 m³ per graad kouder, R² 79%.
+- Puntenwolk zonder tweede as; de lijn heeft dezelfde as als de punten.
+### 1.17.0 Gas weer-gecorrigeerd
+- Stooklijn van de vergelijkingsperiode (standaard dezelfde periode vorig jaar, of een eigen periode) toegepast op de temperaturen van deze periode = "verwacht bij dit weer". Werkelijk − verwacht = verschil los van het weer.
+- Alleen dagen binnen het temperatuurbereik van de vergelijkingsperiode (± 1 °C) tellen mee. Zonder die grens gaf een vergelijking met alleen herfstdagen (Geerts gas begint op 11-10-2025) een onzinnige verwachting voor zomerdagen (vast deel ~2 m³/dag geëxtrapoleerd).
+- Een stooklijn uit alleen winterdagen heeft een onbetrouwbaar vast deel (geen warme dagen), maar binnen het eigen temperatuurbereik voorspelt hij wel goed; daarom de bereikgrens in plaats van een vaste aanname voor het vaste deel.
+- Test feb–mrt 2026 tegen nov 2025–jan 2026 (echte temperaturen): werkelijk 234 m³, verwacht 299 m³ (−22%).
+### 1.18.0 Opgeteld verloop
+- x-as = raster van 366 dagen (schrikkeljaar), zodat 1 maart in elk jaar op dezelfde plek staat; in gewone jaren neemt 29 februari de stand van 28 februari over.
+- Een lijn begint pas bij de eerste dag met gegevens van dat jaar; ontbrekende dagen daarna tellen als 0. De kernzin vergelijkt alleen het stuk van het jaar waarin beide jaren gegevens hebben (bij Geert: gas 2025 begint op 11 oktober).
+- Geen periodekeuze: altijd hele kalenderjaren (2, 3 of 4).
+### 1.19.0 Jaarprognose
+- Kalenderjaar van de laatste dag met gegevens. Onbekende dagen (rest van het jaar en gaten): stroom = dezelfde dag vorig jaar → daggemiddelde van die kalendermaand (alle jaren, min. 7 dagen) → laatste 4 weken; gas = stooklijn van de laatste 365 dagen bij de temperatuur van dezelfde dag vorig jaar ("normaal" weer = vorig jaar), anders als stroom. Kosten met kostenDag en het contract van die dag (schatting).
+- Termijnen per kalendermaand van dit jaar; maanden zonder bedrag krijgen het laatst bekende bedrag. Verwachte eindafrekening = termijnen − verwachte kosten. Het Overzicht rekent over de laatste 12 maanden; deze prognose over het kalenderjaar (staat erbij).
+- Vergelijking met vorig jaar alleen als dat jaar voor die grootheid ≥ 360 dagen heeft.
+- Met Geerts data: verwachte kosten 2026 € 3.200, termijnen € 2.916 → ~€ 284 bijbetalen.
+### 1.20.0 Top-10
+- Alleen volledige dagen/weken/maanden binnen de periode met gegevens; anders staat een halve week bovenaan bij "laagste". Bij weinig perioden toont hij er minder (hoogstens de helft per lijst), zodat hoogste en laagste niet overlappen.
+- Lijst met balkjes in plaats van een grafiek: leest beter op de iPhone en de volgorde is het punt.
+### 1.21.0 Gemiddeld per dag
+- Keuze "Toon: totaal / gemiddeld per dag" in Zelf samenstellen, alleen bij optellende grootheden en indeling week/maand/jaar/tijdvak (per dag is het al per dag; per uur en per weekdag zijn al gemiddelden; temperatuur, sluipverbruik en piek tellen niet op).
+- Gedeeld door het aantal dagen **met gegevens** van die grootheid in het vakje (stroom: dagen met afname, gas: dagen met gas, kosten: alle dagen met een record; zon: dagen van de maand). Zo maakt een ontbrekende dag het gemiddelde niet lager. Geldt ook voor de vergelijkingsreeks, zodat "vorig jaar" eerlijk vergelijkt als dat jaar maar deels gegevens heeft.
+### 1.22.0 Uitgesloten perioden
+- Eigen collectie `uitgesloten` (schema 4) in plaats van een veld in `instellingen`: instellingen worden als geheel samengevoegd op `updatedAt` en het opslaan van de temperatuurlocatie vervangt het hele object. Een collectie voegt per record samen. MINOR (zoals 1.6.0): niets opnieuw koppelen, wel eerst andere apparaten bijwerken voordat je daar iets wijzigt.
+- Werkt als filter op de afgeleide gegevens (`zonderUitgesloten`): dagen en temperaturen in een uitgesloten periode vallen weg, alsof er niets gemeten is; zonne-opbrengst van een maand vervalt als minstens de helft van de maand is uitgesloten; termijnen blijven staan. Daardoor geldt het vanzelf voor alle soorten analyse, ook voor "vorig jaar" in vergelijkingen. In de jaarprognose worden uitgesloten dagen geschat.
+- Alleen in Analyse (keuze "weglaten", standaard aan en onderdeel van een favoriet). Historie, Overzicht en Controle tonen de echte gegevens.
+### 1.22.1 Inline stijlen
+- De Content-Security-Policy (`style-src 'self'`) blokkeert style-attributen. Kleuren in de heatmap en breedtes van de top-10-balkjes worden daarom via CSSOM (`el.style.x = …`) gezet; dat is wel toegestaan. De testpagina draait nu met dezelfde CSP.
+
 ## 2026-11-05 – Kleuren per jaar (versie 1.9.4)
 - **Vaste jaarpalet in CSS** (`--jaar-0` t/m `--jaar-3` in app.css): accent, oranje, indigo, magenta, met een eigen
   donkere variant. Alle vier hebben minstens 3:1 contrast met de achtergrond (licht en donker), en de tinten liggen ver

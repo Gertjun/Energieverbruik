@@ -126,7 +126,30 @@
 - Duidelijkere jaarkleuren (Geert: kleuren van de jaren beter uit elkaar). Vorig jaar oranje i.p.v. lichtgrijs; zon-jaren
   groenblauw / oranje / indigo / magenta. Bekeken met een testpagina op laptop- (licht) en iPhone-breedte (donker).
 
+## Stand (5 november 2026) – versies 1.10.0 t/m 1.22.1: uitbreiding Analyse
+- Dertien uitbreidingen, elk een eigen versie: sluipverbruik (1.10), piekvermogen (1.11), per dag van de week (1.12),
+  keuze "Soort analyse" + heatmap (1.13), wat als de saldering stopt (1.14), eigen verbruik in de zonuren (1.15),
+  stooklijn (1.16), gas weer-gecorrigeerd (1.17), opgeteld verloop (1.18), jaarprognose (1.19), top-10 (1.20),
+  gemiddeld per dag (1.21), uitgesloten perioden (1.22, schema 4). 1.22.1: heatmap/top-10 onder de CSP.
+- Getest met een testpagina (buiten de repo) die Geerts echte Vattenfall-, HomeWizard- en Excel-bestanden inleest, met
+  dezelfde Content-Security-Policy als de app. Alle 312 combinaties van grootheid × indeling × vergelijking en alle
+  soorten × periodeknoppen doorgelopen op laptop- en iPhone-breedte zonder fouten; elke soort visueel bekeken.
+- Temperaturen ná 5-7-2026 waren in de test nagemaakt (Open-Meteo geblokkeerd). Stooklijn, weer-gecorrigeerd en de
+  gasprognose zijn dus voor juli–november met nepweer getest; met echte temperaturen in de app opnieuw bekijken.
+- Uitkomsten met Geerts data (ter controle): sluipverbruik ~110 W winter / ~170 W zomer; hoogste piek L2 6.463 W
+  (8-1-2026 19:15); einde saldering +€ 203 over 1-12-2025 t/m 4-11-2026; 1.957 kWh te verschuiven (€ 526 na 2027);
+  stooklijn vast 0,46 m³/dag, stookgrens 12,5 °C, 0,64 m³ per graad; prognose 2026 € 3.200, ~€ 284 bijbetalen.
+- Opvallend in de data: ’s nachts wisselt de afname per uur tussen ~0,16 en ~1,5 kWh (iets dat aan- en afslaat,
+  bijv. boiler of warmtepomp). Niet onderzocht; Geert kan het in de heatmap per dag bekijken.
+
 ## Openstaande punten
+- [ ] Geert: HomeWizard-export (stroom) opnieuw inlezen, zodat ook eerdere dagen piekvermogen krijgen (1.11.0).
+- [ ] Geert: na het bijwerken alle apparaten eenmaal openen (gegevensversie 4, uitgesloten perioden).
+- [ ] Geert: aug–sep 2025 (huis leeg) toevoegen bij Analyse → Uitgesloten perioden.
+- [ ] Geert: nieuwe analyses bekijken op iPhone, iPad en laptop; vooral heatmap (leesbaar?) en jaarprognose
+      (klopt de verwachte eindafrekening met wat hij verwacht?).
+- [ ] Stooklijn en gas weer-gecorrigeerd nakijken met echte temperaturen (in de test nagemaakt na 5-7-2026).
+- [ ] Aansluiting 3×25 A staat vast in analyse.js (`AANSLUITING`); instelbaar maken als het ooit verandert.
 - [ ] Geert: nieuwe jaarkleuren bekijken op iPhone en laptop; bevallen ze?
 - [ ] Geert stuurt Vattenfall-dagkosten van een paar doordeweekse dagen (zonnig en somber, bijv. 26, 27, 29, 30 okt,
       2 en 3 nov) om het verschil op 28-10 (€ 0,46 stroom) te verklaren.
