@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.0
+
+**Toegevoegd**
+- **Per dag van de week** als indeling in Analyse: het gemiddelde verbruik (of de gemiddelde kosten) per maandag, dinsdag, … zondag over de gekozen periode. In de tabel staan daarnaast Werkdagen en Weekend, zodat je direct ziet of je in het weekend meer of minder gebruikt. Werkt met alle grootheden behalve zonne-opbrengst (die is alleen per maand bekend), ook in combinatie met vorig jaar of een tweede grootheid.
+
+**Verbeterd**
+- Grafieken met weinig staven (zoals de 7 dagen van de week) tonen nu onder elke staaf een label, ook op de iPhone.
+
 ## 1.11.0
 
 **Toegevoegd**

@@ -122,7 +122,7 @@ function resultaat(a, c, van, tot) {
   }) : h('p', { class: 'muted' }, 'Geen gegevens in deze periode.');
 
   // Tabel
-  const kop = [h('th', {}, c.indeling === 'uur' ? 'Uur' : c.indeling === 'tijdvak' ? 'Tijdvak' : 'Periode'),
+  const kop = [h('th', {}, c.indeling === 'uur' ? 'Uur' : c.indeling === 'tijdvak' ? 'Tijdvak' : c.indeling === 'weekdag' ? 'Dag' : 'Periode'),
     h('th', { class: 'num' }, `${lijnMaat ? m.naam : 'Waarde'} (${m.eenheid})`)];
   if (r2 && !lijnMaat) kop.push(h('th', { class: 'num' }, `${naam2} (${m.eenheid})`), h('th', { class: 'num' }, 'Verschil'), h('th', { class: 'num verberg-smal' }, '%'));
   if (lijnMaat) kop.push(h('th', { class: 'num' }, `${MATEN[c.maat2].naam} (${MATEN[c.maat2].eenheid})`));
@@ -142,8 +142,11 @@ function resultaat(a, c, van, tot) {
   const totaalRij = h('tr', { class: 'jaar-rij' }, h('th', { scope: 'row' }, r.totaal.label),
     cellen(r.totaal.v, r.totaal.geschat, r2 ? r2.totaal.v : null));
   const rijen = r.vakjes.map((vk, i) => h('tr', {}, h('td', {}, vk.label), cellen(vk.v, vk.geschat, w2(i))));
+  // Extra samenvattende regels (bijv. werkdagen en weekend), direct onder het totaal.
+  const extraRijen = (r.extra || []).map((x, i) => h('tr', { class: 'extra-rij' }, h('th', { scope: 'row' }, x.label),
+    cellen(x.v, x.geschat, r2?.extra?.[i]?.v ?? null)));
   const tabel = h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel tabel-analyse' },
-    h('thead', {}, h('tr', {}, kop)), h('tbody', {}, totaalRij, rijen)));
+    h('thead', {}, h('tr', {}, kop)), h('tbody', {}, totaalRij, extraRijen, rijen)));
 
   const csvKnop = h('button', {
     class: 'btn', type: 'button', disabled: !n,
@@ -155,6 +158,7 @@ function resultaat(a, c, van, tot) {
     : m.naam;
   const hints = ['Cursieve waarden zijn (deels) geschat.'];
   if (c.indeling === 'uur') hints.push('Per uur = gemiddelde per dag over de gekozen periode; dagen zonder uurdata volgen het gemiddelde uurprofiel.');
+  if (c.indeling === 'weekdag') hints.push(`Per dag van de week = gemiddelde per dag over de gekozen periode${MATEN[c.maat].agg === 'max' ? ' (piekvermogen: de hoogste)' : c.maat === 'basis' ? ' (sluipverbruik: de mediaan)' : ''}. Feestdagen tellen als gewone weekdag.`);
   if (c.indeling === 'tijdvak') hints.push('Tijdvakken die in de periode niet voorkomen (bijv. zomer in januari) blijven leeg.');
   if ([c.maat, c.maat2].includes('gasPerGd')) hints.push('Gas per graaddag alleen bij voldoende graaddagen (dag 1, week 3, maand/jaar 5).');
   if (c.maat === 'piek' || c.maat === 'piekSom') {
@@ -184,7 +188,8 @@ function csv(c, r, r2, naam2, lijnMaat) {
   if (r2 && !lijnMaat) kop.push(`${naam2} (${MATEN[c.maat].eenheid})`);
   if (lijnMaat) kop.push(`${MATEN[c.maat2].naam} (${MATEN[c.maat2].eenheid})`);
   const regel = (label, v, v2) => [label, getal(c.maat, v), ...(r2 ? [getal(lijnMaat ? c.maat2 : c.maat, v2)] : [])];
-  const regels = [kop, ...r.vakjes.map((vk, i) => regel(vk.label, vk.v, r2?.vakjes[i]?.v)), regel(r.totaal.label, r.totaal.v, r2?.totaal.v)];
+  const regels = [kop, ...r.vakjes.map((vk, i) => regel(vk.label, vk.v, r2?.vakjes[i]?.v)), regel(r.totaal.label, r.totaal.v, r2?.totaal.v),
+    ...(r.extra || []).map((x, i) => regel(x.label, x.v, r2?.extra?.[i]?.v))];
   return `﻿${regels.map((rij) => rij.map((x) => (/[;"\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x)).join(';')).join('\r\n')}\r\n`;
 }
 

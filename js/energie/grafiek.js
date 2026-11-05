@@ -69,7 +69,7 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
   }
 
   // Op een smal scherm minder labels onder de as, zodat ze niet tegen elkaar aan staan.
-  const stap = Math.max(1, Math.ceil(n / (W < 500 ? 6 : 12)));
+  const stap = n <= 8 ? 1 : Math.max(1, Math.ceil(n / (W < 500 ? 6 : 12)));
   const staaf = (x, v, cls) => {
     if (v == null || v === 0) return null;
     const y0 = y(0); const y1 = y(v);
@@ -201,7 +201,7 @@ export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs
   }
 
   const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, ' ');
-  const stap = Math.max(1, Math.ceil(n / (W < 500 ? 6 : 12)));
+  const stap = n <= 8 ? 1 : Math.max(1, Math.ceil(n / (W < 500 ? 6 : 12)));
   for (let i = 0; i < n; i++) {
     if (i % stap === 0 || i === n - 1) svg.append(s('text', { x: L + slot * i + slot / 2, y: H - 8, class: 'g-as', 'text-anchor': 'middle' }, korteLabels[i]));
     const hit = s('rect', { x: L + slot * i, y: T - 20, width: slot, height: H - T - B + 20, class: 'g-hit' });

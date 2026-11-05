@@ -5,34 +5,35 @@
 import { totaal } from './model.js';
 import { TIJDVAKKEN, tijdvak, urenVanDag, contractOp } from './tarief.js';
 import {
-  addDays, eachDay, daysBetween, isoWeekKey, mondayOf, monthKey, sameDayLastYear,
+  addDays, eachDay, daysBetween, weekday, isoWeekKey, mondayOf, monthKey, sameDayLastYear,
   fmtDatumKort, fmtMaand, fmtMaandKort,
 } from './tijd.js';
 
 // soort: 'som' (optellen), 'gem' (gemiddelde/verhouding). per: welke indelingen kunnen.
 const TIJD = ['dag', 'week', 'maand', 'jaar'];
 const UUR = ['uur', 'tijdvak'];
+const WD = ['weekdag'];
 export const MATEN = {
-  afname: { groep: 'Verbruik', naam: 'Stroom afgenomen', eenheid: 'kWh', d: 1, per: [...TIJD, ...UUR] },
-  terug: { groep: 'Verbruik', naam: 'Stroom teruggeleverd', eenheid: 'kWh', d: 1, per: [...TIJD, ...UUR] },
-  netto: { groep: 'Verbruik', naam: 'Stroom netto (afname − terug)', eenheid: 'kWh', d: 1, per: [...TIJD, ...UUR] },
-  gas: { groep: 'Verbruik', naam: 'Gas', eenheid: 'm³', d: 2, per: TIJD },
-  piek: { groep: 'Verbruik', naam: 'Piekvermogen (hoogste fase)', eenheid: 'W', d: 0, per: TIJD, agg: 'max' },
-  piekSom: { groep: 'Verbruik', naam: 'Piekvermogen (3 fasen samen)', eenheid: 'W', d: 0, per: TIJD, agg: 'max' },
-  basis: { groep: 'Verbruik', naam: 'Sluipverbruik (laagste uur ʼs nachts)', eenheid: 'W', d: 0, per: TIJD, gem: true },
-  kosten: { groep: 'Kosten', naam: 'Kosten totaal', eenheid: '€', d: 2, per: TIJD },
-  kostenStroom: { groep: 'Kosten', naam: 'Kosten stroom (variabel)', eenheid: '€', d: 2, per: TIJD },
-  kostenGas: { groep: 'Kosten', naam: 'Kosten gas (variabel)', eenheid: '€', d: 2, per: TIJD },
-  kostenVast: { groep: 'Kosten', naam: 'Vaste kosten', eenheid: '€', d: 2, per: TIJD },
-  temp: { groep: 'Weer', naam: 'Temperatuur (gemiddeld)', eenheid: '°C', d: 1, per: TIJD, gem: true },
-  graaddagen: { groep: 'Weer', naam: 'Graaddagen (gewogen)', eenheid: 'gd', d: 1, per: TIJD },
-  gasPerGd: { groep: 'Weer', naam: 'Gas per graaddag', eenheid: 'm³/gd', d: 3, per: TIJD, gem: true },
+  afname: { groep: 'Verbruik', naam: 'Stroom afgenomen', eenheid: 'kWh', d: 1, per: [...TIJD, ...WD, ...UUR] },
+  terug: { groep: 'Verbruik', naam: 'Stroom teruggeleverd', eenheid: 'kWh', d: 1, per: [...TIJD, ...WD, ...UUR] },
+  netto: { groep: 'Verbruik', naam: 'Stroom netto (afname − terug)', eenheid: 'kWh', d: 1, per: [...TIJD, ...WD, ...UUR] },
+  gas: { groep: 'Verbruik', naam: 'Gas', eenheid: 'm³', d: 2, per: [...TIJD, ...WD] },
+  piek: { groep: 'Verbruik', naam: 'Piekvermogen (hoogste fase)', eenheid: 'W', d: 0, per: [...TIJD, ...WD], agg: 'max' },
+  piekSom: { groep: 'Verbruik', naam: 'Piekvermogen (3 fasen samen)', eenheid: 'W', d: 0, per: [...TIJD, ...WD], agg: 'max' },
+  basis: { groep: 'Verbruik', naam: 'Sluipverbruik (laagste uur ʼs nachts)', eenheid: 'W', d: 0, per: [...TIJD, ...WD], gem: true },
+  kosten: { groep: 'Kosten', naam: 'Kosten totaal', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
+  kostenStroom: { groep: 'Kosten', naam: 'Kosten stroom (variabel)', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
+  kostenGas: { groep: 'Kosten', naam: 'Kosten gas (variabel)', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
+  kostenVast: { groep: 'Kosten', naam: 'Vaste kosten', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
+  temp: { groep: 'Weer', naam: 'Temperatuur (gemiddeld)', eenheid: '°C', d: 1, per: [...TIJD, ...WD], gem: true },
+  graaddagen: { groep: 'Weer', naam: 'Graaddagen (gewogen)', eenheid: 'gd', d: 1, per: [...TIJD, ...WD] },
+  gasPerGd: { groep: 'Weer', naam: 'Gas per graaddag', eenheid: 'm³/gd', d: 3, per: [...TIJD, ...WD], gem: true },
   zon: { groep: 'Zonnepanelen', naam: 'Zonne-opbrengst', eenheid: 'kWh', d: 0, per: ['maand', 'jaar'] },
 };
 
 export const INDELINGEN = [
   ['dag', 'Per dag'], ['week', 'Per week'], ['maand', 'Per maand'], ['jaar', 'Per jaar'],
-  ['uur', 'Per uur van de dag (gemiddeld)'], ['tijdvak', 'Per tijdvak'],
+  ['weekdag', 'Per dag van de week (gemiddeld)'], ['uur', 'Per uur van de dag (gemiddeld)'], ['tijdvak', 'Per tijdvak'],
 ];
 
 export const MAX_DAGEN_PER_DAG = 400;
@@ -195,9 +196,52 @@ function uurWaarden(a, maat, van, tot, indeling) {
   return { vakjes, totaal: { label: indeling === 'uur' ? 'Hele dag (gemiddeld)' : 'Totaal', v: totaalV, geschat }, dagen };
 }
 
+const WEEKDAGEN = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+
+/**
+ * Per dag van de week: gemiddelde per dag (sluipverbruik: mediaan, piek: hoogste).
+ * Met extra regels voor werkdagen en weekend.
+ */
+function weekdagWaarden(a, maat, van, tot) {
+  const m = MATEN[maat];
+  const per = WEEKDAGEN.map(() => ({ w: [], gas: 0, gd: 0, geschat: false }));
+  for (const d of eachDay(van, tot)) {
+    const i = (weekday(d) + 6) % 7;
+    if (maat === 'gasPerGd') {
+      const x = a.perDag.get(d);
+      if (x?.dag?.gas != null && x.graaddag > 0) { per[i].gas += x.dag.gas; per[i].gd += x.graaddag; }
+      continue;
+    }
+    const t = tijdWaarde(a, maat, d, d, 'dag');
+    if (t.v == null) continue;
+    per[i].w.push(t.v);
+    if (t.geschat) per[i].geschat = true;
+  }
+  const samen = (groepen) => {
+    if (maat === 'gasPerGd') {
+      const gas = groepen.reduce((s, g) => s + g.gas, 0); const gd = groepen.reduce((s, g) => s + g.gd, 0);
+      return { v: gd >= GD_MINIMUM.week ? gas / gd : null };
+    }
+    const w = groepen.flatMap((g) => g.w);
+    const geschat = groepen.some((g) => g.geschat);
+    if (!w.length) return { v: null };
+    if (maat === 'basis') return { v: mediaan(w) };
+    if (m.agg === 'max') return { v: Math.max(...w) };
+    return { v: w.reduce((s, x) => s + x, 0) / w.length, geschat };
+  };
+  const vakjes = WEEKDAGEN.map((naam, i) => ({ label: naam, kort: naam.slice(0, 2), ...samen([per[i]]), n: per[i].w.length }));
+  return {
+    vakjes,
+    totaal: { label: m.agg === 'max' ? 'Hoogste' : 'Alle dagen', ...samen(per) },
+    extra: [{ label: 'Werkdagen', ...samen(per.slice(0, 5)) }, { label: 'Weekend', ...samen(per.slice(5)) }],
+    dagen: daysBetween(van, tot) + 1,
+  };
+}
+
 /** Reeks voor één grootheid: { vakjes: [{label,kort,v,geschat}], totaal, dagen }. */
 export function reeks(a, maat, indeling, van, tot) {
   if (UUR.includes(indeling)) return uurWaarden(a, maat, van, tot, indeling);
+  if (indeling === 'weekdag') return weekdagWaarden(a, maat, van, tot);
   const vakjes = tijdVakjes(indeling, van, tot).map((vk) => ({ ...vk, ...tijdWaarde(a, maat, vk.van, vk.tot, indeling) }));
   const t = tijdWaarde(a, maat, van, tot, 'jaar');
   const label = MATEN[maat].agg === 'max' ? 'Hoogste' : MATEN[maat].gem ? 'Hele periode' : 'Totaal';
