@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.9.0
+
+**Toegevoegd**
+- **Indeling van het Overzicht op de laptop** kiezen (Instellingen → App en sync):
+  - **Eén kolom**: zoals voorheen (en zoals op de iPhone).
+  - **Naast elkaar**: kaarten in twee kolommen over de volle breedte.
+  - **Grafiek en lijst**: in elke kaart de grafiek met de lijst met getallen ernaast (de knop Grafiek/Lijst vervalt).
+  - **Alles tegelijk**: Stroom, Terug, Gas en Kosten als vier grafieken in twee kolommen; de keuze Stroom/Terug/Gas/Kosten vervalt.
+- De keuze geldt per apparaat en alleen bij een venster vanaf 1200 pixels breed; op iPhone en iPad in staande stand verandert niets. Bij een brede indeling mag de inhoud breder worden (tot 1640 pixels).
 ## 1.8.0
 
 **Gewijzigd**

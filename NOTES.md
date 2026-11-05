@@ -95,7 +95,15 @@
   elkaar (jan–dec). Getest met nagemaakte gegevens (opbrengst 2024–2026, stroom vanaf 20-11-2025) op laptop (donker)
   en iPhone (licht). Op de iPhone passen de percentages bij 1–2 jaren (staand bij 2); bij 3+ jaren alleen via aantikken.
 
+## Stand (5 november 2026) – versie 1.9.0
+- Indeling Overzicht op de laptop instelbaar (Eén kolom / Naast elkaar / Grafiek en lijst / Alles tegelijk), in
+  Instellingen → App en sync. Getest met een testpagina met Geerts Excel en HomeWizard-bestanden op 1860 px (donker),
+  1280 px (licht) en iPhone-breedte: grafieken krijgen de breedte van hun kolom, iPhone ongewijzigd.
+- Grafieken passen hun breedte niet aan als het venster versleept wordt zonder de grens van 1200 px te passeren
+  (was al zo); opnieuw openen van het scherm helpt.
+
 ## Openstaande punten
+- [ ] Geert: de vier indelingen op de laptop bekijken en er één kiezen; de andere eventueel later weer weghalen.
 - [ ] Geert: Overzicht op iPhone/iPad bekijken; past de lijst (4 kolommen) en is de zon-grafiek leesbaar?
 - [ ] Geert: Analyse en Instellingen bekijken op iPhone en iPad. Na het bijwerken eenmaal alle apparaten openen
       (gegevensversie 3).

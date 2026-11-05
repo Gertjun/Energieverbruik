@@ -13,6 +13,16 @@ function s(tag, attrs = {}, ...kids) {
   return el;
 }
 
+/**
+ * Breedte van de grafiek in SVG-eenheden. Gelijk aan de echte breedte op het scherm, zodat de tekst
+ * op elk apparaat even groot blijft. `breedte` = de ruimte die de grafiek krijgt (bijv. een halve kolom);
+ * zonder die waarde wordt de breedte van het venster gebruikt (één kolom).
+ */
+function grafiekBreedte(breedte) {
+  if (breedte) return Math.round(Math.max(300, breedte));
+  return Math.round(Math.min(960, Math.max(300, (window.innerWidth || 640) - (window.innerWidth >= 900 ? 300 : 66))));
+}
+
 function niceMax(v) {
   if (v <= 0) return 1;
   const p = 10 ** Math.floor(Math.log10(v));
@@ -24,9 +34,9 @@ function niceMax(v) {
  * staafGrafiek({ labels, korteLabels, waarden, vergelijk, fmt, naam, vergelijkNaam, markeer })
  * waarden/vergelijk: getallen of null (geen gegevens).
  */
-export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], lijn = null }) {
+export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], lijn = null, breedte = null }) {
   // Breedte volgt het scherm, zodat de tekst op elk apparaat even groot blijft.
-  const W = Math.round(Math.min(960, Math.max(300, (window.innerWidth || 640) - (window.innerWidth >= 900 ? 300 : 66))));
+  const W = grafiekBreedte(breedte);
   const H = W < 500 ? 200 : 240; const L = 44; const R = lijn ? 44 : 8; const T = 10; const B = 26;
   const alle = [...waarden, ...(vergelijk || [])].filter((v) => v != null);
   const maxV = niceMax(Math.max(0, ...alle));
@@ -141,8 +151,8 @@ function kolom(x, y0, y1, bw, cls) {
  * zonGrafiek({ labels (12), korteLabels (12), reeksen: [{ naam, kleur (0–3), waarden: [{ zon, eigen, aandeel } | null] }], fmtKwh, fmtPct })
  * Reeksen van oud naar nieuw.
  */
-export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs }) {
-  const W = Math.round(Math.min(960, Math.max(300, (window.innerWidth || 640) - (window.innerWidth >= 900 ? 300 : 66))));
+export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs, breedte = null }) {
+  const W = grafiekBreedte(breedte);
   const H = W < 500 ? 220 : 260; const L = 44; const R = 8; const T = 24; const B = 26;
   const alle = reeksen.flatMap((r) => r.waarden).filter(Boolean).map((w) => w.zon);
   const maxV = niceMax(Math.max(0, ...alle));

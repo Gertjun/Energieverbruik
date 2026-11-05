@@ -282,3 +282,32 @@ input[type="month"] {
 .tabel-analyse td.is-geschat { font-style: italic; }
 .tabel-analyse td.plus { color: var(--danger); }
 .tabel-analyse td.min { color: var(--ok); }
+
+/* ---------- Brede indeling van het Overzicht (laptop, zie Instellingen → App en sync) ---------- */
+@media (min-width: 1200px) {
+  body.energie-app:not([data-indeling="standaard"]) #screen-app .app-main { max-width: 1640px; }
+  body.energie-app:not([data-indeling="standaard"]) #screen-app .app-header-inner { max-width: 1608px; }
+  .overzicht-raster { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  /* Een losse laatste kaart (oneven aantal) over de hele breedte */
+  .overzicht-raster > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  /* Alleen Dag/Week/Maand/Jaar: niet uitrekken over de hele breedte */
+  .keuzes.keuzes-een { grid-template-columns: minmax(0, 520px); }
+  /* Grafiek met de lijst ernaast; breedte lijst gelijk aan LIJST_BREEDTE in scherm-overzicht.js */
+  .samen { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
+  .samen-lijst { max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  .samen-lijst .tabel-wrap { margin: 0; padding: 0; overflow-x: visible; }
+  .samen-lijst .tabel thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+}
+/* Onder de grens (zou niet voorkomen, de app tekent dan één kolom): veilig onder elkaar */
+@media (max-width: 1199px) {
+  .overzicht-raster { display: grid; gap: 16px; }
+  .samen { display: grid; gap: 16px; }
+}
+
+/* Keuze indeling in Instellingen */
+.keus-lijst { display: grid; gap: 8px; }
+.keus-optie { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
+.keus-optie:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.keus-optie input { margin-top: 3px; accent-color: var(--accent); flex: none; }
+.keus-optie span { display: grid; gap: 2px; }
+.keus-optie small { color: var(--muted); }

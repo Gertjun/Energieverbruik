@@ -8,7 +8,7 @@ import { h, today } from './core/dom.js';
 import { APP } from './config.js';
 import { SCHEMA, initialData, migrate, merge, afgeleid, upsert, weerId } from './energie/model.js';
 import { haalTemperaturen } from './energie/weer.js';
-import { renderOverzicht } from './energie/scherm-overzicht.js';
+import { renderOverzicht, BREED_SCHERM } from './energie/scherm-overzicht.js';
 import { renderInvoer } from './energie/scherm-invoer.js';
 import { renderHistorie } from './energie/scherm-historie.js';
 import { renderAnalyse } from './energie/scherm-analyse.js';
@@ -30,6 +30,10 @@ const opnieuw = () => { if (laatsteRoot) app.render(laatsteRoot, laatsteCtx); };
 // Ingeklapte zijbalk is een weergavevoorkeur (geen gegevens), dus buiten de kluis.
 const ZIJBALK_KEY = `${APP.storagePrefix}:zijbalk-ingeklapt`;
 const zijbalkIngeklapt = () => { try { return localStorage.getItem(ZIJBALK_KEY) === '1'; } catch { return false; } };
+
+// Wordt het venster breder of smaller dan de grens voor de brede indeling van het Overzicht,
+// dan opnieuw tekenen (bijv. venster verkleind of iPad gedraaid).
+window.matchMedia?.(BREED_SCHERM).addEventListener?.('change', () => { if (staat.tab === 'overzicht') opnieuw(); });
 
 function icoon(pad) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -103,12 +107,16 @@ export const app = {
     laatsteRoot = root; laatsteCtx = ctx;
     const a = afgeleid(ctx.data);
     staat.tab ??= a.eerste ? 'overzicht' : 'invoer';
+    staat.zijbalkIn = zijbalkIngeklapt();
+    staat.indeling = 'standaard'; // het Overzicht zet hier zijn brede indeling in
     let inhoud;
     if (staat.tab === 'invoer') inhoud = renderInvoer(a, staat, opnieuw, ctx);
     else if (staat.tab === 'historie') inhoud = renderHistorie(a, staat, opnieuw, ctx);
     else if (staat.tab === 'analyse') inhoud = renderAnalyse(a, staat, opnieuw, ctx);
     else if (staat.tab === 'instellingen') inhoud = renderInstellingen(a, staat, opnieuw, ctx);
     else inhoud = renderOverzicht(a, staat, opnieuw);
+    // Brede indeling van het Overzicht: de inhoud mag dan breder worden (zie app.css).
+    document.body.dataset.indeling = staat.tab === 'overzicht' ? staat.indeling : 'standaard';
     document.querySelectorAll('[data-app-version]').forEach((el) => { el.textContent = `v${APP.version}`; });
     root.replaceChildren(navigatie(), h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), ...inhoud.filter(Boolean));
     ctx.toonSchilInstellingen?.(schilGroep(staat));

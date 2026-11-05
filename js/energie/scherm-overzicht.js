@@ -97,14 +97,64 @@ function bewaarZonJaren(beschikbaar, gekozen, jaar) {
   try { localStorage.setItem(ZON_JAREN_KEY, JSON.stringify(nieuw)); } catch { /* geen opslag */ }
 }
 
-/** Kaart met rechtsboven een keuze Grafiek/Lijst. `maak(soort)` levert de inhoud. */
-function wisselKaart(id, titel, maak, opnieuw) {
-  const soort = leesWeergaven()[id] === 'lijst' ? 'lijst' : 'grafiek';
+// Indeling van het Overzicht op een breed scherm (laptop). Weergavevoorkeur per apparaat.
+//   standaard – één kolom (zoals op iPhone/iPad)
+//   naast     – kaarten in twee kolommen naast elkaar
+//   samen     – grafiek en lijst tegelijk in elke kaart
+//   alles     – Stroom, Terug, Gas en Kosten tegelijk, in twee kolommen
+export const INDELINGEN = [
+  ['standaard', 'Eén kolom', 'Zoals op de iPhone: alles onder elkaar, met een keuze tussen grafiek en lijst.'],
+  ['naast', 'Naast elkaar', 'Kaarten in twee kolommen, zodat je meer ziet zonder te scrollen.'],
+  ['samen', 'Grafiek en lijst', 'In elke kaart de grafiek met de lijst met getallen ernaast.'],
+  ['alles', 'Alles tegelijk', 'Stroom, teruglevering, gas en kosten als vier grafieken naast elkaar; de keuze Stroom/Terug/Gas/Kosten vervalt.'],
+];
+const INDELING_KEY = 'energieverbruik.overzichtIndeling';
+/** Vanaf deze vensterbreedte geldt de gekozen indeling; daaronder altijd één kolom. */
+export const BREED_SCHERM = '(min-width: 1200px)';
+const MAX_BREED = 1640; // maximale breedte van de inhoud bij een brede indeling (px)
+export function leesIndeling() {
+  try { const v = localStorage.getItem(INDELING_KEY); return INDELINGEN.some(([k]) => k === v) ? v : 'standaard'; } catch { return 'standaard'; }
+}
+export function bewaarIndeling(v) {
+  try { localStorage.setItem(INDELING_KEY, v); } catch { /* geen opslag */ }
+}
+/** De indeling die nu echt geldt: de gekozen, maar alleen op een breed scherm. */
+export function actieveIndeling() {
+  const v = leesIndeling();
+  return v !== 'standaard' && window.matchMedia?.(BREED_SCHERM).matches ? v : 'standaard';
+}
+
+/**
+ * Beschikbare breedte voor een grafiek (px), uitgaande van de layout in app.css.
+ * Bij één kolom null: dan rekent de grafiek zelf met de vensterbreedte, zoals voorheen.
+ */
+function breedtes(indeling, zijbalkIn) {
+  if (indeling === 'standaard') return { heel: null, half: null, naastLijst: null };
+  const inhoud = Math.min(MAX_BREED, (window.innerWidth || 1200) - (zijbalkIn ? 68 : 256)) - 32; // min. marge .app-main
+  const kaartIn = inhoud - 34; // min. padding en rand van de kaart
+  const halfIn = (inhoud - 16) / 2 - 34; // twee kolommen met 16 px tussenruimte
+  return { heel: kaartIn, half: halfIn, naastLijst: kaartIn - 24 - LIJST_BREEDTE };
+}
+const LIJST_BREEDTE = 380; // breedte van de lijst naast de grafiek (zie .samen in app.css)
+
+/**
+ * Kaart met rechtsboven een keuze Grafiek/Lijst. `maak(soort)` levert de inhoud;
+ * soort is 'grafiek', 'lijst' of 'samen' (beide naast elkaar, zonder keuzeknop).
+ */
+function wisselKaart(id, titel, maak, opnieuw, samen = false) {
+  const soort = samen ? 'samen' : leesWeergaven()[id] === 'lijst' ? 'lijst' : 'grafiek';
   return h('section', { class: 'card kaart' },
     h('div', { class: 'kaart-kop' },
       h('h2', { class: 'kaart-titel' }, titel),
-      h('div', { class: 'kaart-wissel' }, segmented(WEERGAVEN, soort, (v) => { bewaarWeergave(id, v); opnieuw(); }, `Weergave ${titel}`))),
+      samen ? null : h('div', { class: 'kaart-wissel' }, segmented(WEERGAVEN, soort, (v) => { bewaarWeergave(id, v); opnieuw(); }, `Weergave ${titel}`))),
     ...[].concat(maak(soort)));
+}
+
+/** Grafiek, lijst of beide naast elkaar. */
+function grafiekOfLijst(soort, grafiek, lijst) {
+  if (soort === 'lijst') return lijst();
+  if (soort === 'grafiek') return grafiek();
+  return h('div', { class: 'samen' }, grafiek(), h('div', { class: 'samen-lijst' }, lijst()));
 }
 
 /** Tabel bij een grafiek: nieuwste periode bovenaan, met vorig jaar en verschil als die er is. */
@@ -139,8 +189,16 @@ export function renderOverzicht(a, staat, opnieuw) {
       h('div', { class: 'button-row' }, h('button', { class: 'btn btn-primary', type: 'button', onClick: () => { staat.tab = 'invoer'; opnieuw(); } }, 'Naar invoer')))];
   }
 
+  const indeling = actieveIndeling();
+  staat.indeling = indeling; // app.js zet hiermee de bredere opmaak aan
+  const B = breedtes(indeling, staat.zijbalkIn);
+  const samen = indeling === 'samen';
+  const tweeKolommen = indeling === 'naast' || indeling === 'alles';
+  // Breedte voor een grafiek in een gewone kaart (één of twee kolommen, of naast de lijst).
+  const bKaart = samen ? B.naastLijst : tweeKolommen ? B.half : null;
+
   const periodeKeus = segmented(PERIODES, staat.periode, (v) => { staat.periode = v; opnieuw(); }, 'Periode');
-  const maatKeus = segmented(MATEN, staat.maat, (v) => { staat.maat = v; opnieuw(); }, 'Wat tonen');
+  const maatKeus = indeling === 'alles' ? null : segmented(MATEN, staat.maat, (v) => { staat.maat = v; opnieuw(); }, 'Wat tonen');
 
   // Kerncijfers
   const hp = huidigePeriode(staat.periode, a.laatste);
@@ -156,34 +214,34 @@ export function renderOverzicht(a, staat, opnieuw) {
       kpi('Kosten', of(nu, 'kosten', 'kosten'), euro, of(toen, 'kosten', 'kosten'))),
     nu.geschat ? h('p', { class: 'hint' }, 'Kosten deels geschat: voor sommige dagen is geen uurverdeling bekend.') : null);
 
-  // Grafiek
+  // Grafiek(en) per soort: één (gekozen met Stroom/Terug/Gas/Kosten) of alle vier bij de indeling 'alles'.
   const lijst = perioden(staat.periode, a.laatste);
-  const maat = MAAT[staat.maat];
-  const waarden = []; const vergelijk = []; const markeer = [];
-  for (const p of lijst) {
-    const t = totaal(a, p.van, p.tot);
-    waarden.push(maat.geldig(t) ? t[staat.maat] : null);
-    markeer.push(staat.maat === 'kosten' && t.geschat);
-    if (p.vorig) {
-      const v = totaal(a, p.vorig[0], p.vorig[1]);
-      vergelijk.push(maat.geldig(v) ? v[staat.maat] : null);
-    }
-  }
-  const heeftVergelijk = staat.periode !== 'jaar' && vergelijk.some((v) => v != null);
   const labels = lijst.map((p) => p.label);
   // De laatste periode loopt meestal nog; dan is een verschil met de hele periode vorig jaar misleidend.
   const lopend = lijst.map((p) => p.tot > a.laatste);
-  const grafiek = wisselKaart('hoofd', maat.naam, (soort) => [
-    soort === 'lijst'
-      ? lijstTabel({ kop: maat.kop, labels, waarden, vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.cel, markeer, lopend })
-      : staafGrafiek({
-        labels, korteLabels: lijst.map((p) => p.kort), waarden,
-        vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.fmt, markeer,
-      }),
-    staat.maat === 'kosten' ? h('p', { class: 'hint' }, `Inclusief vaste kosten en verrekening van teruglevering. ${soort === 'lijst' ? 'Bedragen met ≈ zijn' : 'Lichtere staven zijn'} (deels) geschat.`) : null,
-  ], opnieuw);
+  const totalen = lijst.map((p) => ({ nu: totaal(a, p.van, p.tot), vorig: p.vorig ? totaal(a, p.vorig[0], p.vorig[1]) : null }));
+  const maatKaart = (maatKey, id) => {
+    const maat = MAAT[maatKey];
+    const waarden = totalen.map(({ nu: t }) => (maat.geldig(t) ? t[maatKey] : null));
+    const markeer = totalen.map(({ nu: t }) => maatKey === 'kosten' && t.geschat);
+    const vergelijk = totalen.map(({ vorig: v }) => (v && maat.geldig(v) ? v[maatKey] : null));
+    const heeftVergelijk = staat.periode !== 'jaar' && vergelijk.some((v) => v != null);
+    return wisselKaart(id, maat.naam, (soort) => [
+      grafiekOfLijst(soort,
+        () => staafGrafiek({
+          labels, korteLabels: lijst.map((p) => p.kort), waarden,
+          vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.fmt, markeer, breedte: bKaart,
+        }),
+        () => lijstTabel({ kop: maat.kop, labels, waarden, vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.cel, markeer, lopend })),
+      maatKey === 'kosten' ? h('p', { class: 'hint' }, `Inclusief vaste kosten en verrekening van teruglevering. ${soort === 'lijst' ? 'Bedragen met ≈ zijn' : soort === 'samen' ? 'Lichtere staven en bedragen met ≈ zijn' : 'Lichtere staven zijn'} (deels) geschat.`) : null,
+    ], opnieuw, samen);
+  };
+  const grafieken = indeling === 'alles'
+    ? MATEN.map(([k]) => maatKaart(k, `alles-${k}`))
+    : [maatKaart(staat.maat, 'hoofd')];
 
-  const delen = [h('div', { class: 'keuzes' }, periodeKeus, maatKeus), kpis, grafiek];
+  const kaarten = [...grafieken]; // komen in het raster (één of twee kolommen)
+  const delen = [h('div', { class: `keuzes${maatKeus ? '' : ' keuzes-een'}` }, periodeKeus, maatKeus), kpis];
 
   // Gas per graaddag (volgt de gekozen periode)
   const mnd = perioden('maand', a.laatste);
@@ -193,16 +251,16 @@ export function renderOverzicht(a, staat, opnieuw) {
   const gdVorig = lijst.map((p) => (p.vorig ? gdWaarde(p.vorig[0], p.vorig[1]) : null));
   if (gd.some((v) => v != null)) {
     const heeftGdVorig = gdVorig.some((v) => v != null);
-    delen.push(wisselKaart('graaddag', `Gas per graaddag · ${PER_TEKST[staat.periode]}`, (soort) => [
-      soort === 'lijst'
-        ? lijstTabel({ kop: 'm³/graaddag', labels: lijst.map((p) => p.label), waarden: gd, lopend, vergelijk: heeftGdVorig ? gdVorig : null, fmt: (v) => fmtGetal(v, 3) })
-        : staafGrafiek({
+    kaarten.push(wisselKaart('graaddag', `Gas per graaddag · ${PER_TEKST[staat.periode]}`, (soort) => [
+      grafiekOfLijst(soort,
+        () => staafGrafiek({
           labels: lijst.map((p) => p.label), korteLabels: lijst.map((p) => p.kort), waarden: gd,
-          vergelijk: heeftGdVorig ? gdVorig : null,
+          vergelijk: heeftGdVorig ? gdVorig : null, breedte: bKaart,
           fmt: (v, as) => (as ? fmtGetal(v, 2) : `${fmtGetal(v, 3)} m³ per graaddag`),
         }),
+        () => lijstTabel({ kop: 'm³/graaddag', labels: lijst.map((p) => p.label), waarden: gd, lopend, vergelijk: heeftGdVorig ? gdVorig : null, fmt: (v) => fmtGetal(v, 3) })),
       h('p', { class: 'hint' }, `Hoe lager, hoe zuiniger je stookt, los van het weer. Graaddag: 18 °C min de gemiddelde buitentemperatuur, gewogen per seizoen. Niet getoond bij minder dan ${fmtGetal(minGd, 0)} graaddag${minGd === 1 ? '' : 'en'} in de periode: dan is er te weinig gestookt en geeft de deling grote uitschieters.`),
-    ], opnieuw));
+    ], opnieuw, samen));
   }
 
   // Zonnepanelen: per kalendermaand, gekozen jaren naast elkaar.
@@ -244,15 +302,15 @@ export function renderOverzicht(a, staat, opnieuw) {
     const zonGraf = () => zonGrafiek({
       labels: MND.map((mm) => fmtMaand(`2000-${mm}`).replace(/\s*2000/, '')), korteLabels: MND.map((mm) => fmtMaandKort(`2000-${mm}`)),
       reeksen: gekozen.map((j) => ({ naam: j, kleur: kleurVan(j), waarden: MND.map((mm) => zonWaarde(`${j}-${mm}`)) })),
-      fmtKwh: (v) => fmtKwh(v, 0), fmtPct, fmtAs: (v) => fmtGetal(v, 0),
+      fmtKwh: (v) => fmtKwh(v, 0), fmtPct, fmtAs: (v) => fmtGetal(v, 0), breedte: bKaart,
     });
-    delen.push(wisselKaart('zon', 'Zonnepanelen', (soort) => [
+    kaarten.push(wisselKaart('zon', 'Zonnepanelen', (soort) => [
       jaarKeus,
-      soort === 'lijst' ? zonTabel() : zonGraf(),
+      grafiekOfLijst(soort, zonGraf, zonTabel),
       h('p', { class: 'hint' }, soort === 'lijst'
         ? 'Zelf gebruikt = opbrengst min teruglevering. Zelfvoorzienend = zelf gebruikt gedeeld door je totale stroomverbruik.'
         : 'De hele kolom is de opbrengst, het fel gekleurde deel onderin wat je zelf gebruikt hebt (opbrengst min teruglevering). Het percentage erboven is je zelfvoorzienendheid (zelf gebruikt gedeeld door je totale stroomverbruik); dat staat er alleen als je stroomverbruik van die maand bekend is. Tik op een maand voor de getallen.'),
-    ], opnieuw));
+    ], opnieuw, samen));
   }
 
   // Termijnbedragen
@@ -270,7 +328,7 @@ export function renderOverzicht(a, staat, opnieuw) {
     }
     if (volledig) {
       const saldo = betaald - kosten;
-      delen.push(kaart('Termijnen en werkelijke kosten',
+      kaarten.push(kaart('Termijnen en werkelijke kosten',
         h('div', { class: 'kpi-raster' },
           h('div', { class: 'kpi' }, h('span', { class: 'kpi-titel' }, `Betaald (${volledig} mnd)`), h('strong', { class: 'kpi-waarde' }, euro(betaald))),
           h('div', { class: 'kpi' }, h('span', { class: 'kpi-titel' }, 'Berekende kosten'), h('strong', { class: 'kpi-waarde' }, euro(kosten))),
@@ -279,6 +337,10 @@ export function renderOverzicht(a, staat, opnieuw) {
         h('p', { class: 'hint' }, `Over de laatste 12 maanden met een ingevuld termijnbedrag. Dit is een schatting${geschat ? ' (niet alle dagen zijn compleet)' : ''}; de jaarafrekening van je leverancier is leidend.`)));
     }
   }
+
+  // Eén kolom: kaarten gewoon onder elkaar. Twee kolommen: in een raster.
+  if (tweeKolommen) delen.push(h('div', { class: 'overzicht-raster' }, kaarten));
+  else delen.push(...kaarten);
 
   const missen = ontbrekendeDagen(a);
   const meldingen = [];

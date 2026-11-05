@@ -10,6 +10,7 @@ import { newRecord, updateById, removeById } from '../core/records.js';
 import { TIJDVAKKEN } from './tarief.js';
 import { fmtDatumKort } from './tijd.js';
 import { kaart, veld, leesGetal, toonGetal, fmtGetal, segmented } from './ui.js';
+import { INDELINGEN, leesIndeling, bewaarIndeling, BREED_SCHERM } from './scherm-overzicht.js';
 
 const ONDERDELEN = [['tarieven', 'Tarieven'], ['gegevens', 'Gegevens'], ['app', 'App en sync']];
 
@@ -43,7 +44,7 @@ export function renderInstellingen(a, staat, opnieuw, ctx) {
     staat.instellingenDeel = k; opnieuw(); window.scrollTo({ top: 0 });
   }, 'Onderdeel van de instellingen'));
   if (deel === 'gegevens') return [keuze, exportKaart(a, ctx), weerKaart(ctx)];
-  if (deel === 'app') return [keuze];
+  if (deel === 'app') return [keuze, indelingKaart(ctx)];
   return [keuze, contractenKaart(a, staat, opnieuw, ctx)];
 }
 
@@ -51,6 +52,22 @@ export function renderInstellingen(a, staat, opnieuw, ctx) {
 export function schilGroep(staat) {
   if (staat.tab !== 'instellingen') return null;
   return { gegevens: 'gegevens', app: 'app' }[staat.instellingenDeel] ?? null;
+}
+
+/** Indeling van het Overzicht op de laptop. Weergavevoorkeur per apparaat (localStorage), niet gesynchroniseerd. */
+function indelingKaart(ctx) {
+  const huidig = leesIndeling();
+  const breed = window.matchMedia?.(BREED_SCHERM).matches;
+  return kaart('Indeling Overzicht op de laptop',
+    h('p', { class: 'hint' }, 'Geldt alleen op dit apparaat en alleen bij een breed venster (vanaf 1200 pixels). Op de iPhone en iPad in staande stand blijft alles onder elkaar.'),
+    h('div', { class: 'keus-lijst', role: 'radiogroup', 'aria-label': 'Indeling Overzicht' },
+      INDELINGEN.map(([k, naam, uitleg]) => h('label', { class: 'keus-optie' },
+        h('input', {
+          type: 'radio', name: 'indeling', value: k, checked: k === huidig,
+          onChange: () => { bewaarIndeling(k); ctx.toast(`Indeling: ${naam}`, 'ok'); },
+        }),
+        h('span', {}, h('strong', {}, naam), h('small', {}, uitleg))))),
+    breed ? null : h('p', { class: 'hint' }, 'Dit venster is nu te smal; het Overzicht toont hier daarom één kolom.'));
 }
 
 function contractenKaart(a, staat, opnieuw, ctx) {

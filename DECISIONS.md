@@ -1,5 +1,21 @@
 # Beslissingen
 
+## 2026-11-05 – Indeling Overzicht op de laptop (versie 1.9.0)
+- **Op verzoek van Geert drie brede varianten naast de bestaande**, te kiezen in Instellingen → App en sync, zodat hij
+  ze in de praktijk kan vergelijken. Weergavevoorkeur in localStorage (`energieverbruik.overzichtIndeling`), dus per
+  apparaat en niet gesynchroniseerd: op de iPhone heeft de keuze geen zin.
+- **Alleen vanaf 1200 px vensterbreedte** (`BREED_SCHERM`): daaronder past een tweede kolom niet goed naast de zijbalk
+  (256 px). Daaronder altijd één kolom. Bij het passeren van de grens tekent app.js het Overzicht opnieuw.
+- **Inhoud breder (max. 1640 px)** alleen bij een brede indeling en alleen op het Overzicht (`body[data-indeling]`);
+  de andere schermen houden 1040 px (tabellen en formulieren worden te breed niet beter leesbaar).
+- **Grafiekbreedte doorgeven** (`breedte` bij `staafGrafiek`/`zonGrafiek`), berekend uit vensterbreedte, zijbalk en
+  de vaste maten in app.css. Zo blijft de tekst in een halve kolom even groot als in een hele.
+- **Grafiek en lijst**: lijst vast 380 px rechts, met eigen scrollbalk (max. 320 px hoog) en vaste kop, zodat de kaart
+  niet hoger wordt dan de grafiek. De knop Grafiek/Lijst vervalt daar.
+- **Alles tegelijk** bouwt op Naast elkaar: vier aparte kaarten (elk met eigen Grafiek/Lijst-keuze, ids `alles-<soort>`),
+  daarna gas per graaddag, zonnepanelen en termijnen in hetzelfde raster. Een losse laatste kaart beslaat de hele breedte.
+- **MINOR**: nieuwe functie, geen schemawijziging.
+
 ## 2026-11-05 – Analyse en één plek voor Instellingen (versie 1.6.0)
 - **Instellingen als paneel, niet als venster**: de secties van de schil (sync, beveiliging, back-up, over, wissen)
   verhuizen in index.html van `<dialog>` naar `#settings-panel` onder de app-inhoud. Ze blijven dus altijd in het
