@@ -1,5 +1,13 @@
 # Beslissingen
 
+## 2026-11-05 – Maandtotaal als tabelregel (versie 1.3.4)
+- **Zelfde vorm als Maanden** (klasse `jaar-rij`), op Geerts verzoek: totalen onder de kolommen in plaats van een
+  tekstregel erboven.
+- **m³/gd = totaal gas ÷ totaal graaddagen** (zoals eerder besloten), **°C = gemiddelde** van de dagen met een
+  temperatuur. Kosten cursief als er geschatte dagen in zitten.
+- **Totaalregel niet aantikbaar**; alleen dagregels openen het bewerkvak.
+- **PATCH**: verbetering van een bestaande weergave.
+
 ## 2026-11-05 – "null" in Historie (versie 1.3.3)
 - **Centraal opgelost in app.js** (`inhoud.filter(Boolean)`) in plaats van alleen in scherm-historie.js, zodat
   geen enkel scherm dit probleem nog kan krijgen. Core-bestanden niet aangepast.

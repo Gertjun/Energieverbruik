@@ -223,10 +223,12 @@ input[type="month"] {
 .import-item { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 12px; }
 .import-item summary { cursor: pointer; min-height: var(--tap); display: flex; align-items: center; flex-wrap: wrap; gap: 0 4px; }
 .import-item[open] { padding-bottom: 12px; }
-.tabel-maanden .jaar-rij th, .tabel-maanden .jaar-rij td {
+.tabel-maanden .jaar-rij th, .tabel-maanden .jaar-rij td,
+.tabel-dagen .jaar-rij th, .tabel-dagen .jaar-rij td {
   font-size: 0.875rem; font-weight: 700; color: var(--text); background: var(--surface-2); border-bottom: 1px solid var(--border); padding: 8px 6px;
 }
-.tabel-maanden .maand-naam { text-transform: capitalize; }
+.tabel-maanden .maand-naam, .tabel-dagen .jaar-rij th { text-transform: capitalize; }
+.tabel-dagen .jaar-rij th { text-align: left; }
 .tabel-maanden td.is-onvolledig { color: var(--warn); }
 
 /* Meldingen boven de tabbalk houden */

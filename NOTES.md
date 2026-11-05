@@ -44,6 +44,10 @@
 - Zes nieuwe wensen van Geert op WISHLIST.md gezet (totalen Dagen = Maanden, SolarEdge-import, Analyse-scherm,
   één Instellingen-plek, kleuren kiezen).
 
+## Stand (5 november 2026) – versie 1.3.4
+- Maandtotaal in Historie → Dagen als vette tabelregel. Visueel gecontroleerd met testgegevens op laptop- en
+  iPhone-breedte (op de iPhone loopt "Oktober 2026" over twee regels; past verder).
+
 ## Openstaande punten
 - [ ] Geert: Historie op de iPhone bekijken; past de dagtabel met de kolom m³/gd? (°C valt daar al weg.)
 - [ ] Geert: Vattenfall-bestanden inlezen (kwartier/uur). Daarna HomeWizard alleen nog voor de laatste dagen.

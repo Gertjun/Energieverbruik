@@ -8,7 +8,7 @@ import { losVanImport, bronNaam } from './importeren.js';
 import { controleer } from './controle.js';
 import { renderMaanden, renderControle, vinkAf } from './scherm-controle.js';
 import { daysBetween, eachDay, fmtDag, fmtDagLang, fmtMaand, maandStart, maandEinde, maandPlus, monthKey } from './tijd.js';
-import { kaart, segmented, fmtGetal, fmtKwh, fmtM3, euro, leesGetal, toonGetal, veld } from './ui.js';
+import { kaart, segmented, fmtGetal, euro, leesGetal, toonGetal, veld } from './ui.js';
 
 const WEERGAVEN = [['dagen', 'Dagen'], ['maanden', 'Maanden'], ['controle', 'Controle']];
 
@@ -38,12 +38,16 @@ function renderDagen(a, staat, opnieuw, ctx) {
     h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Volgende maand', disabled: maandEinde(m) >= a.laatste, onClick: () => { staat.historieMaand = maandPlus(m, 1); staat.open = null; opnieuw(); } }, '›'));
 
   const t = van <= tot ? totaal(a, van, tot) : null;
-  const som = t && h('div', { class: 'maand-som' },
-    h('span', {}, `Stroom ${fmtKwh(t.dagenAfname ? t.afname : null, 0)}`),
-    h('span', {}, `Terug ${fmtKwh(t.dagenAfname ? t.terug : null, 0)}`),
-    h('span', {}, `Gas ${fmtM3(t.dagenGas ? t.gas : null, 1)}`),
-    t.graaddagen > 0 ? h('span', {}, `Gas per graaddag ${fmtGetal(t.gasStookdagen / t.graaddagen, 3)} m³`) : null,
-    h('span', {}, `Kosten ${t.zonderContract ? '–' : euro(t.kosten)}`));
+  const temps = [];
+  if (t) for (const datum of eachDay(van, tot)) { const w = a.perDag.get(datum)?.weer; if (w?.tgem != null) temps.push(w.tgem); }
+  const som = t && h('tr', { class: 'jaar-rij' },
+    h('th', { scope: 'row' }, fmtMaand(m)),
+    h('td', { class: 'num' }, t.dagenAfname ? fmtGetal(t.afname, 1) : '–'),
+    h('td', { class: 'num' }, t.dagenAfname ? fmtGetal(t.terug, 1) : '–'),
+    h('td', { class: 'num' }, t.dagenGas ? fmtGetal(t.gas, 2) : '–'),
+    h('td', { class: 'num', title: 'totaal gas ÷ totaal graaddagen (stookdagen)' }, t.graaddagen > 0 ? fmtGetal(t.gasStookdagen / t.graaddagen, 2) : '–'),
+    h('td', { class: 'num verberg-smal', title: 'gemiddelde temperatuur' }, temps.length ? fmtGetal(temps.reduce((x, y) => x + y, 0) / temps.length, 1) : '–'),
+    h('td', { class: `num${t.geschat ? ' is-geschat' : ''}` }, t.zonderContract ? '–' : euro(t.kosten)));
 
   const rijen = [];
   const dagenLijst = van <= tot ? [...eachDay(van, tot)].reverse() : [];
@@ -76,12 +80,12 @@ function renderDagen(a, staat, opnieuw, ctx) {
     h('thead', {}, h('tr', {},
       h('th', {}, 'Dag'), h('th', { class: 'num' }, 'kWh'), h('th', { class: 'num' }, 'terug'),
       h('th', { class: 'num' }, 'm³'), h('th', { class: 'num', title: 'm³ gas per gewogen graaddag' }, 'm³/gd'), h('th', { class: 'num verberg-smal' }, '°C'), h('th', { class: 'num' }, 'kosten'))),
-    h('tbody', {}, rijen)));
+    h('tbody', {}, som, rijen)));
 
   const bewerk = staat.open && staat.open >= van && staat.open <= tot
     ? kaart(null, bewerkDag(staat.open, a.perDag.get(staat.open), ctx, staat, opnieuw, meldingen.get(staat.open))) : null;
-  return [bewerk, kaart(null, nav, som, tabel,
-    h('p', { class: 'hint' }, 'Tik op een dag voor details, een opmerking of een correctie (verschijnt bovenaan). m³/gd = gas per gewogen graaddag (– als het te warm was om te stoken). Cursieve kosten zijn geschat (geen uurverdeling bekend). ⚠ = controlemelding, zie Controle.'))];
+  return [bewerk, kaart(null, nav, tabel,
+    h('p', { class: 'hint' }, 'De vette eerste regel is het maandtotaal (m³/gd = totaal gas ÷ totaal graaddagen, °C = gemiddelde). Tik op een dag voor details, een opmerking of een correctie (verschijnt bovenaan). m³/gd = gas per gewogen graaddag (– als het te warm was om te stoken). Cursieve kosten zijn geschat (geen uurverdeling bekend). ⚠ = controlemelding, zie Controle.'))];
 }
 
 function bewerkDag(datum, x, ctx, staat, opnieuw, meldingen = []) {

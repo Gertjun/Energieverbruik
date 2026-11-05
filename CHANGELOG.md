@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.4
+
+**Gewijzigd**
+- Historie → Dagen: het maandtotaal staat nu als vetgedrukte eerste regel in de tabel, net als de jaartotalen in Maanden, met dezelfde afronding (kWh 1 decimaal, m³ 2 decimalen). De lichte regel boven de tabel is weg. Onder m³/gd staat de maandwaarde (totaal gas ÷ totaal graaddagen), onder °C het maandgemiddelde.
+
 ## 1.3.3
 
 **Opgelost**
