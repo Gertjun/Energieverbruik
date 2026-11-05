@@ -3,8 +3,8 @@
 // De keuzes staan in de analyse-staat `c` en gaan mee in favorieten (zie SOORT_STANDAARD).
 
 import { h } from '../core/dom.js';
-import { heatmap, staafGrafiek } from './grafiek.js';
-import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks } from './analyse.js';
+import { heatmap, staafGrafiek, puntenGrafiek } from './grafiek.js';
+import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks, stooklijn } from './analyse.js';
 import { fmtDatumKort } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 
@@ -139,10 +139,47 @@ const zonurenSoort = {
   },
 };
 
+// ---------- Stooklijn ----------
+
+const m3 = (v, d = 2) => `${fmtGetal(v, d)} m³`;
+const graden = (v) => `${fmtGetal(v, 1)} °C`;
+
+const stooklijnSoort = {
+  key: 'stooklijn',
+  naam: 'Stooklijn: gas tegen buitentemperatuur',
+  resultaat(a, c, van, tot) {
+    const { punten, fit } = stooklijn(a, van, tot);
+    if (punten.length < 14) return kaart('Stooklijn', h('p', { class: 'muted' }, 'Te weinig dagen met gas én temperatuur in deze periode (minimaal 14). Kies een langere periode.'));
+    const gas = punten.reduce((s2, p) => s2 + p.gas, 0);
+    const vastTotaal = fit ? fit.vast * punten.length : null;
+    const grafiek = puntenGrafiek({
+      punten: punten.map((p) => ({ x: p.t, y: p.gas, label: `${fmtDatumKort(p.datum)} ${p.datum.slice(0, 4)}` })),
+      lijn: fit ? fit.voorspel : null,
+      fmtX: (v, as) => (as ? `${fmtGetal(v, 0)}°` : graden(v)), fmtY: (v, as) => (as ? fmtGetal(v, 0) : m3(v)),
+      naamX: 'Gemiddelde buitentemperatuur van de dag (°C)', naamY: 'Gas per dag (m³)', naamPunt: 'Gas op één dag', naamLijn: 'Stooklijn',
+    });
+    const kpi = (titel, waarde, uitleg) => h('div', { class: 'kpi' }, h('span', { class: 'kpi-titel' }, titel), h('strong', { class: 'kpi-waarde' }, waarde), h('span', { class: 'kpi-verschil muted' }, uitleg));
+    return kaart('Stooklijn: gas tegen buitentemperatuur',
+      h('p', { class: 'hint' }, `${periodeTekst(van, tot)} · ${punten.length} dagen met gas en temperatuur`),
+      fit ? h('div', { class: 'kpi-raster analyse-kpi' },
+        kpi('Vast verbruik', `${m3(fit.vast)} per dag`, `warm water en koken; ${m3(vastTotaal, 0)} van de ${m3(gas, 0)} in deze periode`),
+        kpi('Stookgrens', graden(fit.stookgrens), 'boven deze buitentemperatuur stookt de verwarming (bijna) niet'),
+        kpi('Per graad kouder', `+${m3(fit.k, 2)} per dag`, `voor elke graad onder de stookgrens; samen ${m3(gas - vastTotaal, 0)} voor verwarming`))
+        : h('p', { class: 'muted' }, 'Er is geen duidelijke stooklijn te vinden in deze periode (bijv. alleen zomerdagen). Kies een periode met een stookseizoen.'),
+      grafiek,
+      h('p', { class: 'hint' }, [
+        'Elke stip is een dag. De lijn is de best passende stooklijn: onder de stookgrens stijgt het gasverbruik met een vast aantal m³ per graad kouder, daarboven blijft alleen het vaste verbruik over. ',
+        fit?.r2 != null ? `De lijn verklaart ${fmtGetal(fit.r2 * 100, 0)}% van de verschillen tussen de dagen; de rest komt door bijvoorbeeld wind, zon, thuis zijn of een warme douche meer. ` : '',
+        'Een lagere lijn betekent zuiniger stoken (beter isoleren, de thermostaat lager); een lagere stookgrens betekent dat je later in het najaar begint met stoken. Vergelijk twee stookseizoenen door de periode te wisselen. Tik op een stip voor de datum.',
+      ].join('')));
+  },
+};
+
 /** Alle soorten, in de volgorde van de keuzelijst. "Zelf samenstellen" wordt in scherm-analyse.js getekend. */
 export const SOORTEN = [
   { key: 'samenstellen', naam: 'Zelf samenstellen', uitleg: null },
   heatmapSoort,
   salderingSoort,
   zonurenSoort,
+  stooklijnSoort,
 ];

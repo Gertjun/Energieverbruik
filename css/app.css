@@ -342,3 +342,6 @@ input[type="month"] {
 .hm-balk-deel { background: linear-gradient(to right, var(--hm-min), var(--hm-nul), var(--hm-plus)); }
 .analyse-kpi { margin-bottom: 12px; }
 @media (min-width: 900px) { .analyse-kpi { grid-template-columns: repeat(3, 1fr); } }
+.g-wolk { fill: color-mix(in srgb, var(--accent) 55%, transparent); stroke: var(--surface); stroke-width: 1; cursor: pointer; }
+.g-wolk:hover { fill: var(--accent); }
+.leg-punt { border-radius: 50% !important; }

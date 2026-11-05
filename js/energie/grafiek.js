@@ -281,3 +281,51 @@ export function heatmap({ rijen, fmt, deelbaar = false, breedte = null }) {
       h('span', {}, fmt(0)), h('i', { class: 'hm-balk' }), h('span', {}, fmt(maxPos)));
   return h('div', { class: 'grafiek' }, info, svg, legenda);
 }
+
+/**
+ * Puntenwolk met een lijn erdoor (bijv. gas per dag tegen temperatuur).
+ * puntenGrafiek({ punten: [{ x, y, label }], lijn: (x) => y | null, fmtX, fmtY, naamX, naamY, naamLijn })
+ */
+export function puntenGrafiek({ punten, lijn = null, fmtX, fmtY, naamX, naamY, naamPunt = 'Dag', naamLijn = 'Lijn', breedte = null }) {
+  const W = grafiekBreedte(breedte);
+  const H = W < 500 ? 240 : 300; const L = 44; const R = 10; const T = 10; const B = 36;
+  const xs = punten.map((p) => p.x); const ys = punten.map((p) => p.y);
+  const xStap = niceMax((Math.max(...xs) - Math.min(...xs)) / 9 || 1);
+  const xMin = Math.floor(Math.min(...xs) / xStap) * xStap; const xMax = Math.ceil(Math.max(...xs) / xStap) * xStap;
+  const yMax = niceMax(Math.max(...ys, 0)); const yMin = Math.min(0, ...ys);
+  const px = (x) => L + (W - L - R) * ((x - xMin) / (xMax - xMin || 1));
+  const py = (y) => T + (H - T - B) * (1 - (y - yMin) / (yMax - yMin || 1));
+  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, class: 'grafiek-svg', role: 'img', 'aria-label': `${naamY} tegen ${naamX}` });
+  for (let i = 0; i <= 4; i++) {
+    const v = yMin + ((yMax - yMin) * i) / 4;
+    svg.append(s('line', { x1: L, x2: W - R, y1: py(v), y2: py(v), class: v === 0 ? 'g-nul' : 'g-raster' }));
+    svg.append(s('text', { x: L - 6, y: py(v) + 4, class: 'g-as', 'text-anchor': 'end' }, fmtY(v, true)));
+  }
+  const xLabelElke = Math.max(1, Math.ceil(((xMax - xMin) / xStap) / (W < 500 ? 6 : 12)));
+  for (let x = xMin, i = 0; x <= xMax + 1e-9; x += xStap, i++) {
+    if (i % xLabelElke === 0) svg.append(s('text', { x: px(x), y: H - 20, class: 'g-as', 'text-anchor': 'middle' }, fmtX(x, true)));
+  }
+  svg.append(s('text', { x: (L + W - R) / 2, y: H - 4, class: 'g-as', 'text-anchor': 'middle' }, naamX));
+
+  const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, ' ');
+  const r = punten.length > 200 ? 2.5 : 3.5;
+  punten.forEach((p) => {
+    const c = s('circle', { cx: px(p.x), cy: py(p.y), r, class: 'g-wolk' });
+    c.addEventListener('pointerenter', () => { info.textContent = `${p.label}: ${fmtX(p.x)}, ${fmtY(p.y)}`; });
+    c.addEventListener('click', () => { info.textContent = `${p.label}: ${fmtX(p.x)}, ${fmtY(p.y)}`; });
+    svg.append(c);
+  });
+  if (lijn) {
+    let d = '';
+    const stappen = 80;
+    for (let i = 0; i <= stappen; i++) {
+      const x = xMin + ((xMax - xMin) * i) / stappen;
+      d += `${i ? 'L' : 'M'}${px(x).toFixed(1)},${py(Math.max(yMin, Math.min(yMax, lijn(x)))).toFixed(1)} `;
+    }
+    svg.append(s('path', { d, class: 'g-lijn' }));
+  }
+  const legenda = h('div', { class: 'grafiek-legenda' },
+    h('span', {}, h('i', { class: 'leg-staaf leg-punt' }), naamPunt),
+    lijn ? h('span', {}, h('i', { class: 'leg-lijn' }), naamLijn) : null);
+  return h('div', { class: 'grafiek' }, info, svg, legenda);
+}

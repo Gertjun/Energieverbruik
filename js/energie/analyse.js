@@ -424,3 +424,44 @@ export function zonurenReeks(a, van, tot, indeling = 'maand') {
   });
   return { vakjes, totaal: totaalT, na, perUur: { afname: uurWaarden(a, 'afname', van, tot, 'uur', true), terug: uurWaarden(a, 'terug', van, tot, 'uur', true) } };
 }
+
+// ---------- Stooklijn: gas tegen buitentemperatuur ----------
+
+/**
+ * Past per dag gas = vast + k × max(0, stookgrens − temperatuur) aan de punten (kleinste kwadraten).
+ * De stookgrens wordt gezocht tussen 10 en 20 °C in stappen van 0,5. Geeft null bij te weinig punten.
+ */
+export function stooklijnFit(punten) {
+  if (punten.length < 14) return null;
+  let best = null;
+  for (let ts = 10; ts <= 20.001; ts += 0.5) {
+    const xs = punten.map((p) => Math.max(0, ts - p.t));
+    const n = xs.length;
+    const mx = xs.reduce((s, x) => s + x, 0) / n; const my = punten.reduce((s, p) => s + p.gas, 0) / n;
+    let sxy = 0; let sxx = 0;
+    xs.forEach((x, i) => { sxy += (x - mx) * (punten[i].gas - my); sxx += (x - mx) ** 2; });
+    if (sxx === 0) continue;
+    const k = sxy / sxx; const vast = my - k * mx;
+    if (k <= 0) continue;
+    const sse = xs.reduce((s, x, i) => s + (punten[i].gas - (vast + k * x)) ** 2, 0);
+    if (!best || sse < best.sse) best = { stookgrens: ts, k, vast: Math.max(0, vast), sse };
+  }
+  if (!best) return null;
+  const my = punten.reduce((s, p) => s + p.gas, 0) / punten.length;
+  const sst = punten.reduce((s, p) => s + (p.gas - my) ** 2, 0);
+  best.r2 = sst > 0 ? 1 - best.sse / sst : null;
+  best.voorspel = (t) => best.vast + best.k * Math.max(0, best.stookgrens - t);
+  return best;
+}
+
+/** Punten (dagen met gas en temperatuur) en de stooklijn over een periode. */
+export function stooklijn(a, van, tot) {
+  const punten = [];
+  for (const d of eachDay(van, tot)) {
+    const x = a.perDag.get(d);
+    const w = x?.weer ?? a.weer.get(d);
+    if (x?.dag?.gas == null || w?.tgem == null) continue;
+    punten.push({ datum: d, t: w.tgem, gas: x.dag.gas });
+  }
+  return { punten, fit: stooklijnFit(punten) };
+}

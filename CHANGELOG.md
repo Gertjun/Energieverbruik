@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.16.0
+
+**Toegevoegd**
+- **Stooklijn: gas tegen buitentemperatuur** als soort analyse. Elke dag is een stip (gasverbruik tegen de gemiddelde temperatuur), met de best passende lijn erdoor. Daaruit volgen drie kerncijfers: je vaste gasverbruik per dag (warm water, koken), de stookgrens (boven die temperatuur stookt de verwarming niet) en hoeveel m³ per dag er bij elke graad kouder bijkomt. Vergelijk twee stookseizoenen door de periode te wisselen.
+
 ## 1.15.0
 
 **Toegevoegd**
