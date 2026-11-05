@@ -146,7 +146,14 @@
 - Soort analyse staat als tegels in een eigen kaart bovenaan Analyse. Bekeken op laptop (licht) en iPhone-breedte
   (donker); alle combinaties opnieuw zonder fouten doorgelopen.
 
+## Stand (5 november 2026) – versie 1.24.0
+- Kleurthema's (6) en licht/donker/automatisch in Instellingen → App en sync → Weergave, per apparaat.
+- Getest in Chrome op laptop- en iPhone-breedte: wisselen, keuze blijft na herladen, statusbalkkleur volgt; Overzicht
+  en Analyse met Geerts Excel en Vattenfall-bestanden in Framboos (licht) en Blauw (donker). Geen fouten.
+- Niet getest op een echte iPhone: of de statusbalk bovenin meekleurt in de geïnstalleerde app.
+
 ## Openstaande punten
+- [ ] Geert: thema's bekijken op iPhone/iPad/laptop; kleuren naar wens? Kleurt de statusbalk mee?
 - [ ] Geert: tegels voor Soort analyse bekijken op iPhone/iPad; prominent genoeg, niet te veel ruimte?
 - [ ] Geert: HomeWizard-export (stroom) opnieuw inlezen, zodat ook eerdere dagen piekvermogen krijgen (1.11.0).
 - [ ] Geert: na het bijwerken alle apparaten eenmaal openen (gegevensversie 4, uitgesloten perioden).
@@ -162,7 +169,7 @@
 - [ ] Geert: Overzicht op iPhone/iPad bekijken; past de lijst (4 kolommen) en is de zon-grafiek leesbaar?
 - [ ] Geert: Analyse en Instellingen bekijken op iPhone en iPad. Na het bijwerken eenmaal alle apparaten openen
       (gegevensversie 3).
-- [ ] Template-afwijking: shell.js en index.html (instellingen als paneel i.p.v. venster). Bij een update vanuit
+- [ ] Template-afwijking: shell.js en index.html (instellingen als paneel i.p.v. venster); base.css en app.css (kleuren met light-dark(), thema's, 1.24.0). Bij een update vanuit
       de PWA-template deze wijziging meenemen; eventueel ook in de template zelf doorvoeren.
 - [ ] Geert: Historie op de iPhone bekijken; past de dagtabel met de kolom m³/gd? (°C valt daar al weg.)
 - [ ] Geert: Vattenfall-bestanden inlezen (kwartier/uur). Daarna HomeWizard alleen nog voor de laatste dagen.

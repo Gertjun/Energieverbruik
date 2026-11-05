@@ -7,11 +7,8 @@
    manifest.webmanifest aanpassen). */
 /* @accent-start */
 :root {
-  --accent: #0f766e;
-  --accent-contrast: #ffffff;
-}
-@media (prefers-color-scheme: dark) {
-  :root { --accent: #579f9a; --accent-contrast: #0b0d12; }
+  --accent: light-dark(#0f766e, #579f9a);
+  --accent-contrast: light-dark(#ffffff, #0b0d12);
 }
 /* @accent-end */
 
@@ -139,9 +136,11 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .g-geschat { fill: color-mix(in srgb, var(--accent) 50%, var(--surface)); }
 /* Kleuren per jaar: nieuwste = accent, dan oranje, indigo, magenta. Duidelijk verschillende tinten,
    allemaal minstens 3:1 contrast met de achtergrond (licht en donker). */
-:root { --jaar-0: var(--accent); --jaar-1: #d97706; --jaar-2: #5b5bd6; --jaar-3: #c2378f; }
-@media (prefers-color-scheme: dark) {
-  :root { --jaar-1: #f5a524; --jaar-2: #8b8cf6; --jaar-3: #e879c0; }
+:root {
+  --jaar-0: var(--accent);
+  --jaar-1: light-dark(#d97706, #f5a524);
+  --jaar-2: light-dark(#5b5bd6, #8b8cf6);
+  --jaar-3: light-dark(#c2378f, #e879c0);
 }
 .g-vergelijk { fill: var(--jaar-1); }
 .g-hit { fill: transparent; cursor: pointer; }
@@ -382,3 +381,50 @@ input[type="month"] {
 .soort-tegel[aria-checked="true"] { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border-color: var(--accent); }
 .soort-tegel[aria-checked="true"] strong { color: var(--accent); }
 .soort-tegel:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Kleurthema's (Instellingen → App en sync → Weergave) ----------
+   Het thema staat als data-thema op <html> (js/thema.js). Elk thema zet de accentkleur (licht, donker) en
+   waar nodig een jaarkleur die anders te veel op de accentkleur lijkt. De achtergrond krijgt een vleugje
+   van de accentkleur. Selectors zonder :root, zodat ook een voorbeeldtegel met data-thema de kleuren krijgt. */
+:root {
+  --basis-bg: light-dark(#f5f6f8, #0f1115);
+  --basis-surface-2: light-dark(#eef0f3, #22262e);
+  --basis-border: light-dark(#dfe2e7, #2c313a);
+  --bg: color-mix(in oklab, var(--accent) 4%, var(--basis-bg));
+  --surface-2: color-mix(in oklab, var(--accent) 5%, var(--basis-surface-2));
+  --border: color-mix(in oklab, var(--accent) 6%, var(--basis-border));
+}
+[data-thema="groenblauw"] { --accent: light-dark(#0f766e, #579f9a); }
+[data-thema="blauw"] {
+  --accent: light-dark(#2563eb, #5b8cff);
+  --jaar-2: light-dark(#0f766e, #2dd4bf);
+}
+[data-thema="groen"] { --accent: light-dark(#15803d, #4caf6a); }
+[data-thema="paars"] {
+  --accent: light-dark(#7c3aed, #a78bfa);
+  --jaar-2: light-dark(#0f766e, #2dd4bf);
+}
+[data-thema="framboos"] {
+  --accent: light-dark(#be185d, #f472b6);
+  --jaar-3: light-dark(#0f766e, #2dd4bf);
+}
+[data-thema="grafiet"] { --accent: light-dark(#475569, #94a3b8); }
+
+.thema-tegels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 700px) { .thema-tegels { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.thema-tegel {
+  display: grid; justify-items: center; gap: 6px; padding: 12px 6px 10px;
+  font: inherit; font-size: 0.82rem; color: var(--text); cursor: pointer;
+  background: color-mix(in oklab, var(--accent) 6%, var(--surface));
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+}
+.thema-tegel:hover { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+.thema-tegel[aria-checked="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.thema-tegel[aria-checked="true"] span { color: var(--accent); font-weight: 600; }
+.thema-stalen { display: flex; gap: 3px; }
+.thema-stalen i { width: 18px; height: 18px; border-radius: 50%; display: block; }
+.thema-stalen i:nth-child(1) { width: 26px; height: 26px; background: var(--accent); }
+.thema-stalen i:nth-child(2) { align-self: end; background: var(--jaar-1); }
+.thema-stalen i:nth-child(3) { align-self: end; background: var(--jaar-2); }
+.weergave-modus .segmented { width: 100%; }
+.weergave-modus .segmented button { flex: 1; min-height: 40px; }

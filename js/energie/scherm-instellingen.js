@@ -1,7 +1,7 @@
 // Instellingen: één scherm met drie onderdelen.
 //   Tarieven  – contracten met tarieven per tijdvak
 //   Gegevens  – export (CSV/JSON), temperatuurlocatie, en de back-up van de schil
-//   App       – synchronisatie, beveiliging, versie/updates en wissen (secties van de schil)
+//   App       – weergave (kleurthema, licht/donker), synchronisatie, beveiliging, versie/updates en wissen (secties van de schil)
 // De secties van de schil staan in index.html (#settings-panel); dit scherm zet ze aan via ctx.toonSchilInstellingen().
 // Bestanden inlezen (ook Excel) gebeurt bij Invoer.
 
@@ -43,7 +43,7 @@ export function renderInstellingen(a, staat, opnieuw, ctx) {
     staat.instellingenDeel = k; opnieuw(); window.scrollTo({ top: 0 });
   }, 'Onderdeel van de instellingen'));
   if (deel === 'gegevens') return [keuze, exportKaart(a, ctx), weerKaart(ctx)];
-  if (deel === 'app') return [keuze];
+  if (deel === 'app') return [keuze, weergaveKaart(opnieuw)];
   return [keuze, contractenKaart(a, staat, opnieuw, ctx)];
 }
 
@@ -163,4 +163,20 @@ function weerKaart(ctx) {
     veld('Plaats', plaats),
     h('div', { class: 'field-row' }, veld('Breedtegraad', lat), veld('Lengtegraad', lon)),
     h('div', { class: 'button-row' }, h('button', { class: 'btn', type: 'submit' }, 'Opslaan'))));
+}
+
+// Kleurthema en licht/donker: per apparaat (js/thema.js), dus niet in de kluis en niet gesynchroniseerd.
+function weergaveKaart(opnieuw) {
+  const T = window.EnergieThema;
+  if (!T) return null;
+  const w = T.lees();
+  return kaart('Weergave',
+    h('div', { class: 'weergave-modus' }, segmented(T.MODI, w.modus, (m) => { T.zet({ modus: m }); opnieuw(); }, 'Licht of donker')),
+    h('p', { class: 'hint' }, 'Automatisch volgt de instelling van je apparaat. Kleurthema en licht/donker gelden alleen voor dit apparaat.'),
+    h('div', { class: 'thema-tegels', role: 'radiogroup', 'aria-label': 'Kleurthema' },
+      T.THEMAS.map(([key, naam]) => h('button', {
+        type: 'button', class: 'thema-tegel', role: 'radio', 'data-thema': key,
+        'aria-checked': key === w.thema ? 'true' : 'false',
+        onClick: () => { if (key !== w.thema) { T.zet({ thema: key }); opnieuw(); } },
+      }, h('span', { class: 'thema-stalen', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), h('span', {}, naam)))));
 }

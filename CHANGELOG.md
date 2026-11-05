@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.24.0
+
+**Toegevoegd**
+- **Kleurthema's**: in Instellingen → App en sync → Weergave kies je uit zes thema's (Groenblauw, Blauw, Groen, Paars, Framboos, Grafiet). Het thema bepaalt de accentkleur van knoppen en grafieken en geeft de achtergrond een lichte tint.
+- **Licht, Donker of Automatisch**: Automatisch volgt je iPhone/iPad/laptop, of zet de app vast op licht of donker.
+- Beide keuzes gelden per apparaat. De statusbalk bovenin kleurt mee.
+
 ## 1.23.0
 
 **Verbeterd**

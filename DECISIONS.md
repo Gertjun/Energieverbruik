@@ -1,5 +1,23 @@
 # Beslissingen
 
+## 2026-11-05 – Kleurthema's en licht/donker (versie 1.24.0)
+- **Zes thema's** (Groenblauw = standaard, Blauw, Groen, Paars, Framboos, Grafiet). Een thema zet de accentkleur en
+  geeft achtergrond, randen en vlakken 4–6% van die kleur. Geen oranje of rood thema: oranje is de kleur van
+  "vorig jaar" en van lijnen (--warn), rood van fouten (--danger). Waar een jaarkleur op de accentkleur lijkt,
+  krijgt dat thema een andere jaarkleur (groenblauw bij Blauw/Paars voor jaar 2, bij Framboos voor jaar 3).
+- **Licht/donker via `light-dark()`** in de CSS-variabelen in plaats van `@media (prefers-color-scheme: dark)`.
+  Zo werkt "vast licht/donker" door alleen `color-scheme` om te zetten (data-modus op `<html>`), zonder alle donkere
+  kleuren dubbel te hoeven schrijven. Vereist Safari 17.5+ / Chrome 123+ (iPhone met iOS 17.5 of nieuwer).
+  Template-afwijking: base.css (de basiskleuren) is hierop aangepast.
+- **Per apparaat** (localStorage `energieverbruik:weergave`), niet in de kluis: op de iPhone wil je misschien donker
+  en op de laptop licht. Zelfde aanpak als de ingeklapte zijbalk en de indeling van het Overzicht.
+- **js/thema.js is een gewoon script in `<head>`** (geen module), zodat het thema er staat vóór de pagina getekend
+  wordt (geen flits van de standaardkleur). Inline scripts mogen niet door de Content-Security-Policy.
+- Thema-regels gebruiken `[data-thema=…]` zonder `:root`, zodat de voorbeeldtegels in Instellingen met hetzelfde
+  attribuut hun eigen kleuren tonen.
+- Statusbalkkleur (`meta theme-color`) wordt gelijk gezet aan de achtergrond, omgezet naar rgb via een canvas
+  van 1 pixel (de browser geeft de berekende kleur als oklab(), wat niet elke browser in die meta-tag begrijpt).
+
 ## 2026-11-05 – Soort analyse als tegels (versie 1.23.0)
 - **Eigen kaart bovenaan ("Wat wil je analyseren?") met tegels** in plaats van een keuzelijst in het blok Samenstellen
   (verzoek Geert: het is de eerste keuze). Elke tegel heeft een korte naam en een regel uitleg, zodat je ziet wat er

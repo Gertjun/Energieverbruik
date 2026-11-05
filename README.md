@@ -28,7 +28,8 @@ Vervangt het Excel-bestand *Gasverbruik.xlsx*. Gebouwd op de eigen PWA-template.
   jaar, een andere periode of een tweede grootheid. Daarnaast kant-en-klare analyses: heatmap (uur × datum), wat als
   de saldering stopt, eigen verbruik in de zonuren, stooklijn, gas weer-gecorrigeerd, opgeteld verloop door het jaar,
   jaarprognose en top-10. Niet-representatieve perioden zijn uit te sluiten. Als favoriet bewaren, CSV downloaden.
-- **Instellingen** op één plek: Tarieven, Gegevens (export, temperatuurlocatie, back-up) en App en sync.
+- **Instellingen** op één plek: Tarieven, Gegevens (export, temperatuurlocatie, back-up) en App en sync
+  (met kleurthema en licht/donker per apparaat).
 - **Importcontrole**: na elke import een rapport; elke import (de laatste 10) is ongedaan te maken.
 - **Temperaturen** worden automatisch opgehaald bij Open-Meteo (gratis, geen account).
 - **Export** als CSV (opent in Excel) of JSON.

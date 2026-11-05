@@ -4,21 +4,23 @@
    ============================================================= */
 
 :root {
+  /* Licht en donker in één regel: light-dark(licht, donker). Welke van de twee geldt, volgt uit
+     color-scheme: automatisch (systeem) of vast via data-modus op <html> (Instellingen → Weergave). */
   color-scheme: light dark;
-  --accent: #2563eb;
-  --accent-contrast: #ffffff;
-  --bg: #f5f6f8;
-  --surface: #ffffff;
-  --surface-2: #eef0f3;
-  --text: #15181d;
-  --muted: #646b75;
-  --border: #dfe2e7;
-  --danger: #c62828;
-  --ok: #1e8e3e;
-  --warn: #c77700;
+  --accent: light-dark(#2563eb, #5b8cff);
+  --accent-contrast: light-dark(#ffffff, #0b0d12);
+  --bg: light-dark(#f5f6f8, #0f1115);
+  --surface: light-dark(#ffffff, #181b21);
+  --surface-2: light-dark(#eef0f3, #22262e);
+  --text: light-dark(#15181d, #e9ecf1);
+  --muted: light-dark(#646b75, #9aa2ad);
+  --border: light-dark(#dfe2e7, #2c313a);
+  --danger: light-dark(#c62828, #ef5350);
+  --ok: light-dark(#1e8e3e, #4caf50);
+  --warn: light-dark(#c77700, #ffb74d);
   --radius: 14px;
   --radius-sm: 10px;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 4px 16px rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 2px light-dark(rgb(0 0 0 / 0.05), transparent), 0 4px 16px light-dark(rgb(0 0 0 / 0.05), transparent);
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --tap: 44px;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -26,23 +28,8 @@
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --accent: #5b8cff;
-    --accent-contrast: #0b0d12;
-    --bg: #0f1115;
-    --surface: #181b21;
-    --surface-2: #22262e;
-    --text: #e9ecf1;
-    --muted: #9aa2ad;
-    --border: #2c313a;
-    --danger: #ef5350;
-    --ok: #4caf50;
-    --warn: #ffb74d;
-    --shadow: none;
-  }
-}
+:root[data-modus="licht"] { color-scheme: light; }
+:root[data-modus="donker"] { color-scheme: dark; }
 
 *, *::before, *::after { box-sizing: border-box; }
 
