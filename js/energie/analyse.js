@@ -110,12 +110,12 @@ export function basisDag(dag) {
 /** Waarde van een tijdgrootheid over de dagen van..tot. Geeft { v, geschat }. */
 function tijdWaarde(a, maat, van, tot, indeling) {
   if (maat === 'zon') {
-    let som = 0; let gevonden = false;
+    let som = 0; let gevonden = false; let n = 0;
     for (const [mk, m] of a.maanden) {
       if (m.zon == null || mk < monthKey(van) || mk > monthKey(tot)) continue;
-      som += m.zon; gevonden = true;
+      som += m.zon; gevonden = true; n += dagenVanMaand(`${mk}-01`);
     }
-    return { v: gevonden ? som : null };
+    return { v: gevonden ? som : null, n };
   }
   if (maat === 'temp' || maat === 'graaddagen') {
     let som = 0; let n = 0; let gd = 0;
@@ -127,7 +127,7 @@ function tijdWaarde(a, maat, van, tot, indeling) {
       if (x?.graaddag != null) gd += x.graaddag;
     }
     if (!n) return { v: null };
-    return { v: maat === 'temp' ? som / n : gd };
+    return { v: maat === 'temp' ? som / n : gd, n };
   }
   if (maat === 'piek' || maat === 'piekSom') {
     let max = null; let wanneer = null;
@@ -147,15 +147,15 @@ function tijdWaarde(a, maat, van, tot, indeling) {
   }
   const t = totaal(a, van, tot);
   switch (maat) {
-    case 'afname': return { v: t.dagenAfname ? t.afname : null };
-    case 'terug': return { v: t.dagenAfname ? t.terug : null };
-    case 'netto': return { v: t.dagenAfname ? t.afname - t.terug : null };
-    case 'gas': return { v: t.dagenGas ? t.gas : null };
+    case 'afname': return { v: t.dagenAfname ? t.afname : null, n: t.dagenAfname };
+    case 'terug': return { v: t.dagenAfname ? t.terug : null, n: t.dagenAfname };
+    case 'netto': return { v: t.dagenAfname ? t.afname - t.terug : null, n: t.dagenAfname };
+    case 'gas': return { v: t.dagenGas ? t.gas : null, n: t.dagenGas };
     case 'gasPerGd': return { v: t.graaddagen >= (GD_MINIMUM[indeling] ?? 1) ? t.gasStookdagen / t.graaddagen : null };
     default: {
       if (!t.dagen || t.zonderContract) return { v: null };
       const v = { kosten: t.kosten, kostenStroom: t.kostenStroom, kostenGas: t.kostenGas, kostenVast: t.kostenVast }[maat];
-      return { v, geschat: t.geschat && maat !== 'kostenVast' && maat !== 'kostenGas' };
+      return { v, n: t.dagen, geschat: t.geschat && maat !== 'kostenVast' && maat !== 'kostenGas' };
     }
   }
 }
@@ -239,13 +239,31 @@ function weekdagWaarden(a, maat, van, tot) {
 }
 
 /** Reeks voor één grootheid: { vakjes: [{label,kort,v,geschat}], totaal, dagen }. */
-export function reeks(a, maat, indeling, van, tot) {
-  if (UUR.includes(indeling)) return uurWaarden(a, maat, van, tot, indeling);
+/** Kan deze grootheid bij deze indeling als "gemiddeld per dag" getoond worden? (Alleen optellende grootheden.) */
+export const kanPerDag = (maat, indeling) => !!MATEN[maat] && !MATEN[maat].gem && !MATEN[maat].agg
+  && maat !== 'basis' && ['week', 'maand', 'jaar', 'tijdvak'].includes(indeling);
+
+/**
+ * Reeks voor één grootheid: { vakjes: [{label,kort,v,geschat}], totaal, dagen }.
+ * `perDag`: optellende grootheden delen door het aantal dagen met gegevens in elk vakje.
+ */
+export function reeks(a, maat, indeling, van, tot, perDag = false) {
+  const delen = perDag && kanPerDag(maat, indeling);
+  if (UUR.includes(indeling)) {
+    const r = uurWaarden(a, maat, van, tot, indeling);
+    if (delen && r.dagen) {
+      for (const vk of r.vakjes) if (vk.v != null) vk.v /= r.dagen;
+      if (r.totaal.v != null) r.totaal.v /= r.dagen;
+      r.totaal.label = 'Totaal per dag';
+    }
+    return r;
+  }
   if (indeling === 'weekdag') return weekdagWaarden(a, maat, van, tot);
-  const vakjes = tijdVakjes(indeling, van, tot).map((vk) => ({ ...vk, ...tijdWaarde(a, maat, vk.van, vk.tot, indeling) }));
-  const t = tijdWaarde(a, maat, van, tot, 'jaar');
-  const label = MATEN[maat].agg === 'max' ? 'Hoogste' : MATEN[maat].gem ? 'Hele periode' : 'Totaal';
-  return { vakjes, totaal: { label, ...t }, dagen: daysBetween(van, tot) + 1 };
+  const deel = (x) => (delen && x.v != null ? { ...x, v: x.n ? x.v / x.n : null } : x);
+  const vakjes = tijdVakjes(indeling, van, tot).map((vk) => ({ ...vk, ...deel(tijdWaarde(a, maat, vk.van, vk.tot, indeling)) }));
+  const t = deel(tijdWaarde(a, maat, van, tot, 'jaar'));
+  const label = MATEN[maat].agg === 'max' ? 'Hoogste' : MATEN[maat].gem ? 'Hele periode' : delen ? 'Hele periode' : 'Totaal';
+  return { vakjes, totaal: { label, ...t }, dagen: daysBetween(van, tot) + 1, perDag: delen };
 }
 
 /**

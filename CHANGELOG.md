@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.21.0
+
+**Toegevoegd**
+- **Gemiddeld per dag** in Zelf samenstellen: bij een indeling per week, maand, jaar of tijdvak kies je bij "Toon" tussen het totaal en het gemiddelde per dag. Dat deelt door het aantal dagen met gegevens, zodat een korte maand (februari), een onvolledige week of een periode met ontbrekende dagen eerlijk naast de rest staat. Ook de vergelijking met vorig jaar gebruikt dan het gemiddelde per dag.
+
 ## 1.20.0
 
 **Toegevoegd**

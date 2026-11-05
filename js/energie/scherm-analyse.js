@@ -6,7 +6,7 @@
 import { h, saveFile, today } from '../core/dom.js';
 import { alive, newRecord, removeById } from '../core/records.js';
 import { staafGrafiek } from './grafiek.js';
-import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief, AANSLUITING, GRENS_FASE } from './analyse.js';
+import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, kanPerDag, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief, AANSLUITING, GRENS_FASE } from './analyse.js';
 import { daysBetween, fmtDatumKort } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 import { SOORTEN, SOORT_STANDAARD } from './analyse-soorten.js';
@@ -15,12 +15,13 @@ const VERGELIJK = [
   ['geen', 'Niets'], ['vorigjaar', 'Dezelfde periode vorig jaar'], ['periode', 'Een andere periode'], ['maat', 'Een tweede grootheid'],
 ];
 const STANDAARD = {
-  soort: 'samenstellen', maat: 'afname', indeling: 'maand', preset: 'laatste12', van: '', tot: '', vergelijk: 'vorigjaar', van2: '', maat2: 'temp',
+  soort: 'samenstellen', weergave: 'totaal', maat: 'afname', indeling: 'maand', preset: 'laatste12', van: '', tot: '', vergelijk: 'vorigjaar', van2: '', maat2: 'temp',
   ...SOORT_STANDAARD,
 };
 const CONFIG_VELDEN = Object.keys(STANDAARD);
 
-const fmtWaarde = (maat) => (v) => {
+const fmtWaarde = (maat, perDag = false) => (v) => {
+  if (perDag && v != null) return `${fmtWaarde(maat)(v)} per dag`;
   if (v == null) return '–';
   const m = MATEN[maat];
   return m.eenheid === '€' ? euro(v) : `${fmtGetal(v, m.d)} ${m.eenheid}`;
@@ -86,6 +87,8 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
       veld('Wat', maatSelect(c.maat, c.indeling, (v) => wijzig({ maat: v }))),
       veld('Indeling', h('select', { onChange: (e) => wijzig({ indeling: e.target.value }) },
         INDELINGEN.map(([k, t]) => h('option', { value: k, selected: k === c.indeling, disabled: !past(c.maat, k) }, t)))),
+      kanPerDag(c.maat, c.indeling) ? veld('Toon', h('select', { onChange: (e) => wijzig({ weergave: e.target.value }) },
+        [['totaal', 'Totaal per periode'], ['perdag', 'Gemiddeld per dag']].map(([k, t]) => h('option', { value: k, selected: k === c.weergave }, t)))) : null,
       veld('Vergelijken met', h('select', { onChange: (e) => wijzig({ vergelijk: e.target.value }) },
         VERGELIJK.map(([k, t]) => h('option', { value: k, selected: k === c.vergelijk }, t)))),
       c.vergelijk === 'maat'
@@ -107,18 +110,20 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
 }
 
 function resultaat(a, c, van, tot) {
-  const r = reeks(a, c.maat, c.indeling, van, tot);
+  const perDag = c.weergave === 'perdag';
+  const r = reeks(a, c.maat, c.indeling, van, tot, perDag);
   let r2 = null; let naam2 = null; let van2 = null; let tot2 = null;
   if (c.vergelijk === 'vorigjaar' || c.vergelijk === 'periode') {
     ({ van: van2, tot: tot2 } = c.vergelijk === 'vorigjaar'
       ? vorigJaar(c.indeling, van, tot)
       : anderePeriode(van, tot, c.van2 || vorigJaar(c.indeling, van, tot).van));
-    r2 = reeks(a, c.maat, c.indeling, van2, tot2);
+    r2 = reeks(a, c.maat, c.indeling, van2, tot2, perDag);
     naam2 = c.vergelijk === 'vorigjaar' ? 'Vorig jaar' : 'Andere periode';
   } else if (c.vergelijk === 'maat') {
-    r2 = reeks(a, c.maat2, c.indeling, van, tot);
+    r2 = reeks(a, c.maat2, c.indeling, van, tot, perDag);
   }
   const lijnMaat = c.vergelijk === 'maat';
+  const eh = (maat, rr) => `${MATEN[maat].eenheid}${rr?.perDag ? ' per dag' : ''}`;
   const n = r.vakjes.length;
   const w2 = (i) => (r2 ? r2.vakjes[i]?.v ?? null : null);
 
@@ -129,8 +134,8 @@ function resultaat(a, c, van, tot) {
     waarden: r.vakjes.map((v) => v.v),
     markeer: r.vakjes.map((v) => !!v.geschat),
     vergelijk: r2 && !lijnMaat ? r.vakjes.map((_, i) => w2(i)) : null,
-    lijn: lijnMaat ? { waarden: r.vakjes.map((_, i) => w2(i)), fmt: (v, as) => (as ? fmtAs(c.maat2)(v) : fmtWaarde(c.maat2)(v)), naam: MATEN[c.maat2].naam } : null,
-    fmt: (v, as) => (as ? fmtAs(c.maat)(v) : fmtWaarde(c.maat)(v)),
+    lijn: lijnMaat ? { waarden: r.vakjes.map((_, i) => w2(i)), fmt: (v, as) => (as ? fmtAs(c.maat2)(v) : fmtWaarde(c.maat2, r2.perDag)(v)), naam: MATEN[c.maat2].naam } : null,
+    fmt: (v, as) => (as ? fmtAs(c.maat)(v) : fmtWaarde(c.maat, r.perDag)(v)),
     grens: c.maat === 'piek' ? { waarde: GRENS_FASE, naam: `${AANSLUITING.ampere} A per fase` }
       : c.maat === 'piekSom' ? { waarde: GRENS_FASE * AANSLUITING.fasen, naam: `${AANSLUITING.fasen}×${AANSLUITING.ampere} A` } : null,
     naam: lijnMaat ? m.naam : periodeTekst(van, tot),
@@ -139,9 +144,9 @@ function resultaat(a, c, van, tot) {
 
   // Tabel
   const kop = [h('th', {}, c.indeling === 'uur' ? 'Uur' : c.indeling === 'tijdvak' ? 'Tijdvak' : c.indeling === 'weekdag' ? 'Dag' : 'Periode'),
-    h('th', { class: 'num' }, `${lijnMaat ? m.naam : 'Waarde'} (${m.eenheid})`)];
-  if (r2 && !lijnMaat) kop.push(h('th', { class: 'num' }, `${naam2} (${m.eenheid})`), h('th', { class: 'num' }, 'Verschil'), h('th', { class: 'num verberg-smal' }, '%'));
-  if (lijnMaat) kop.push(h('th', { class: 'num' }, `${MATEN[c.maat2].naam} (${MATEN[c.maat2].eenheid})`));
+    h('th', { class: 'num' }, `${lijnMaat ? m.naam : 'Waarde'} (${eh(c.maat, r)})`)];
+  if (r2 && !lijnMaat) kop.push(h('th', { class: 'num' }, `${naam2} (${eh(c.maat, r)})`), h('th', { class: 'num' }, 'Verschil'), h('th', { class: 'num verberg-smal' }, '%'));
+  if (lijnMaat) kop.push(h('th', { class: 'num' }, `${MATEN[c.maat2].naam} (${eh(c.maat2, r2)})`));
 
   const cellen = (v, geschat, v2) => {
     const out = [h('td', { class: `num${geschat ? ' is-geschat' : ''}` }, fmtCel(c.maat, v))];
@@ -174,6 +179,7 @@ function resultaat(a, c, van, tot) {
     : m.naam;
   const hints = ['Cursieve waarden zijn (deels) geschat.'];
   if (c.indeling === 'uur') hints.push('Per uur = gemiddelde per dag over de gekozen periode; dagen zonder uurdata volgen het gemiddelde uurprofiel.');
+  if (r.perDag) hints.push('Gemiddeld per dag = totaal gedeeld door het aantal dagen met gegevens in die periode. Zo zijn een korte maand, een onvolledige week of een periode met ontbrekende dagen eerlijk te vergelijken.');
   if (c.indeling === 'weekdag') hints.push(`Per dag van de week = gemiddelde per dag over de gekozen periode${MATEN[c.maat].agg === 'max' ? ' (piekvermogen: de hoogste)' : c.maat === 'basis' ? ' (sluipverbruik: de mediaan)' : ''}. Feestdagen tellen als gewone weekdag.`);
   if (c.indeling === 'tijdvak') hints.push('Tijdvakken die in de periode niet voorkomen (bijv. zomer in januari) blijven leeg.');
   if ([c.maat, c.maat2].includes('gasPerGd')) hints.push('Gas per graaddag alleen bij voldoende graaddagen (dag 1, week 3, maand/jaar 5).');
@@ -200,9 +206,10 @@ function resultaat(a, c, van, tot) {
 
 function csv(c, r, r2, naam2, lijnMaat) {
   const getal = (maat, v) => (v == null ? '' : v.toFixed(Math.max(MATEN[maat].d, 2)).replace('.', ','));
-  const kop = ['Periode', `${MATEN[c.maat].naam} (${MATEN[c.maat].eenheid})`];
-  if (r2 && !lijnMaat) kop.push(`${naam2} (${MATEN[c.maat].eenheid})`);
-  if (lijnMaat) kop.push(`${MATEN[c.maat2].naam} (${MATEN[c.maat2].eenheid})`);
+  const eh = (maat, rr) => `${MATEN[maat].eenheid}${rr?.perDag ? ' per dag' : ''}`;
+  const kop = ['Periode', `${MATEN[c.maat].naam} (${eh(c.maat, r)})`];
+  if (r2 && !lijnMaat) kop.push(`${naam2} (${eh(c.maat, r)})`);
+  if (lijnMaat) kop.push(`${MATEN[c.maat2].naam} (${eh(c.maat2, r2)})`);
   const regel = (label, v, v2) => [label, getal(c.maat, v), ...(r2 ? [getal(lijnMaat ? c.maat2 : c.maat, v2)] : [])];
   const regels = [kop, ...r.vakjes.map((vk, i) => regel(vk.label, vk.v, r2?.vakjes[i]?.v)), regel(r.totaal.label, r.totaal.v, r2?.totaal.v),
     ...(r.extra || []).map((x, i) => regel(x.label, x.v, r2?.extra?.[i]?.v))];
