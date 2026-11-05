@@ -1,5 +1,14 @@
 # Beslissingen
 
+## 2026-11-05 – Eén plek voor alle bestanden (versie 1.5.0)
+- **Op verzoek van Geert**: één knop (Invoer → Bestanden inlezen) voor alle bronnen; de app herkent het bestand aan de
+  inhoud (kopregel bij CSV, zip-kop of .xlsx bij Excel), niet aan de bestandsnaam.
+- **Excel ook via deze knop**, zodat er echt één plek is; de Excel-kaart in Instellingen is weg.
+- **Voorrang ongewijzigd** (Vattenfall > HomeWizard > Excel > handmatig voor stroom en gas; SolarEdge voor de
+  opbrengst). Vattenfall is bepalend, ongeacht de volgorde van inlezen. Bij meerdere bestanden tegelijk wordt
+  verwerkt in de volgorde Vattenfall → HomeWizard → Excel → SolarEdge.
+- **MINOR**: andere indeling van bestaande functies, geen schemawijziging.
+
 ## 2026-11-05 – Uitleg SolarEdge (versie 1.4.1)
 - **Naam van het portaal overgenomen van Geert** ("SolarEdge Monitoring platform"), zodat de uitleg aansluit bij wat hij
   op zijn scherm ziet. **PATCH**: alleen tekst.

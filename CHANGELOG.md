@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.0
+
+**Gewijzigd**
+- Eén plek om bestanden in te lezen: Invoer → Bestanden inlezen. Kies een of meer bestanden van Vattenfall, HomeWizard of SolarEdge, of je oude Excel; de app herkent zelf welk bestand het is.
+- Bij verschillen gaat Vattenfall voor, dan HomeWizard, dan Excel, dan wat je zelf invult. De zonne-opbrengst komt alleen uit SolarEdge en gaat voor Excel en handmatig. Dit staat uitgelegd onder "Welke gegevens gaan voor bij verschillen?".
+- De aparte SolarEdge-knop onder Maandgegevens en de Excel-knop in Instellingen zijn weg; alles gaat via de ene knop.
+
 ## 1.4.1
 
 **Gewijzigd**

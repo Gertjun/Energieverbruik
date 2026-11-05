@@ -67,6 +67,13 @@
   is dus terecht; verder niets aan doen. Let op: zelfvoorzienendheid en verbruik van die maanden zijn niet
   representatief bij vergelijkingen met vorig jaar.
 
+## Stand (5 november 2026) – versie 1.5.0
+- Eén importknop op Invoer voor Vattenfall, HomeWizard, SolarEdge en Excel (herkenning op inhoud; Excel aan
+  zip-kop/.xlsx). SolarEdge-deel onder Maandgegevens en Excel-kaart in Instellingen verwijderd.
+- Getest in de app met alle zes echte bestanden tegelijk (laptop en iPhone): alles herkend, verwerkt in de volgorde
+  Vattenfall → HomeWizard → Excel → SolarEdge. Voorrang gecontroleerd: 5-5 t/m 3-11-2026 blijft Vattenfall,
+  ook als HomeWizard ná Vattenfall wordt ingelezen.
+
 ## Openstaande punten
 - [ ] Geert: Historie op de iPhone bekijken; past de dagtabel met de kolom m³/gd? (°C valt daar al weg.)
 - [ ] Geert: Vattenfall-bestanden inlezen (kwartier/uur). Daarna HomeWizard alleen nog voor de laatste dagen.
@@ -81,7 +88,7 @@
 - [ ] Tarieven nalopen: de app start met de tarieven van de tariefkaart, geldig vanaf 1-1-2025. De oudere
       tarieven uit Blad1 (linkerkolom) zijn niet ingevoerd; als die voor een eerdere periode gelden,
       een extra contract met de juiste data toevoegen.
-- [ ] Geert: SolarEdge-export inlezen (Invoer → Maandgegevens); maandelijks herhalen na de 1e.
+- [ ] Geert: SolarEdge-export inlezen (Invoer → Bestanden inlezen); maandelijks herhalen na de 1e.
 - [ ] Geert zoekt uit of het SolarEdge Monitoring platform per dag kan exporteren (zie WISHLIST). Daarna de
       precieze menunaam van de grafiek in de uitleg zetten.
 - [ ] Saldering met tijdvakken is een aanname (zie DECISIONS.md); vergelijken met de volgende jaarafrekening.

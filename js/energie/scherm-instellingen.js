@@ -1,13 +1,10 @@
-// Instellingen van de app: tarieven (contracten), weerlocatie, Excel-import en export.
+// Instellingen van de app: tarieven (contracten), weerlocatie en export. Bestanden inlezen (ook Excel) gebeurt bij Invoer.
 // Synchronisatie, beveiliging en back-up zitten in de instellingen van de template (tandwiel).
 
 import { h, saveFile, today } from '../core/dom.js';
 import { newRecord, updateById, removeById } from '../core/records.js';
 import { APP } from '../config.js';
 import { TIJDVAKKEN } from './tarief.js';
-import { leesExcel } from './import-excel.js';
-import { zetExcel } from './importeren.js';
-import { importRapport, meldingenInPeriode } from './scherm-controle.js';
 import { fmtDatumKort } from './tijd.js';
 import { kaart, veld, leesGetal, toonGetal, fmtGetal } from './ui.js';
 
@@ -35,7 +32,7 @@ function zet(obj, pad, v) {
 }
 
 export function renderInstellingen(a, staat, opnieuw, ctx) {
-  return [contractenKaart(a, staat, opnieuw, ctx), excelKaart(a, staat, opnieuw, ctx), exportKaart(a, ctx), weerKaart(ctx), overKaart()];
+  return [contractenKaart(a, staat, opnieuw, ctx), exportKaart(a, ctx), weerKaart(ctx), overKaart()];
 }
 
 function contractenKaart(a, staat, opnieuw, ctx) {
@@ -105,42 +102,6 @@ function contractBlok(c, staat, opnieuw, ctx) {
           await ctx.update((d) => { removeById(d.contracten, c.id); });
         },
       }, 'Verwijderen'))));
-}
-
-function excelKaart(a, staat, opnieuw, ctx) {
-  const input = h('input', {
-    type: 'file', accept: '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', class: 'visually-hidden', id: 'excel-bestand',
-    onChange: async (e) => {
-      const f = e.target.files[0];
-      e.target.value = '';
-      if (!f) return;
-      staat.excelImport = null; staat.excelMelding = null;
-      try {
-        const res = await leesExcel(await f.arrayBuffer());
-        await ctx.update((d) => { staat.excelImport = zetExcel(d, res, f.name).id; });
-        staat.weerOpnieuw = true;
-      } catch (err) {
-        staat.excelMelding = `Inlezen mislukt: ${err.message}`;
-      }
-      opnieuw();
-    },
-  });
-  return kaart('Excel inlezen',
-    h('p', { class: 'hint' }, 'Eenmalig je oude Excel-bestand inlezen: dagverbruik, opmerkingen, temperaturen (blad DATA) en termijnbedragen en zonne-opbrengst (blad Kosten). Je kunt dit veilig vaker doen; bestaande gegevens worden niet dubbel geteld.'),
-    input,
-    h('label', { class: 'btn btn-block', for: 'excel-bestand' }, 'Excel-bestand kiezen (.xlsx)'),
-    staat.excelMelding ? h('p', { class: 'form-error' }, staat.excelMelding) : null,
-    excelRapport(a, staat, opnieuw, ctx));
-}
-
-function excelRapport(a, staat, opnieuw, ctx) {
-  const imp = staat.excelImport && (ctx.data.importen || []).find((i) => i.id === staat.excelImport && !i.deleted);
-  if (!imp) return null;
-  const n = meldingenInPeriode(a, imp.rapport.vanaf, imp.rapport.tot);
-  return h('div', { class: 'rapport-blok' },
-    h('h3', {}, 'Importrapport'),
-    n ? h('p', { class: 'is-waarschuwing' }, `${n} controlemelding${n === 1 ? '' : 'en'} in deze periode.`) : h('p', { class: 'is-goed' }, 'Geen verdachte waarden in deze periode.'),
-    importRapport(imp, staat, opnieuw, ctx, { metLink: true }));
 }
 
 function exportKaart(a, ctx) {

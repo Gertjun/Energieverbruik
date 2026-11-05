@@ -7,6 +7,8 @@ Vervangt het Excel-bestand *Gasverbruik.xlsx*. Gebouwd op de eigen PWA-template.
 
 ## Wat de app doet
 
+- **Eén knop voor alle bestanden** (Invoer → Bestanden inlezen): de app herkent zelf Vattenfall, HomeWizard,
+  SolarEdge of de oude Excel. Voorrang bij verschillen: Vattenfall > HomeWizard > Excel > handmatig.
 - **Invoer** via de CSV-download van Mijn Vattenfall (stroom per kwartier, gas per uur, of per dag) of de
   CSV-export van de HomeWizard Energy-app (P1-meter, per kwartier). Vattenfall gaat voor.
   Handmatig een dag invullen of een opmerking toevoegen kan ook.
