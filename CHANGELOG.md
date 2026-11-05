@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.14.0
+
+**Toegevoegd**
+- **Wat als de saldering stopt (2027)** als soort analyse. Je echte verbruik over de gekozen periode wordt twee keer doorgerekend: met de huidige saldering en met de regeling vanaf 1-1-2027 (terugleververgoeding € 0,081 en terugleverkosten € 0,066 per kWh, geen vaste terugleverkosten meer). Je ziet het verschil in totaal, gemiddeld per maand, en per maand in een grafiek en tabel.
+- Onder de tabel staat waar het verschil vandaan komt: wat je afname kost, wat je teruglevering oplevert, de terugleverkosten en de vaste terugleverkosten die vervallen.
+
 ## 1.13.0
 
 **Toegevoegd**

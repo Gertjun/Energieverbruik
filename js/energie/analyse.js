@@ -3,7 +3,7 @@
 // Geen DOM hier, zodat het los te testen is.
 
 import { totaal } from './model.js';
-import { TIJDVAKKEN, tijdvak, urenVanDag, contractOp } from './tarief.js';
+import { TIJDVAKKEN, tijdvak, urenVanDag, contractOp, kostenDag } from './tarief.js';
 import {
   addDays, eachDay, daysBetween, weekday, isoWeekKey, mondayOf, monthKey, sameDayLastYear,
   fmtDatumKort, fmtMaand, fmtMaandKort,
@@ -317,4 +317,59 @@ export function heatmapRijen(a, maat, van, tot) {
     }
     return { label: vk.label, kort: vk.kort, van: vk.van, dagen, waarden: dagen ? som.map((x) => x / dagen) : null };
   });
+}
+
+// ---------- Wat-als: einde saldering ----------
+
+/** Het contract met de regeling na saldering (per kWh) met de laatste begindatum. */
+export function contractNaSaldering(a) {
+  return a.contracten.filter((c) => c.terug?.regeling === 'perKwh').sort((x, y) => (x.van < y.van ? 1 : -1))[0] || null;
+}
+
+const dagenVanMaand = (iso) => new Date(Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)), 0)).getUTCDate();
+
+/**
+ * Stroomkosten van één dag met saldering en na saldering, met dezelfde leverings- en belastingtarieven
+ * (die van het contract op die dag). Alleen de regeling voor teruglevering verschilt, zodat het verschil
+ * precies het effect van het einde van de saldering is. Vaste terugleverkosten tellen mee bij saldering.
+ */
+export function salderingDag(a, datum, na) {
+  const x = a.perDag.get(datum);
+  if (!x?.dag || x.dag.afname == null) return null;
+  const c = contractOp(a.contracten, datum);
+  if (!c) return null;
+  const metRegels = c.terug?.regeling === 'saldering' ? c.terug
+    : (a.contracten.filter((k) => k.terug?.regeling === 'saldering').sort((p, q) => (p.van < q.van ? 1 : -1))[0]?.terug);
+  if (!metRegels || !na) return null;
+  const dag = { ...x.dag, gas: 0 };
+  const met = kostenDag(dag, { ...c, terug: metRegels }, a.profielen);
+  const zonder = kostenDag(dag, { ...c, terug: na.terug }, a.profielen);
+  const vastTerug = (metRegels.vasteKostenJaar || 0) / 12 / dagenVanMaand(datum);
+  return {
+    afname: x.dag.afname, terug: x.dag.terug || 0,
+    met: met.stroom + met.terug + vastTerug, vastTerug,
+    na: zonder.stroom + zonder.terug,
+    afnameKosten: zonder.stroom,
+    vergoeding: (x.dag.terug || 0) * (na.terug.vergoeding || 0),
+    terugKosten: (x.dag.terug || 0) * (na.terug.kostenPerKwh || 0),
+    geschat: met.geschat,
+  };
+}
+
+/** Per maand (of per jaar) de som van salderingDag over de periode. */
+export function salderingReeks(a, van, tot, indeling = 'maand') {
+  const na = contractNaSaldering(a);
+  const leeg = () => ({ afname: 0, terug: 0, met: 0, na: 0, vastTerug: 0, afnameKosten: 0, vergoeding: 0, terugKosten: 0, dagen: 0, geschat: false });
+  const tel = (t, d) => { for (const k of Object.keys(t)) if (k !== 'dagen' && typeof d[k] === 'number') t[k] += d[k]; t.dagen++; if (d.geschat) t.geschat = true; };
+  const totaalT = leeg();
+  const vakjes = tijdVakjes(indeling, van, tot).map((vk) => {
+    const t = leeg();
+    for (const d of eachDay(vk.van, vk.tot)) {
+      const r = salderingDag(a, d, na);
+      if (r) { tel(t, r); tel(totaalT, r); }
+    }
+    return { ...vk, ...t };
+  });
+  totaalT.dagen = vakjes.reduce((s, v) => s + v.dagen, 0);
+  return { vakjes, totaal: totaalT, na };
 }

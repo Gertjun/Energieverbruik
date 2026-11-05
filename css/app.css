@@ -340,3 +340,5 @@ input[type="month"] {
 .hm-legenda { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
 .hm-balk { flex: 0 1 180px; height: 10px; border-radius: 3px; background: linear-gradient(to right, var(--hm-laag), var(--hm-hoog)); }
 .hm-balk-deel { background: linear-gradient(to right, var(--hm-min), var(--hm-nul), var(--hm-plus)); }
+.analyse-kpi { margin-bottom: 12px; }
+@media (min-width: 900px) { .analyse-kpi { grid-template-columns: repeat(3, 1fr); } }
