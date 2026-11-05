@@ -6,7 +6,7 @@
 import { h, saveFile, today } from '../core/dom.js';
 import { alive, newRecord, removeById } from '../core/records.js';
 import { staafGrafiek } from './grafiek.js';
-import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, snelPeriode, vorigJaar, anderePeriode } from './analyse.js';
+import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief } from './analyse.js';
 import { daysBetween, fmtDatumKort } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 
@@ -155,6 +155,12 @@ function resultaat(a, c, van, tot) {
   if (c.indeling === 'uur') hints.push('Per uur = gemiddelde per dag over de gekozen periode; dagen zonder uurdata volgen het gemiddelde uurprofiel.');
   if (c.indeling === 'tijdvak') hints.push('Tijdvakken die in de periode niet voorkomen (bijv. zomer in januari) blijven leeg.');
   if ([c.maat, c.maat2].includes('gasPerGd')) hints.push('Gas per graaddag alleen bij voldoende graaddagen (dag 1, week 3, maand/jaar 5).');
+  if (c.maat === 'basis' && r.totaal.v != null) {
+    const kwh = (r.totaal.v * 8760) / 1000; const tarief = vlakStroomTarief(a, tot);
+    hints.push(`Sluipverbruik = laagste uurverbruik tussen 00:00 en 05:00 (dan schijnt de zon niet), alleen voor dagen met uurgegevens. Per week, maand of jaar de mediaan van de dagen, zodat een nacht met bijvoorbeeld de auto aan de lader niet meetelt. ${fmtGetal(r.totaal.v, 0)} W is ongeveer ${fmtGetal(kwh, 0)} kWh per jaar${tarief ? `, zo'n ${euro(kwh * tarief)} per jaar` : ''}.`);
+  } else if (c.maat2 === 'basis' && c.vergelijk === 'maat') {
+    hints.push('Sluipverbruik = laagste uurverbruik tussen 00:00 en 05:00, alleen voor dagen met uurgegevens; per week/maand/jaar de mediaan.');
+  }
   if (c.vergelijk === 'vorigjaar' && ['dag', 'week'].includes(c.indeling)) hints.push('Vorig jaar = 52 weken eerder, zodat dezelfde weekdagen naast elkaar staan.');
 
   return kaart(titel,

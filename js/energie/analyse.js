@@ -3,7 +3,7 @@
 // Geen DOM hier, zodat het los te testen is.
 
 import { totaal } from './model.js';
-import { TIJDVAKKEN, tijdvak, urenVanDag } from './tarief.js';
+import { TIJDVAKKEN, tijdvak, urenVanDag, contractOp } from './tarief.js';
 import {
   addDays, eachDay, daysBetween, isoWeekKey, mondayOf, monthKey, sameDayLastYear,
   fmtDatumKort, fmtMaand, fmtMaandKort,
@@ -17,6 +17,7 @@ export const MATEN = {
   terug: { groep: 'Verbruik', naam: 'Stroom teruggeleverd', eenheid: 'kWh', d: 1, per: [...TIJD, ...UUR] },
   netto: { groep: 'Verbruik', naam: 'Stroom netto (afname − terug)', eenheid: 'kWh', d: 1, per: [...TIJD, ...UUR] },
   gas: { groep: 'Verbruik', naam: 'Gas', eenheid: 'm³', d: 2, per: TIJD },
+  basis: { groep: 'Verbruik', naam: 'Sluipverbruik (laagste uur ʼs nachts)', eenheid: 'W', d: 0, per: TIJD, gem: true },
   kosten: { groep: 'Kosten', naam: 'Kosten totaal', eenheid: '€', d: 2, per: TIJD },
   kostenStroom: { groep: 'Kosten', naam: 'Kosten stroom (variabel)', eenheid: '€', d: 2, per: TIJD },
   kostenGas: { groep: 'Kosten', naam: 'Kosten gas (variabel)', eenheid: '€', d: 2, per: TIJD },
@@ -80,6 +81,25 @@ function vakNaam(indeling, d, van, tot) {
 
 // ---------- Waarden ----------
 
+export function mediaan(lijst) {
+  if (!lijst.length) return null;
+  const s = [...lijst].sort((x, y) => x - y); const m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+/** Uren waarover het sluipverbruik bepaald wordt: 00:00–05:00, dan schijnt de zon zeker niet. */
+export const BASIS_UREN = [0, 1, 2, 3, 4];
+
+/**
+ * Sluipverbruik van één dag in watt: het laagste uurverbruik tussen 00:00 en 05:00
+ * (kWh in dat uur × 1000 = gemiddeld vermogen). Alleen voor dagen met echte uurdata.
+ */
+export function basisDag(dag) {
+  if (!dag?.uurAfname) return null;
+  const w = BASIS_UREN.map((h) => dag.uurAfname[h]).filter(Number.isFinite);
+  return w.length ? Math.min(...w) * 1000 : null;
+}
+
 /** Waarde van een tijdgrootheid over de dagen van..tot. Geeft { v, geschat }. */
 function tijdWaarde(a, maat, van, tot, indeling) {
   if (maat === 'zon') {
@@ -101,6 +121,12 @@ function tijdWaarde(a, maat, van, tot, indeling) {
     }
     if (!n) return { v: null };
     return { v: maat === 'temp' ? som / n : gd };
+  }
+  if (maat === 'basis') {
+    // Mediaan van de dagen: één nacht met bijvoorbeeld de auto aan de lader trekt het getal dan niet omhoog.
+    const w = [];
+    for (const d of eachDay(van, tot)) { const x = basisDag(a.perDag.get(d)?.dag); if (x != null) w.push(x); }
+    return { v: mediaan(w) };
   }
   const t = totaal(a, van, tot);
   switch (maat) {
@@ -159,6 +185,20 @@ export function reeks(a, maat, indeling, van, tot) {
   const vakjes = tijdVakjes(indeling, van, tot).map((vk) => ({ ...vk, ...tijdWaarde(a, maat, vk.van, vk.tot, indeling) }));
   const t = tijdWaarde(a, maat, van, tot, 'jaar');
   return { vakjes, totaal: { label: MATEN[maat].gem ? 'Hele periode' : 'Totaal', ...t }, dagen: daysBetween(van, tot) + 1 };
+}
+
+/**
+ * Gemiddeld stroomtarief (levering + energiebelasting, € per kWh) over de 365 dagen tot en met `datum`,
+ * als je elk uur evenveel verbruikt. Voor het omrekenen van een constant vermogen (sluipverbruik) naar euro's.
+ */
+export function vlakStroomTarief(a, datum) {
+  let som = 0; let n = 0;
+  for (const d of eachDay(addDays(datum, -364), datum)) {
+    const c = contractOp(a.contracten, d);
+    if (!c) continue;
+    for (let h = 0; h < 24; h++) { som += (c.stroomLevering?.[tijdvak(d, h)] || 0) + (c.stroomEb || 0); n++; }
+  }
+  return n ? som / n : null;
 }
 
 // ---------- Perioden ----------

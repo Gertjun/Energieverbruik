@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.10.0
+
+**Toegevoegd**
+- **Sluipverbruik** in Analyse (Wat → Verbruik): het "altijd-aan" verbruik van je huis in watt. Per dag is dat het laagste uurverbruik tussen 00:00 en 05:00, als de zon zeker niet schijnt. Per week, maand of jaar is het de mediaan van de dagen, zodat één nacht met bijvoorbeeld de auto aan de lader het getal niet omhoog trekt.
+- Onder de tabel staat wat dat sluipverbruik per jaar betekent in kWh en in euro's (tegen het gemiddelde stroomtarief inclusief energiebelasting).
+- Alleen dagen met uurgegevens (Vattenfall of HomeWizard) tellen mee; dagen uit de Excel hebben geen uren.
+
 ## 1.9.4
 
 **Verbeterd**
