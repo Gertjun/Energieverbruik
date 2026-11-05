@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.3
+
+**Opgelost**
+- In Historie → Dagen stond het woord "null" boven de tabel als er geen dag was aangetikt. Lege onderdelen worden nu overgeslagen (geldt voor alle schermen).
+
 ## 1.3.2
 
 **Toegevoegd**

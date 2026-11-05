@@ -38,6 +38,12 @@
 - Logo, naam en versie in de zijbalk (laptop) en in de kopbalk (iPhone/iPad). Visueel gecontroleerd met een
   testpagina op laptop- (licht/donker, in- en uitgeklapt) en iPhone-breedte.
 
+## Stand (5 november 2026) – versie 1.3.3
+- Bugfix: "null" boven de dagtabel in Historie. Oorzaak: het bewerkvak is leeg als er geen dag is aangetikt,
+  en die lege waarde werd als tekst getoond. Nu filtert app.js lege onderdelen weg (alle schermen).
+- Zes nieuwe wensen van Geert op WISHLIST.md gezet (totalen Dagen = Maanden, SolarEdge-import, Analyse-scherm,
+  één Instellingen-plek, kleuren kiezen).
+
 ## Openstaande punten
 - [ ] Geert: Historie op de iPhone bekijken; past de dagtabel met de kolom m³/gd? (°C valt daar al weg.)
 - [ ] Geert: Vattenfall-bestanden inlezen (kwartier/uur). Daarna HomeWizard alleen nog voor de laatste dagen.

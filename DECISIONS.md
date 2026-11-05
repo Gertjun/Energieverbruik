@@ -1,5 +1,10 @@
 # Beslissingen
 
+## 2026-11-05 – "null" in Historie (versie 1.3.3)
+- **Centraal opgelost in app.js** (`inhoud.filter(Boolean)`) in plaats van alleen in scherm-historie.js, zodat
+  geen enkel scherm dit probleem nog kan krijgen. Core-bestanden niet aangepast.
+- **PATCH**: bugfix.
+
 ## 2026-11-05 – Logo en versienummer (versie 1.3.2)
 - **Zelfde opbouw als Vaste Lasten**: logo + naam + versie bovenin de zijbalk, inklapknop rechts ernaast.
   Ingeklapt: alleen logo met de knop eronder.

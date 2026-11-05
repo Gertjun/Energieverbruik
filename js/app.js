@@ -100,7 +100,7 @@ export const app = {
     else if (staat.tab === 'instellingen') inhoud = renderInstellingen(a, staat, opnieuw, ctx);
     else inhoud = renderOverzicht(a, staat, opnieuw);
     document.querySelectorAll('[data-app-version]').forEach((el) => { el.textContent = `v${APP.version}`; });
-    root.replaceChildren(navigatie(), h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), ...inhoud);
+    root.replaceChildren(navigatie(), h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), ...inhoud.filter(Boolean));
     zorgVoorWeer(ctx, a);
   },
 };
