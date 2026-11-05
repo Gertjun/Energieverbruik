@@ -1,5 +1,13 @@
 # Beslissingen
 
+## 2026-11-05 – Soort analyse als tegels (versie 1.23.0)
+- **Eigen kaart bovenaan ("Wat wil je analyseren?") met tegels** in plaats van een keuzelijst in het blok Samenstellen
+  (verzoek Geert: het is de eerste keuze). Elke tegel heeft een korte naam en een regel uitleg, zodat je ziet wat er
+  is zonder de lijst open te klappen. 2 kolommen op de iPhone, 3 op de iPad, 5 op de laptop.
+- **Altijd zichtbaar**, ook na het kiezen (geen inklappen): wisselen blijft één tik. Kost op de iPhone ~5 rijen hoogte.
+- Het blok met de overige keuzes heet "Samenstellen" bij Zelf samenstellen en "Keuzes" bij de andere soorten, zodat
+  de titel niet dubbel staat met die van het resultaat.
+
 ## 2026-11-05 – Uitbreiding Analyse (versies 1.10.0 t/m 1.22.1)
 Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 

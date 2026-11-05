@@ -142,7 +142,12 @@
 - Opvallend in de data: ’s nachts wisselt de afname per uur tussen ~0,16 en ~1,5 kWh (iets dat aan- en afslaat,
   bijv. boiler of warmtepomp). Niet onderzocht; Geert kan het in de heatmap per dag bekijken.
 
+## Stand (5 november 2026) – versie 1.23.0
+- Soort analyse staat als tegels in een eigen kaart bovenaan Analyse. Bekeken op laptop (licht) en iPhone-breedte
+  (donker); alle combinaties opnieuw zonder fouten doorgelopen.
+
 ## Openstaande punten
+- [ ] Geert: tegels voor Soort analyse bekijken op iPhone/iPad; prominent genoeg, niet te veel ruimte?
 - [ ] Geert: HomeWizard-export (stroom) opnieuw inlezen, zodat ook eerdere dagen piekvermogen krijgen (1.11.0).
 - [ ] Geert: na het bijwerken alle apparaten eenmaal openen (gegevensversie 4, uitgesloten perioden).
 - [ ] Geert: aug–sep 2025 (huis leeg) toevoegen bij Analyse → Uitgesloten perioden.

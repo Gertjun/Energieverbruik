@@ -66,8 +66,14 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
   const van = p.van <= p.tot ? p.van : p.tot; const tot = p.van <= p.tot ? p.tot : p.van;
 
   const soort = SOORTEN.find((x) => x.key === c.soort) || SOORTEN[0];
-  const soortKeus = veld('Soort analyse', h('select', { onChange: (e) => wijzig({ soort: e.target.value }) },
-    SOORTEN.map((x) => h('option', { value: x.key, selected: x.key === soort.key }, x.naam))));
+  // Eerste keuze, daarom een eigen kaart met tegels bovenaan in plaats van een keuzelijst.
+  const soortKaart = h('section', { class: 'card kaart soort-kaart' },
+    h('h2', { class: 'kaart-titel' }, 'Wat wil je analyseren?'),
+    h('div', { class: 'soort-tegels', role: 'radiogroup', 'aria-label': 'Soort analyse' },
+      SOORTEN.map((x) => h('button', {
+        type: 'button', class: 'soort-tegel', role: 'radio', 'aria-checked': x.key === soort.key ? 'true' : 'false',
+        onClick: () => { if (x.key !== soort.key) wijzig({ soort: x.key }); },
+      }, h('strong', {}, x.kort || x.naam), h('span', {}, x.uitleg || '')))));
   const periodeKeus = soort.geenPeriode ? null : h('div', { class: 'field' }, h('span', {}, 'Periode'),
     h('div', { class: 'snelknoppen' }, SNEL.map(([k, t]) => h('button', {
       type: 'button', class: 'btn btn-small', 'aria-pressed': c.preset === k ? 'true' : 'false',
@@ -78,15 +84,15 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
       veld('Tot en met', h('input', { type: 'date', value: tot, onChange: (e) => { if (e.target.value) wijzig({ preset: null, van, tot: e.target.value }); } }))));
 
   if (soort.key !== 'samenstellen') {
-    const keuzesAnders = kaart('Samenstellen', favorietenRegel(ctx, c, opnieuw),
-      h('div', { class: 'analyse-keuzes' }, soortKeus, ...(soort.velden?.(c, wijzig, a) || [])), periodeKeus, uitsluitKeus);
-    return [keuzesAnders, ...[].concat(soort.resultaat(a, c, van, tot)), uitsluitMelding(a, volledigA)];
+    const velden = soort.velden?.(c, wijzig, a) || [];
+    const keuzesAnders = kaart('Keuzes', favorietenRegel(ctx, c, opnieuw),
+      velden.length ? h('div', { class: 'analyse-keuzes' }, ...velden) : null, periodeKeus, uitsluitKeus);
+    return [soortKaart, keuzesAnders, ...[].concat(soort.resultaat(a, c, van, tot)), uitsluitMelding(a, volledigA)];
   }
 
   const keuzes = kaart('Samenstellen',
     favorietenRegel(ctx, c, opnieuw),
     h('div', { class: 'analyse-keuzes' },
-      soortKeus,
       veld('Wat', maatSelect(c.maat, c.indeling, (v) => wijzig({ maat: v }))),
       veld('Indeling', h('select', { onChange: (e) => wijzig({ indeling: e.target.value }) },
         INDELINGEN.map(([k, t]) => h('option', { value: k, selected: k === c.indeling, disabled: !past(c.maat, k) }, t)))),
@@ -106,10 +112,10 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
     periodeKeus, uitsluitKeus);
 
   if (c.indeling === 'dag' && daysBetween(van, tot) + 1 > MAX_DAGEN_PER_DAG) {
-    return [keuzes, kaart(null, h('p', { class: 'muted' },
+    return [soortKaart, keuzes, kaart(null, h('p', { class: 'muted' },
       `Per dag kan voor maximaal ${MAX_DAGEN_PER_DAG} dagen. Kies een kortere periode of een indeling per week of maand.`))];
   }
-  return [keuzes, resultaat(a, c, van, tot), uitsluitMelding(a, volledigA)];
+  return [soortKaart, keuzes, resultaat(a, c, van, tot), uitsluitMelding(a, volledigA)];
 }
 
 /** Korte regel onder het resultaat als er dagen zijn weggelaten. */

@@ -22,8 +22,9 @@ const HM_MATEN = [['afname', 'Stroom afgenomen'], ['terug', 'Stroom teruggelever
 
 const heatmapSoort = {
   key: 'heatmap',
+  kort: 'Heatmap',
+  uitleg: 'Wanneer op de dag je stroom gebruikt',
   naam: 'Heatmap: uur van de dag × datum',
-  uitleg: 'Wanneer je stroom afneemt of teruglevert, in één beeld.',
   velden: (c, wijzig) => [veld('Wat', keuze(c.hmMaat, HM_MATEN, (v) => wijzig({ hmMaat: v })))],
   resultaat(a, c, van, tot) {
     const rijen = heatmapRijen(a, c.hmMaat, van, tot);
@@ -50,6 +51,8 @@ const tarief = (v) => `€ ${fmtGetal(v, 3)}`;
 
 const salderingSoort = {
   key: 'saldering',
+  kort: 'Einde saldering',
+  uitleg: 'Wat 2027 je gaat kosten',
   naam: 'Wat als de saldering stopt (2027)',
   resultaat(a, c, van, tot) {
     const r = salderingReeks(a, van, tot, 'maand');
@@ -97,6 +100,8 @@ const salderingSoort = {
 
 const zonurenSoort = {
   key: 'zonuren',
+  kort: 'Eigen verbruik',
+  uitleg: 'Verbruik naar de zonuren verschuiven',
   naam: 'Eigen verbruik: afname in de zonuren',
   resultaat(a, c, van, tot) {
     const r = zonurenReeks(a, van, tot, 'maand');
@@ -147,6 +152,8 @@ const graden = (v) => `${fmtGetal(v, 1)} °C`;
 
 const stooklijnSoort = {
   key: 'stooklijn',
+  kort: 'Stooklijn',
+  uitleg: 'Gas tegen de buitentemperatuur',
   naam: 'Stooklijn: gas tegen buitentemperatuur',
   resultaat(a, c, van, tot) {
     const { punten, fit } = stooklijn(a, van, tot);
@@ -180,6 +187,8 @@ const stooklijnSoort = {
 
 const weerSoort = {
   key: 'weergas',
+  kort: 'Gas weer-gecorrigeerd',
+  uitleg: 'Zuiniger gestookt, los van het weer?',
   naam: 'Gas weer-gecorrigeerd vergelijken',
   velden: (c, wijzig, a) => [
     veld('Vergelijken met', keuze(c.wgRef, [['vorigjaar', 'Dezelfde periode vorig jaar'], ['periode', 'Een eigen periode']], (v) => wijzig({ wgRef: v }))),
@@ -249,6 +258,8 @@ const CU_MATEN = [
 
 const cumulatiefSoort = {
   key: 'cumulatief',
+  kort: 'Opgeteld per jaar',
+  uitleg: 'Dit jaar naast vorig jaar',
   naam: 'Opgeteld verloop door het jaar',
   geenPeriode: true,
   velden: (c, wijzig) => [
@@ -309,6 +320,8 @@ const cumulatiefSoort = {
 
 const prognoseSoort = {
   key: 'prognose',
+  kort: 'Jaarprognose',
+  uitleg: 'Verwachte kosten en eindafrekening',
   naam: 'Jaarprognose tot 31 december',
   geenPeriode: true,
   resultaat(a) {
@@ -378,6 +391,8 @@ function balk(pct) {
 
 const topSoort = {
   key: 'top',
+  kort: 'Top-10',
+  uitleg: 'Hoogste en laagste dagen of maanden',
   naam: 'Top-10: hoogste en laagste',
   velden: (c, wijzig) => [
     veld('Wat', h('select', { onChange: (e) => wijzig({ topMaat: e.target.value }) },
@@ -413,7 +428,7 @@ const topSoort = {
 
 /** Alle soorten, in de volgorde van de keuzelijst. "Zelf samenstellen" wordt in scherm-analyse.js getekend. */
 export const SOORTEN = [
-  { key: 'samenstellen', naam: 'Zelf samenstellen', uitleg: null },
+  { key: 'samenstellen', naam: 'Zelf samenstellen', kort: 'Zelf samenstellen', uitleg: 'Eigen grafiek en tabel, vrij te kiezen' },
   heatmapSoort,
   salderingSoort,
   zonurenSoort,

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.23.0
+
+**Verbeterd**
+- **Soort analyse staat nu bovenaan Analyse** in een eigen blok "Wat wil je analyseren?", als tegels in plaats van een keuzelijst. Elke tegel heeft een korte uitleg, en de gekozen soort is gemarkeerd. Daaronder staan de keuzes voor die soort.
+
 ## 1.22.1
 
 **Gecorrigeerd**
