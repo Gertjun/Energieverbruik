@@ -7,11 +7,11 @@
    manifest.webmanifest aanpassen). */
 /* @accent-start */
 :root {
-  --accent: #2563eb;
+  --accent: #0f766e;
   --accent-contrast: #ffffff;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --accent: #5b8cff; --accent-contrast: #0b0d12; }
+  :root { --accent: #579f9a; --accent-contrast: #0b0d12; }
 }
 /* @accent-end */
 
