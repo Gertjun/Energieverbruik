@@ -262,6 +262,7 @@ export function importRapport(imp, staat, opnieuw, ctx, { metLink = false } = {}
     getallen.push(['Betere bron ging voor', tal(r.voorrang || 0, 'dag', 'dagen')]);
   }
   if (r.uurverdeling) getallen.push(['Uurverdeling aangevuld', tal(r.uurverdeling, 'dag', 'dagen')]);
+  if (r.pieken) getallen.push(['Piekvermogen ingelezen', tal(r.pieken, 'dag', 'dagen')]);
   if (imp.soort === 'excel') {
     getallen.push(['Temperaturen', tal(r.weer || 0, 'dag', 'dagen')]);
     getallen.push(['Maanden (termijn/zon)', fmtGetal(r.maanden || 0, 0)]);

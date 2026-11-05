@@ -6,7 +6,8 @@
 // waarde uit een bron die hoger staat; die wordt alleen vergeleken. Opmerkingen blijven staan.
 //
 // Per dag zijn er drie groepen velden die een import kan zetten:
-//   s = stroom (afname, terug, uurverdeling, bron), g = gas, o = opmerking.
+//   s = stroom (afname, terug, uurverdeling, bron), g = gas, o = opmerking,
+//   p = piekvermogen per fase (alleen uit HomeWizard; staat los van de voorrang bij stroom).
 // Op de dag staat in `imp` welke import elke groep het laatst heeft gezet. In het
 // importrecord staat in `herstel` hoe die groep er vóór de import uitzag.
 // Ongedaan maken zet alleen groepen terug die sindsdien niet meer veranderd zijn.
@@ -18,6 +19,7 @@ export const GROEPEN = {
   s: ['afname', 'terug', 'uurAfname', 'uurTerug', 'bron'],
   g: ['gas', 'bronGas'],
   o: ['opmerking'],
+  p: ['piek'],
 };
 /** Hoeveel imports terug te draaien blijven (oudere herstelgegevens worden opgeruimd). */
 export const HERSTEL_MAX = 10;
@@ -123,7 +125,7 @@ function afronden(data, imp) {
   o.afwijkend.sort((a, b) => Math.abs(b.nieuw - b.oud) - Math.abs(a.nieuw - a.oud));
   o.afwijkend = o.afwijkend.slice(0, 50);
   const r = imp.rapport;
-  imp.veranderd = r.nieuw + r.gewijzigd + (r.weer || 0) + (r.maanden || 0) > 0;
+  imp.veranderd = r.nieuw + r.gewijzigd + (r.weer || 0) + (r.maanden || 0) + (r.pieken || 0) > 0;
   data.importen ??= [];
   data.importen.push(imp);
   // Alleen de laatste imports blijven terug te draaien; zo blijft de kluis klein.
@@ -166,6 +168,8 @@ export function zetMeterbestand(data, res, bestand, bron) {
   for (const d of res.dagen) {
     const oud = vind(data.dagen, dagId(d.datum));
     if (res.soort === 'stroom') {
+      // Piekvermogen komt alleen van HomeWizard; Vattenfall heeft het niet, dus geen voorrang nodig.
+      if (d.piek && zetGroep(data, imp, d.datum, 'p', { piek: d.piek }) !== 'gelijk') r.pieken = (r.pieken || 0) + 1;
       const hoger = oud?.afname != null && rang(oud.bron) > rang(bron);
       vergelijk(imp, d.datum, 'afname', oud?.afname, d.afname, oud?.bron, hoger);
       vergelijk(imp, d.datum, 'terug', oud?.terug, d.terug, oud?.bron, hoger);

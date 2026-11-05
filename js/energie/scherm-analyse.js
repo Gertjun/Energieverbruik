@@ -6,7 +6,7 @@
 import { h, saveFile, today } from '../core/dom.js';
 import { alive, newRecord, removeById } from '../core/records.js';
 import { staafGrafiek } from './grafiek.js';
-import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief } from './analyse.js';
+import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief, AANSLUITING, GRENS_FASE } from './analyse.js';
 import { daysBetween, fmtDatumKort } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 
@@ -115,6 +115,8 @@ function resultaat(a, c, van, tot) {
     vergelijk: r2 && !lijnMaat ? r.vakjes.map((_, i) => w2(i)) : null,
     lijn: lijnMaat ? { waarden: r.vakjes.map((_, i) => w2(i)), fmt: (v, as) => (as ? fmtAs(c.maat2)(v) : fmtWaarde(c.maat2)(v)), naam: MATEN[c.maat2].naam } : null,
     fmt: (v, as) => (as ? fmtAs(c.maat)(v) : fmtWaarde(c.maat)(v)),
+    grens: c.maat === 'piek' ? { waarde: GRENS_FASE, naam: `${AANSLUITING.ampere} A per fase` }
+      : c.maat === 'piekSom' ? { waarde: GRENS_FASE * AANSLUITING.fasen, naam: `${AANSLUITING.fasen}×${AANSLUITING.ampere} A` } : null,
     naam: lijnMaat ? m.naam : periodeTekst(van, tot),
     vergelijkNaam: r2 && !lijnMaat ? periodeTekst(van2, tot2) : 'Vorig jaar',
   }) : h('p', { class: 'muted' }, 'Geen gegevens in deze periode.');
@@ -155,6 +157,12 @@ function resultaat(a, c, van, tot) {
   if (c.indeling === 'uur') hints.push('Per uur = gemiddelde per dag over de gekozen periode; dagen zonder uurdata volgen het gemiddelde uurprofiel.');
   if (c.indeling === 'tijdvak') hints.push('Tijdvakken die in de periode niet voorkomen (bijv. zomer in januari) blijven leeg.');
   if ([c.maat, c.maat2].includes('gasPerGd')) hints.push('Gas per graaddag alleen bij voldoende graaddagen (dag 1, week 3, maand/jaar 5).');
+  if (c.maat === 'piek' || c.maat === 'piekSom') {
+    const grens = c.maat === 'piek' ? GRENS_FASE : GRENS_FASE * AANSLUITING.fasen;
+    const boven = r.vakjes.filter((vk) => vk.v != null && vk.v > grens).length;
+    hints.push(`Piekvermogen komt uit de HomeWizard-export: het hoogste vermogen per kwartier${c.maat === 'piek' ? ' op de zwaarst belaste fase' : ', van de drie fasen opgeteld (de pieken kunnen binnen het kwartier op verschillende momenten vallen, dus dit is een bovengrens)'}. De rode lijn is wat je aansluiting (${AANSLUITING.fasen}×${AANSLUITING.ampere} A) continu aankan: ${fmtGetal(grens, 0)} W. Een korte piek erboven is normaal; een zekering slaat pas bij langere overbelasting door.${boven ? ` In ${boven} ${boven === 1 ? 'periode' : 'perioden'} kwam de piek erboven.` : ''} Teruglevering telt niet mee. Dagen zonder HomeWizard-gegevens blijven leeg; lees de HomeWizard-export opnieuw in voor de pieken van eerdere dagen.`);
+    if (r.totaal.wanneer) hints.push(`Hoogste piek: ${fmtGetal(r.totaal.v, 0)} W op ${fmtDatumKort(r.totaal.wanneer)} ${r.totaal.wanneer.slice(0, 4)}${c.maat === 'piek' ? ` om ${a.perDag.get(r.totaal.wanneer).dag.piek.t}` : ''}.`);
+  }
   if (c.maat === 'basis' && r.totaal.v != null) {
     const kwh = (r.totaal.v * 8760) / 1000; const tarief = vlakStroomTarief(a, tot);
     hints.push(`Sluipverbruik = laagste uurverbruik tussen 00:00 en 05:00 (dan schijnt de zon niet), alleen voor dagen met uurgegevens. Per week, maand of jaar de mediaan van de dagen, zodat een nacht met bijvoorbeeld de auto aan de lader niet meetelt. ${fmtGetal(r.totaal.v, 0)} W is ongeveer ${fmtGetal(kwh, 0)} kWh per jaar${tarief ? `, zo'n ${euro(kwh * tarief)} per jaar` : ''}.`);

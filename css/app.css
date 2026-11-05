@@ -153,6 +153,8 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .leg-vergelijk { background: var(--jaar-1); }
 .g-lijn { fill: none; stroke: var(--warn); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .g-punt { fill: var(--warn); }
+.g-grens { stroke: var(--danger); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.g-grens-tekst { fill: var(--danger); }
 .g-as-lijn { fill: var(--warn); }
 .g-zon-0 { --c: var(--jaar-0); }
 .g-zon-1 { --c: var(--jaar-1); }

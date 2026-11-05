@@ -34,11 +34,11 @@ function niceMax(v) {
  * staafGrafiek({ labels, korteLabels, waarden, vergelijk, fmt, naam, vergelijkNaam, markeer })
  * waarden/vergelijk: getallen of null (geen gegevens).
  */
-export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], lijn = null, breedte = null, hoogte = null }) {
+export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], lijn = null, grens = null, breedte = null, hoogte = null }) {
   // Breedte volgt het scherm, zodat de tekst op elk apparaat even groot blijft.
   const W = grafiekBreedte(breedte);
   const H = hoogte || (W < 500 ? 200 : 240); const L = 44; const R = lijn ? 44 : 8; const T = 10; const B = 26;
-  const alle = [...waarden, ...(vergelijk || [])].filter((v) => v != null);
+  const alle = [...waarden, ...(vergelijk || []), ...(grens ? [grens.waarde] : [])].filter((v) => v != null);
   const maxV = niceMax(Math.max(0, ...alle));
   const minV = Math.min(0, ...alle) < 0 ? -niceMax(-Math.min(0, ...alle)) : 0;
   const y = (v) => T + (H - T - B) * (1 - (v - minV) / (maxV - minV));
@@ -59,6 +59,13 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
     const yy = y(v);
     svg.append(s('line', { x1: L, x2: W - R, y1: yy, y2: yy, class: v === 0 ? 'g-nul' : 'g-raster' }));
     svg.append(s('text', { x: L - 6, y: yy + 4, class: 'g-as', 'text-anchor': 'end' }, fmt(v, true)));
+  }
+
+  // Grenslijn (bijv. wat de hoofdzekering aankan), gestippeld met een label erboven.
+  if (grens) {
+    const yy = y(grens.waarde);
+    svg.append(s('line', { x1: L, x2: W - R, y1: yy, y2: yy, class: 'g-grens' }));
+    svg.append(s('text', { x: W - R - 4, y: yy - 5, class: 'g-as g-grens-tekst', 'text-anchor': 'end' }, grens.naam));
   }
 
   // Op een smal scherm minder labels onder de as, zodat ze niet tegen elkaar aan staan.

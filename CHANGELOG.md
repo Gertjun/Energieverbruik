@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.11.0
+
+**Toegevoegd**
+- **Piekvermogen** in Analyse (Wat → Verbruik), in twee varianten: de zwaarst belaste fase, en de drie fasen samen. Per week, maand of jaar zie je de hoogste piek in die periode, met een rode stippellijn voor wat je aansluiting (3×25 A) continu aankan: 5.750 W per fase. Onder de tabel staat wanneer de hoogste piek was.
+- De pieken komen uit de HomeWizard-export (kolommen L1/L2/L3 max W). **Lees je HomeWizard-export opnieuw in** om de pieken van eerdere dagen te krijgen; de rest van je gegevens verandert daardoor niet.
+- In Historie staat bij een dag het piekvermogen per fase en het tijdstip van de hoogste piek.
+- Het importrapport toont hoeveel dagen piekvermogen zijn ingelezen.
+
 ## 1.10.0
 
 **Toegevoegd**

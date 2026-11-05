@@ -32,6 +32,9 @@ export function leesHomeWizard(tekst) {
   const kol = (naam) => kop.findIndex((k) => k.startsWith(naam));
 
   const iTijd = kol('time');
+  // Hoogste vermogen per fase per kwartier (alleen stroom). Negatief = teruglevering op die fase.
+  const iFase = ['l1 max', 'l2 max', 'l3 max'].map(kol);
+  const pieken = new Map(); // datum → { f: [W, W, W], t: 'hh:mm', som }
   let soort; let kolommen;
   if (kol('import t1') >= 0) {
     soort = 'stroom';
@@ -71,6 +74,16 @@ export function leesHomeWizard(tekst) {
       if (cellen.some((c) => c != null && c !== '')) fout(nr + 1); else leeg++;
       continue;
     }
+    if (soort === 'stroom' && iFase.some((i) => i >= 0)) {
+      const f = iFase.map((i) => Math.max(0, (i >= 0 ? getal((v[i] || '').replace(/^'/, ''), decimaalKomma) : 0) || 0));
+      const datum = tijd.slice(0, 10);
+      const p = pieken.get(datum) || { f: [0, 0, 0], t: null, som: 0, hoogste: -1 };
+      const hoogste = Math.max(...f);
+      if (hoogste > p.hoogste) { p.hoogste = hoogste; p.t = tijd.slice(11, 16); }
+      p.f = p.f.map((w, i) => Math.max(w, f[i]));
+      p.som = Math.max(p.som, f[0] + f[1] + f[2]);
+      pieken.set(datum, p);
+    }
     const tijdSleutel = tijd.slice(0, 16);
     if (tijden.has(tijdSleutel)) dubbeleTijden++; else tijden.add(tijdSleutel);
     const uurSleutel = tijd.slice(0, 13);
@@ -79,6 +92,12 @@ export function leesHomeWizard(tekst) {
   if (!standen.size) throw new Error('Er staan geen meterstanden in dit bestand.');
 
   const res = standenNaarDagen(standen, soort);
+  if (pieken.size) {
+    for (const d of res.dagen) {
+      const p = pieken.get(d.datum);
+      if (p && p.hoogste >= 0) d.piek = { f: p.f.map(Math.round), t: p.t, som: Math.round(p.som) };
+    }
+  }
   return { ...res, regels: regels.length - 1, ongeldig, dubbeleTijden, leeg };
 }
 

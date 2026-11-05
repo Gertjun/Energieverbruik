@@ -17,6 +17,8 @@ export const MATEN = {
   terug: { groep: 'Verbruik', naam: 'Stroom teruggeleverd', eenheid: 'kWh', d: 1, per: [...TIJD, ...UUR] },
   netto: { groep: 'Verbruik', naam: 'Stroom netto (afname − terug)', eenheid: 'kWh', d: 1, per: [...TIJD, ...UUR] },
   gas: { groep: 'Verbruik', naam: 'Gas', eenheid: 'm³', d: 2, per: TIJD },
+  piek: { groep: 'Verbruik', naam: 'Piekvermogen (hoogste fase)', eenheid: 'W', d: 0, per: TIJD, agg: 'max' },
+  piekSom: { groep: 'Verbruik', naam: 'Piekvermogen (3 fasen samen)', eenheid: 'W', d: 0, per: TIJD, agg: 'max' },
   basis: { groep: 'Verbruik', naam: 'Sluipverbruik (laagste uur ʼs nachts)', eenheid: 'W', d: 0, per: TIJD, gem: true },
   kosten: { groep: 'Kosten', naam: 'Kosten totaal', eenheid: '€', d: 2, per: TIJD },
   kostenStroom: { groep: 'Kosten', naam: 'Kosten stroom (variabel)', eenheid: '€', d: 2, per: TIJD },
@@ -87,6 +89,10 @@ export function mediaan(lijst) {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 }
 
+/** Hoofdzekering per fase (Enexis 3x25 A) en de spanning: daarmee de grens in watt. */
+export const AANSLUITING = { fasen: 3, ampere: 25, volt: 230 };
+export const GRENS_FASE = AANSLUITING.ampere * AANSLUITING.volt;
+
 /** Uren waarover het sluipverbruik bepaald wordt: 00:00–05:00, dan schijnt de zon zeker niet. */
 export const BASIS_UREN = [0, 1, 2, 3, 4];
 
@@ -121,6 +127,16 @@ function tijdWaarde(a, maat, van, tot, indeling) {
     }
     if (!n) return { v: null };
     return { v: maat === 'temp' ? som / n : gd };
+  }
+  if (maat === 'piek' || maat === 'piekSom') {
+    let max = null; let wanneer = null;
+    for (const d of eachDay(van, tot)) {
+      const p = a.perDag.get(d)?.dag?.piek;
+      if (!p) continue;
+      const w = maat === 'piek' ? Math.max(...p.f) : p.som;
+      if (max == null || w > max) { max = w; wanneer = d; }
+    }
+    return { v: max, wanneer };
   }
   if (maat === 'basis') {
     // Mediaan van de dagen: één nacht met bijvoorbeeld de auto aan de lader trekt het getal dan niet omhoog.
@@ -184,7 +200,8 @@ export function reeks(a, maat, indeling, van, tot) {
   if (UUR.includes(indeling)) return uurWaarden(a, maat, van, tot, indeling);
   const vakjes = tijdVakjes(indeling, van, tot).map((vk) => ({ ...vk, ...tijdWaarde(a, maat, vk.van, vk.tot, indeling) }));
   const t = tijdWaarde(a, maat, van, tot, 'jaar');
-  return { vakjes, totaal: { label: MATEN[maat].gem ? 'Hele periode' : 'Totaal', ...t }, dagen: daysBetween(van, tot) + 1 };
+  const label = MATEN[maat].agg === 'max' ? 'Hoogste' : MATEN[maat].gem ? 'Hele periode' : 'Totaal';
+  return { vakjes, totaal: { label, ...t }, dagen: daysBetween(van, tot) + 1 };
 }
 
 /**
