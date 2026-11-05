@@ -11,7 +11,7 @@
     ['framboos', 'Framboos'],
     ['grafiet', 'Grafiet'],
   ];
-  var MODI = [['auto', 'Automatisch'], ['licht', 'Licht'], ['donker', 'Donker']];
+  var MODI = [['auto', 'Automatisch'], ['licht', 'Licht'], ['donker', 'Donker'], ['zwart', 'Zwart']];
 
   function lees() {
     var w = {};

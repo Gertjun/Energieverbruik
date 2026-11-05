@@ -30,6 +30,7 @@
 }
 :root[data-modus="licht"] { color-scheme: light; }
 :root[data-modus="donker"] { color-scheme: dark; }
+:root[data-modus="zwart"] { color-scheme: dark; }
 
 *, *::before, *::after { box-sizing: border-box; }
 

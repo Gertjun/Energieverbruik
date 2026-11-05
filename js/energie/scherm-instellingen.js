@@ -172,7 +172,7 @@ function weergaveKaart(opnieuw) {
   const w = T.lees();
   return kaart('Weergave',
     h('div', { class: 'weergave-modus' }, segmented(T.MODI, w.modus, (m) => { T.zet({ modus: m }); opnieuw(); }, 'Licht of donker')),
-    h('p', { class: 'hint' }, 'Automatisch volgt de instelling van je apparaat. Kleurthema en licht/donker gelden alleen voor dit apparaat.'),
+    h('p', { class: 'hint' }, 'Automatisch volgt de instelling van je apparaat. Zwart is donker met een echt zwarte achtergrond, zuinig op OLED-schermen (iPhone). Kleurthema en weergave gelden alleen voor dit apparaat.'),
     h('div', { class: 'thema-tegels', role: 'radiogroup', 'aria-label': 'Kleurthema' },
       T.THEMAS.map(([key, naam]) => h('button', {
         type: 'button', class: 'thema-tegel', role: 'radio', 'data-thema': key,

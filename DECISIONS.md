@@ -1,5 +1,12 @@
 # Beslissingen
 
+## 2026-11-05 – Weergave Zwart voor OLED (versie 1.25.0)
+- **Vierde keuze naast Automatisch/Licht/Donker**, geen apart thema: zo werkt Zwart met elk kleurthema.
+  `data-modus="zwart"` zet color-scheme op dark (alle donkere kleuren) en overschrijft daarna alleen de vlakken.
+- Achtergrond echt **#000** zonder tint van de accentkleur (een tint zou de pixels weer aanzetten). Kaarten #0b0b0d,
+  vlakken #17181b met 4% accent, randen #24262b: net genoeg verschil om kaarten en knoppen te zien.
+- Automatisch kiest nooit Zwart: het systeem kent alleen licht en donker.
+
 ## 2026-11-05 – Kleurthema's en licht/donker (versie 1.24.0)
 - **Zes thema's** (Groenblauw = standaard, Blauw, Groen, Paars, Framboos, Grafiet). Een thema zet de accentkleur en
   geeft achtergrond, randen en vlakken 4–6% van die kleur. Geen oranje of rood thema: oranje is de kleur van

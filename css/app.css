@@ -428,3 +428,12 @@ input[type="month"] {
 .thema-stalen i:nth-child(3) { align-self: end; background: var(--jaar-2); }
 .weergave-modus .segmented { width: 100%; }
 .weergave-modus .segmented button { flex: 1; min-height: 40px; }
+
+/* Zwart (OLED): donker, maar met echt zwarte achtergrond (pixels uit) en kaarten net iets lichter,
+   zodat de indeling zichtbaar blijft. Geen tint van de accentkleur in de achtergrond. */
+:root[data-modus="zwart"] {
+  --bg: #000000;
+  --surface: #0b0b0d;
+  --surface-2: color-mix(in oklab, var(--accent) 4%, #17181b);
+  --border: #24262b;
+}

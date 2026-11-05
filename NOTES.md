@@ -152,7 +152,12 @@
   en Analyse met Geerts Excel en Vattenfall-bestanden in Framboos (licht) en Blauw (donker). Geen fouten.
 - Niet getest op een echte iPhone: of de statusbalk bovenin meekleurt in de geïnstalleerde app.
 
+## Stand (5 november 2026) – versie 1.25.0
+- Weergave Zwart (OLED) toegevoegd. Getest in Chrome op laptop- en iPhone-breedte met Geerts gegevens (Paars en
+  Groenblauw): achtergrond en statusbalk rgb(0,0,0), geen fouten. Vier knoppen passen op iPhone-breedte.
+
 ## Openstaande punten
+- [ ] Geert: Zwart bekijken op de iPhone; kaarten genoeg te onderscheiden van de achtergrond?
 - [ ] Geert: thema's bekijken op iPhone/iPad/laptop; kleuren naar wens? Kleurt de statusbalk mee?
 - [ ] Geert: tegels voor Soort analyse bekijken op iPhone/iPad; prominent genoeg, niet te veel ruimte?
 - [ ] Geert: HomeWizard-export (stroom) opnieuw inlezen, zodat ook eerdere dagen piekvermogen krijgen (1.11.0).

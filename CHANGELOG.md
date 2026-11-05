@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.25.0
+
+**Toegevoegd**
+- **Weergave Zwart** naast Automatisch, Licht en Donker (Instellingen → App en sync → Weergave): donker met een echt zwarte achtergrond, voor OLED-schermen zoals die van de iPhone. Zwarte pixels staan dan helemaal uit, wat er strak uitziet en de batterij spaart. Kaarten blijven net iets lichter, zodat je de indeling blijft zien. Werkt met alle kleurthema's.
+
 ## 1.24.0
 
 **Toegevoegd**
