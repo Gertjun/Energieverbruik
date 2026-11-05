@@ -543,3 +543,86 @@ export function cumulatief(a, maat, jaren) {
     return { jaar, waarden, eerste, laatste, totaal: som };
   });
 }
+
+// ---------- Jaarprognose ----------
+
+/**
+ * Verwacht verbruik en kosten voor het hele kalenderjaar van de laatste dag met gegevens.
+ * Dagen met gegevens tellen zoals ze zijn; voor de overige dagen (de rest van het jaar en eventuele gaten):
+ *  - stroom: dezelfde dag vorig jaar, anders het daggemiddelde van die kalendermaand (alle jaren), anders van de laatste 28 dagen;
+ *  - gas: de stooklijn van de laatste 365 dagen bij de temperatuur van dezelfde dag vorig jaar, anders als stroom;
+ *  - kosten: met het contract van die dag (vaste kosten inbegrepen; een schatting).
+ */
+export function jaarPrognose(a) {
+  const jaar = a.laatste.slice(0, 4);
+  const fit = stooklijn(a, addDays(a.laatste, -364), a.laatste).fit;
+  const maandGem = {};
+  const gemVanMaand = (maat, mm) => {
+    const k = `${maat}${mm}`;
+    if (!(k in maandGem)) {
+      let som = 0; let n = 0;
+      for (const [d] of a.perDag) {
+        if (d.slice(5, 7) !== mm) continue;
+        const v = dagWaarde(a, maat, d); if (v != null) { som += v; n++; }
+      }
+      maandGem[k] = n >= 7 ? som / n : null;
+    }
+    return maandGem[k];
+  };
+  const recent = {};
+  const gemRecent = (maat) => {
+    if (!(maat in recent)) {
+      let som = 0; let n = 0;
+      for (const d of eachDay(addDays(a.laatste, -27), a.laatste)) { const v = dagWaarde(a, maat, d); if (v != null) { som += v; n++; } }
+      recent[maat] = n ? som / n : 0;
+    }
+    return recent[maat];
+  };
+  const schat = (maat, d) => {
+    const ref = sameDayLastYear(d);
+    if (maat === 'gas' && fit) {
+      const t = (a.perDag.get(ref)?.weer ?? a.weer.get(ref))?.tgem;
+      if (t != null) return { v: fit.voorspel(t), hoe: 'stooklijn' };
+    }
+    const vj = dagWaarde(a, maat, ref);
+    if (vj != null) return { v: vj, hoe: 'vorig jaar' };
+    const m = gemVanMaand(maat, d.slice(5, 7));
+    if (m != null) return { v: m, hoe: 'maandgemiddelde' };
+    return { v: gemRecent(maat), hoe: 'laatste 4 weken' };
+  };
+
+  const maanden = [];
+  const leeg = () => ({ afname: 0, terug: 0, gas: 0, kosten: 0, dagenEcht: 0, dagenGeschat: 0 });
+  const totaalT = { echt: leeg(), geschat: leeg() };
+  const hoe = {};
+  for (let m = 1; m <= 12; m++) {
+    const mk = `${jaar}-${String(m).padStart(2, '0')}`;
+    const t = { maand: mk, echt: leeg(), geschat: leeg() };
+    for (const d of eachDay(`${mk}-01`, new Date(Date.UTC(Number(jaar), m, 0)).toISOString().slice(0, 10))) {
+      const x = a.perDag.get(d);
+      const heeftStroom = x?.dag?.afname != null; const heeftGas = x?.dag?.gas != null;
+      const dag = { datum: d };
+      for (const maat of ['afname', 'terug']) {
+        if (heeftStroom) dag[maat] = dagWaarde(a, maat, d);
+        else { const s = schat(maat, d); dag[maat] = s.v; hoe[s.hoe] = (hoe[s.hoe] || 0) + 1; }
+      }
+      if (heeftGas) dag.gas = x.dag.gas; else { const s = schat('gas', d); dag.gas = s.v; hoe[s.hoe] = (hoe[s.hoe] || 0) + 1; }
+      const echt = heeftStroom && heeftGas;
+      const doel = echt ? t.echt : t.geschat;
+      const kosten = echt ? x.kosten : kostenDag({ ...(x?.dag || {}), ...dag }, contractOp(a.contracten, d), a.profielen);
+      doel.afname += dag.afname; doel.terug += dag.terug; doel.gas += dag.gas; doel.kosten += kosten.totaal;
+      if (echt) doel.dagenEcht++; else doel.dagenGeschat++;
+    }
+    for (const k of ['echt', 'geschat']) for (const [veld, v] of Object.entries(t[k])) totaalT[k][veld] += v;
+    maanden.push(t);
+  }
+  // Termijnen: ingevuld per maand van dit jaar; voor maanden zonder bedrag het laatst bekende termijnbedrag.
+  let laatsteTermijn = null;
+  for (const mk of [...a.maanden.keys()].sort()) { const tm = a.maanden.get(mk).termijn; if (tm != null && mk <= `${jaar}-12`) laatsteTermijn = tm; }
+  let termijnen = 0; let termijnenIngevuld = 0;
+  for (const t of maanden) {
+    const tm = a.maanden.get(t.maand)?.termijn;
+    if (tm != null) { termijnen += tm / 100; termijnenIngevuld++; } else if (laatsteTermijn != null) termijnen += laatsteTermijn / 100;
+  }
+  return { jaar, maanden, totaal: totaalT, fit, hoe, termijnen: laatsteTermijn != null ? termijnen : null, termijnenIngevuld };
+}

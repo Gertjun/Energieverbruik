@@ -4,8 +4,9 @@
 
 import { h } from '../core/dom.js';
 import { heatmap, staafGrafiek, puntenGrafiek, lijnenGrafiek } from './grafiek.js';
-import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks, stooklijn, weerGecorrigeerd, vorigJaar, cumulatief, dagVanJaar } from './analyse.js';
-import { fmtDatumKort, addDays } from './tijd.js';
+import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks, stooklijn, weerGecorrigeerd, vorigJaar, cumulatief, dagVanJaar, jaarPrognose } from './analyse.js';
+import { fmtDatumKort, addDays, fmtMaand, fmtMaandKort } from './tijd.js';
+import { totaal } from './model.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 
 /** Standaardwaarden van de keuzes van alle soorten (worden onderdeel van een favoriet). */
@@ -304,6 +305,60 @@ const cumulatiefSoort = {
   },
 };
 
+// ---------- Jaarprognose ----------
+
+const prognoseSoort = {
+  key: 'prognose',
+  naam: 'Jaarprognose tot 31 december',
+  geenPeriode: true,
+  resultaat(a) {
+    const p = jaarPrognose(a);
+    const e = p.totaal.echt; const g = p.totaal.geschat;
+    const som = (k) => e[k] + g[k];
+    const vj = totaal(a, `${Number(p.jaar) - 1}-01-01`, `${Number(p.jaar) - 1}-12-31`);
+    const vjStroom = vj.dagenAfname >= 360; const vjGas = vj.dagenGas >= 360;
+    const kpi = (titel, waarde, uitleg, cls = '') => h('div', { class: 'kpi' }, h('span', { class: 'kpi-titel' }, titel), h('strong', { class: `kpi-waarde ${cls}` }, waarde), h('span', { class: 'kpi-verschil muted' }, uitleg));
+    const uitleg = (volledig, v, w, bekend, fmt) => (volledig && w
+      ? `vorig jaar ${fmt(w)} (${v > w ? '+' : '−'}${fmtGetal(Math.abs((v - w) / w) * 100, 0)}%)`
+      : `al bekend: ${fmt(bekend)}`);
+    const kwh = (v) => `${fmtGetal(v, 0)} kWh`;
+    const saldo = p.termijnen != null ? p.termijnen - som('kosten') : null;
+    const kpis = h('div', { class: 'kpi-raster analyse-kpi prognose-kpi' },
+      kpi('Stroom afgenomen', kwh(som('afname')), uitleg(vjStroom, som('afname'), vj.afname, e.afname, kwh)),
+      kpi('Teruggeleverd', kwh(som('terug')), uitleg(vjStroom, som('terug'), vj.terug, e.terug, kwh)),
+      kpi('Gas', m3(som('gas'), 0), uitleg(vjGas, som('gas'), vj.gas, e.gas, (v) => m3(v, 0))),
+      kpi('Kosten (incl. vaste kosten)', euro(som('kosten')), uitleg(vjStroom && vjGas, som('kosten'), vj.kosten, e.kosten, euro)),
+      p.termijnen != null ? kpi('Termijnen dit jaar', euro(p.termijnen), p.termijnenIngevuld < 12 ? `${p.termijnenIngevuld} van 12 maanden ingevuld, de rest met het laatste bedrag` : '12 maanden') : null,
+      saldo != null ? kpi(saldo >= 0 ? 'Verwacht terug' : 'Verwacht bijbetalen', euro(Math.abs(saldo)), 'termijnen min verwachte kosten', saldo >= 0 ? 'is-goed' : 'is-slecht') : null);
+    const grafiek = staafGrafiek({
+      labels: p.maanden.map((m) => fmtMaand(m.maand)), korteLabels: p.maanden.map((m) => fmtMaandKort(m.maand)),
+      waarden: p.maanden.map((m) => m.echt.kosten + m.geschat.kosten),
+      markeer: p.maanden.map((m) => m.geschat.dagenGeschat > 0),
+      fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), naam: 'Kosten per maand',
+    });
+    const rij = (label, x, cls) => h('tr', { class: cls }, h(cls ? 'th' : 'td', cls ? { scope: 'row' } : {}, label),
+      h('td', { class: `num${x.geschat ? ' is-geschat' : ''}` }, fmtGetal(x.afname, 0)),
+      h('td', { class: `num verberg-smal${x.geschat ? ' is-geschat' : ''}` }, fmtGetal(x.terug, 0)),
+      h('td', { class: `num${x.geschat ? ' is-geschat' : ''}` }, fmtGetal(x.gas, 0)),
+      h('td', { class: `num${x.geschat ? ' is-geschat' : ''}` }, euro(x.kosten)));
+    const samen = (m) => ({ afname: m.echt.afname + m.geschat.afname, terug: m.echt.terug + m.geschat.terug, gas: m.echt.gas + m.geschat.gas, kosten: m.echt.kosten + m.geschat.kosten, geschat: m.geschat.dagenGeschat > 0 });
+    const tabel = h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel tabel-analyse' },
+      h('thead', {}, h('tr', {}, h('th', {}, 'Maand'), h('th', { class: 'num' }, 'Afname (kWh)'), h('th', { class: 'num verberg-smal' }, 'Terug (kWh)'), h('th', { class: 'num' }, 'Gas (m³)'), h('th', { class: 'num' }, 'Kosten'))),
+      h('tbody', {}, rij(`Heel ${p.jaar}`, { afname: som('afname'), terug: som('terug'), gas: som('gas'), kosten: som('kosten'), geschat: g.dagenGeschat > 0 }, 'jaar-rij'),
+        p.maanden.map((m) => rij(fmtMaand(m.maand), samen(m))))));
+    const hoe = Object.entries(p.hoe).map(([k, n]) => `${k} (${n}×)`).join(', ');
+    return kaart(`Jaarprognose ${p.jaar}`,
+      h('p', { class: 'hint' }, `Bekend t/m ${fmtDatumKort(a.laatste)} (${e.dagenEcht} dagen); ${g.dagenGeschat} dagen geschat.`),
+      kpis, grafiek, tabel,
+      h('p', { class: 'hint' }, [
+        'Voor dagen die nog moeten komen (en dagen zonder gegevens) schat de app het verbruik: stroom zoals dezelfde dag vorig jaar, gas met je stooklijn bij de temperatuur van dezelfde dag vorig jaar (dus bij een normaal jaar zoals vorig jaar). ',
+        'Lukt dat niet, dan het daggemiddelde van die maand of van de laatste 4 weken. ',
+        hoe ? `Gebruikt: ${hoe}. ` : '',
+        'Kosten zijn berekend met je tarieven, inclusief vaste kosten. Cursief = (deels) geschat. De termijnen gaan over het kalenderjaar; je jaarafrekening kan over een andere periode lopen en is leidend.',
+      ].join('')));
+  },
+};
+
 /** Alle soorten, in de volgorde van de keuzelijst. "Zelf samenstellen" wordt in scherm-analyse.js getekend. */
 export const SOORTEN = [
   { key: 'samenstellen', naam: 'Zelf samenstellen', uitleg: null },
@@ -313,4 +368,5 @@ export const SOORTEN = [
   stooklijnSoort,
   weerSoort,
   cumulatiefSoort,
+  prognoseSoort,
 ];

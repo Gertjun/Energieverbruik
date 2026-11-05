@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.19.0
+
+**Toegevoegd**
+- **Jaarprognose tot 31 december** als soort analyse. Wat je dit jaar al verbruikt hebt plus een schatting voor de rest van het jaar: stroom zoals dezelfde dagen vorig jaar, gas met je stooklijn bij het weer van vorig jaar. Je ziet het verwachte jaarverbruik van stroom, teruglevering en gas, de verwachte kosten inclusief vaste kosten, je termijnen en wat je naar verwachting terugkrijgt of moet bijbetalen. Per maand in een grafiek en tabel; geschatte maanden zijn lichter en cursief.
+
 ## 1.18.0
 
 **Toegevoegd**

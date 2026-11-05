@@ -350,3 +350,4 @@ input[type="month"] {
 .leg-jaarlijn { background: var(--c); height: 3px !important; border-radius: 2px !important; }
 .g-kruis { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
 .g-hit-vlak { fill: transparent; cursor: crosshair; }
+@media (min-width: 900px) { .prognose-kpi { grid-template-columns: repeat(3, 1fr); } }
