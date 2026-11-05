@@ -1,5 +1,15 @@
 # Beslissingen
 
+## 2026-11-05 – Gas per graaddag per dag (versie 1.3.0)
+- **Zelf berekend, niet uit de Excel**: gas ÷ gewogen graaddag, alleen als er gas is en de graaddag boven 0 ligt
+  (anders –; de Excel toont dan 0). Zelfde uitkomst als kolom O voor alle 268 vergeleken dagen.
+- **Afwijking van de Excel bij precies 0,0 °C**: de Excel laat de graaddag dan leeg (`IF(G=0,"",…)`); de app rekent
+  gewoon (18 × weegfactor). Komt voor op 18-1-2025.
+- **Maandwaarde = totaal gas ÷ totaal graaddagen** (alleen stookdagen), niet het gemiddelde van de dagwaarden:
+  zachte dagen met een kleine graaddag geven per dag grote uitschieters die een gemiddelde scheeftrekken.
+- **Kolom ook op de iPhone zichtbaar** (niet `verberg-smal`), omdat Geert dit dagelijks wil zien.
+- **MINOR**: nieuwe weergave, geen schemawijziging; de waarde wordt berekend, niet opgeslagen.
+
 ## 2026-11-05 – Uitgangspunten (versie 1.0.0)
 - **Invoer via HomeWizard CSV-export** (hoofdroute), handmatig als reserve. Geert tikte de dagwaarden
   eerst over van de Vattenfall-website; de export is nauwkeuriger en levert kwartierdata.

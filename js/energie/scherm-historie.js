@@ -42,6 +42,7 @@ function renderDagen(a, staat, opnieuw, ctx) {
     h('span', {}, `Stroom ${fmtKwh(t.dagenAfname ? t.afname : null, 0)}`),
     h('span', {}, `Terug ${fmtKwh(t.dagenAfname ? t.terug : null, 0)}`),
     h('span', {}, `Gas ${fmtM3(t.dagenGas ? t.gas : null, 1)}`),
+    t.graaddagen > 0 ? h('span', {}, `Gas per graaddag ${fmtGetal(t.gasStookdagen / t.graaddagen, 3)} m³`) : null,
     h('span', {}, `Kosten ${t.zonderContract ? '–' : euro(t.kosten)}`));
 
   const rijen = [];
@@ -65,21 +66,22 @@ function renderDagen(a, staat, opnieuw, ctx) {
       h('td', { class: 'num' }, fmtGetal(d.afname, 1)),
       h('td', { class: 'num' }, fmtGetal(d.terug, 1)),
       h('td', { class: 'num' }, fmtGetal(d.gas, 2)),
+      h('td', { class: 'num' }, x.gasPerGd != null ? fmtGetal(x.gasPerGd, 2) : '–'),
       h('td', { class: 'num verberg-smal' }, x.weer ? fmtGetal(x.weer.tgem, 1) : '–'),
       h('td', { class: `num${geschat ? ' is-geschat' : ''}` }, x.kosten.contract ? euro(x.kosten.totaal) : '–'),
-    ] : h('td', { colspan: 5, class: 'muted' }, 'geen gegevens')));
+    ] : h('td', { colspan: 6, class: 'muted' }, 'geen gegevens')));
   }
 
   const tabel = h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel tabel-dagen' },
     h('thead', {}, h('tr', {},
       h('th', {}, 'Dag'), h('th', { class: 'num' }, 'kWh'), h('th', { class: 'num' }, 'terug'),
-      h('th', { class: 'num' }, 'm³'), h('th', { class: 'num verberg-smal' }, '°C'), h('th', { class: 'num' }, 'kosten'))),
+      h('th', { class: 'num' }, 'm³'), h('th', { class: 'num', title: 'm³ gas per gewogen graaddag' }, 'm³/gd'), h('th', { class: 'num verberg-smal' }, '°C'), h('th', { class: 'num' }, 'kosten'))),
     h('tbody', {}, rijen)));
 
   const bewerk = staat.open && staat.open >= van && staat.open <= tot
     ? kaart(null, bewerkDag(staat.open, a.perDag.get(staat.open), ctx, staat, opnieuw, meldingen.get(staat.open))) : null;
   return [bewerk, kaart(null, nav, som, tabel,
-    h('p', { class: 'hint' }, 'Tik op een dag voor details, een opmerking of een correctie (verschijnt bovenaan). Cursieve kosten zijn geschat (geen uurverdeling bekend). ⚠ = controlemelding, zie Controle.'))];
+    h('p', { class: 'hint' }, 'Tik op een dag voor details, een opmerking of een correctie (verschijnt bovenaan). m³/gd = gas per gewogen graaddag (– als het te warm was om te stoken). Cursieve kosten zijn geschat (geen uurverdeling bekend). ⚠ = controlemelding, zie Controle.'))];
 }
 
 function bewerkDag(datum, x, ctx, staat, opnieuw, meldingen = []) {
@@ -91,7 +93,7 @@ function bewerkDag(datum, x, ctx, staat, opnieuw, meldingen = []) {
     opmerking: h('input', { value: d.opmerking || '', autocomplete: 'off', maxlength: 200 }),
   };
   const info = [];
-  if (x?.weer) info.push(`Temperatuur ${fmtGetal(x.weer.tgem, 1)} °C (min ${fmtGetal(x.weer.tmin, 1)}, max ${fmtGetal(x.weer.tmax, 1)}), graaddag ${fmtGetal(x.graaddag, 1)}`);
+  if (x?.weer) info.push(`Temperatuur ${fmtGetal(x.weer.tgem, 1)} °C (min ${fmtGetal(x.weer.tmin, 1)}, max ${fmtGetal(x.weer.tmax, 1)}), graaddag ${fmtGetal(x.graaddag, 1)}${x.gasPerGd != null ? `, gas per graaddag ${fmtGetal(x.gasPerGd, 3)} m³` : ''}`);
   if (x?.kosten.contract) info.push(`Kosten: stroom ${euro(x.kosten.stroom)}, teruglevering ${euro(x.kosten.terug)}, gas ${euro(x.kosten.gas)}, vast ${euro(x.kosten.vast)}`);
   const bronnen = [];
   if (d.afname != null) bronnen.push(`stroom ${bronNaam(d.bron)}${d.uurAfname ? ' (met uurverdeling)' : ''}`);

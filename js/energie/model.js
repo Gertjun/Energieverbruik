@@ -72,7 +72,9 @@ export function afgeleid(data) {
   for (const d of dagen) {
     const w = weer.get(d.datum);
     const gd = w ? graaddag(d.datum, w.tgem) : null;
-    perDag.set(d.datum, { dag: d, weer: w, graaddag: gd, kosten: kostenDag(d, contractOp(contracten, d.datum), profielen) });
+    // m³ per graaddag zoals in de Excel: alleen als er gas én een graaddag boven 0 is.
+    const gasPerGd = d.gas != null && gd > 0 ? d.gas / gd : null;
+    perDag.set(d.datum, { dag: d, weer: w, graaddag: gd, gasPerGd, kosten: kostenDag(d, contractOp(contracten, d.datum), profielen) });
   }
   cache = {
     data, dagen, contracten, weer, maanden, profielen, perDag,

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0
+
+Gas per graaddag per dag.
+
+**Toegevoegd**
+- Historie → Dagen heeft een kolom m³/gd: het gasverbruik gedeeld door de gewogen graaddag van die dag, zoals de kolom m3/graaddag in de Excel. Op dagen zonder graaddag (te warm om te stoken) staat er –.
+- Bij het openen van een dag staat gas per graaddag achter de temperatuur en graaddag.
+- Boven de dagtabel staat ook het gas per graaddag van de hele maand.
+- De CSV-export heeft een extra kolom `gas_per_graaddag`.
+
 ## 1.2.0
 
 Vattenfall-download inlezen.
