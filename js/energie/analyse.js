@@ -465,3 +465,38 @@ export function stooklijn(a, van, tot) {
   }
   return { punten, fit: stooklijnFit(punten) };
 }
+
+// ---------- Weer-gecorrigeerd vergelijken (gas) ----------
+
+/**
+ * Gas in de periode tegenover wat je met de stooklijn van de vergelijkingsperiode bij het weer van
+ * deze periode verbruikt zou hebben. Per maand. Alleen dagen met gas en temperatuur.
+ */
+export function weerGecorrigeerd(a, van, tot, refVan, refTot) {
+  const ref = stooklijn(a, refVan, refTot);
+  const eigen = stooklijn(a, van, tot);
+  const fit = ref.fit;
+  // Alleen dagen binnen het temperatuurbereik van de vergelijkingsperiode (± 1 °C): daarbuiten is de
+  // stooklijn een gok (bijv. een winter vergelijken met een periode die alleen herfstdagen heeft).
+  const tMin = Math.min(...ref.punten.map((p) => p.t)) - 1; const tMax = Math.max(...ref.punten.map((p) => p.t)) + 1;
+  let buiten = 0;
+  const perMaand = tijdVakjes('maand', van, tot).map((vk) => {
+    let gas = 0; let verwacht = 0; let dagen = 0; let gd = 0;
+    for (const p of eigen.punten) {
+      if (p.datum < vk.van || p.datum > vk.tot) continue;
+      if (p.t < tMin || p.t > tMax) { buiten++; continue; }
+      gas += p.gas; dagen++; gd += graaddagVan(a, p.datum) || 0;
+      if (fit) verwacht += fit.voorspel(p.t);
+    }
+    // Vorig jaar werkelijk, zelfde maand (ongecorrigeerd), ter vergelijking.
+    const vj = totaal(a, sameDayLastYear(vk.van), sameDayLastYear(vk.tot));
+    return { ...vk, gas, verwacht: fit && dagen ? verwacht : null, dagen, gd, vorigJaar: vj.dagenGas ? vj.gas : null };
+  });
+  const som = (k) => perMaand.reduce((s, m) => s + (m[k] || 0), 0);
+  return {
+    ref, eigen, fit, perMaand, buiten, bereik: ref.punten.length ? [tMin + 1, tMax - 1] : null,
+    totaal: { gas: som('gas'), verwacht: fit ? som('verwacht') : null, dagen: som('dagen'), gd: som('gd') },
+  };
+}
+
+function graaddagVan(a, datum) { return a.perDag.get(datum)?.graaddag ?? null; }

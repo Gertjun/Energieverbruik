@@ -4,12 +4,12 @@
 
 import { h } from '../core/dom.js';
 import { heatmap, staafGrafiek, puntenGrafiek } from './grafiek.js';
-import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks, stooklijn } from './analyse.js';
+import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks, stooklijn, weerGecorrigeerd, vorigJaar } from './analyse.js';
 import { fmtDatumKort } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 
 /** Standaardwaarden van de keuzes van alle soorten (worden onderdeel van een favoriet). */
-export const SOORT_STANDAARD = { hmMaat: 'afname' };
+export const SOORT_STANDAARD = { hmMaat: 'afname', wgRef: 'vorigjaar', wgVan: '', wgTot: '' };
 
 const periodeTekst = (van, tot) => `${fmtDatumKort(van)} ${van.slice(0, 4)} – ${fmtDatumKort(tot)} ${tot.slice(0, 4)}`;
 const keuze = (waarde, opties, onChange) => h('select', { onChange: (e) => onChange(e.target.value) },
@@ -175,6 +175,70 @@ const stooklijnSoort = {
   },
 };
 
+// ---------- Weer-gecorrigeerd vergelijken ----------
+
+const weerSoort = {
+  key: 'weergas',
+  naam: 'Gas weer-gecorrigeerd vergelijken',
+  velden: (c, wijzig, a) => [
+    veld('Vergelijken met', keuze(c.wgRef, [['vorigjaar', 'Dezelfde periode vorig jaar'], ['periode', 'Een eigen periode']], (v) => wijzig({ wgRef: v }))),
+    c.wgRef === 'periode' ? veld('Vergelijkingsperiode van', h('input', { type: 'date', value: c.wgVan || '', min: a.eerste, onChange: (e) => wijzig({ wgVan: e.target.value }) })) : null,
+    c.wgRef === 'periode' ? veld('Vergelijkingsperiode tot en met', h('input', { type: 'date', value: c.wgTot || '', onChange: (e) => wijzig({ wgTot: e.target.value }) })) : null,
+  ],
+  resultaat(a, c, van, tot) {
+    const ref = c.wgRef === 'periode' && c.wgVan && c.wgTot && c.wgVan < c.wgTot ? { van: c.wgVan, tot: c.wgTot } : vorigJaar('maand', van, tot);
+    const r = weerGecorrigeerd(a, van, tot, ref.van, ref.tot);
+    const t = r.totaal;
+    const refTekst = periodeTekst(ref.van, ref.tot);
+    if (!r.fit) {
+      return kaart('Gas weer-gecorrigeerd', h('p', { class: 'hint' }, `${periodeTekst(van, tot)} tegenover ${refTekst}`),
+        h('p', { class: 'muted' }, `In de vergelijkingsperiode (${refTekst}) staan te weinig stookdagen met gas en temperatuur om een stooklijn te bepalen (${r.ref.punten.length} dagen). Kies bij "Vergelijken met" een eigen periode met een stookseizoen, of een latere periode hierboven.`));
+    }
+    const verschil = t.gas - t.verwacht;
+    const pct = t.verwacht ? verschil / t.verwacht : null;
+    const rijen = r.perMaand.filter((m) => m.dagen);
+    if (!rijen.length) {
+      return kaart('Gas weer-gecorrigeerd', h('p', { class: 'hint' }, `${periodeTekst(van, tot)} tegenover ${refTekst}`),
+        h('p', { class: 'muted' }, 'Geen dagen in deze periode met een temperatuur die ook in de vergelijkingsperiode voorkwam. Kies een vergelijkingsperiode uit hetzelfde seizoen.'));
+    }
+    const grafiek = staafGrafiek({
+      labels: rijen.map((m) => m.label), korteLabels: rijen.map((m) => m.kort),
+      waarden: rijen.map((m) => m.gas), vergelijk: rijen.map((m) => m.verwacht),
+      fmt: (v, as) => (as ? fmtGetal(v, 0) : m3(v, 1)),
+      naam: 'Werkelijk', vergelijkNaam: 'Verwacht met stookgedrag vergelijkingsperiode',
+    });
+    const pctTekst = (v) => (v == null ? '–' : `${v > 0 ? '+' : ''}${fmtGetal(v * 100, 0)}%`);
+    const rij = (label, m, cls) => {
+      const vv = m.verwacht != null ? m.gas - m.verwacht : null;
+      return h('tr', { class: cls }, h(cls ? 'th' : 'td', cls ? { scope: 'row' } : {}, label),
+        h('td', { class: 'num verberg-smal' }, fmtGetal(m.gd, 0)),
+        h('td', { class: 'num' }, fmtGetal(m.gas, 0)),
+        h('td', { class: 'num' }, m.verwacht == null ? '–' : fmtGetal(m.verwacht, 0)),
+        h('td', { class: `num${vv > 0 ? ' plus' : ''}` }, vv == null ? '–' : pctTekst(m.verwacht ? vv / m.verwacht : null)),
+        h('td', { class: 'num verberg-smal' }, m.vorigJaar == null ? '–' : fmtGetal(m.vorigJaar, 0)));
+    };
+    const tabel = h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel tabel-analyse' },
+      h('thead', {}, h('tr', {}, h('th', {}, 'Maand'), h('th', { class: 'num verberg-smal' }, 'Graaddagen'), h('th', { class: 'num' }, 'Werkelijk (m³)'),
+        h('th', { class: 'num' }, 'Verwacht (m³)'), h('th', { class: 'num' }, 'Verschil'), h('th', { class: 'num verberg-smal' }, 'Vorig jaar echt (m³)'))),
+      h('tbody', {}, rij('Totaal', { ...t, vorigJaar: rijen.some((m) => m.vorigJaar != null) ? rijen.reduce((s2, m) => s2 + (m.vorigJaar || 0), 0) : null }, 'jaar-rij'),
+        rijen.map((m) => rij(m.label, m)))));
+    const kpi = (titel, waarde, uitleg, cls = '') => h('div', { class: 'kpi' }, h('span', { class: 'kpi-titel' }, titel), h('strong', { class: `kpi-waarde ${cls}` }, waarde), h('span', { class: 'kpi-verschil muted' }, uitleg));
+    return kaart('Gas weer-gecorrigeerd vergelijken',
+      h('p', { class: 'hint' }, `${periodeTekst(van, tot)} tegenover het stookgedrag van ${refTekst}`),
+      h('div', { class: 'kpi-raster analyse-kpi' },
+        kpi('Werkelijk verbruikt', m3(t.gas, 0), `${t.dagen} vergelijkbare dagen${r.buiten ? `; ${r.buiten} dagen buiten het temperatuurbereik tellen niet mee` : ''}`),
+        kpi('Verwacht bij dit weer', m3(t.verwacht, 0), 'als je had gestookt zoals in de vergelijkingsperiode'),
+        kpi(verschil <= 0 ? 'Zuiniger' : 'Minder zuinig', pctTekst(pct), `${verschil > 0 ? '+' : '−'}${m3(Math.abs(verschil), 0)}, los van het weer`, verschil <= 0 ? 'is-goed' : 'is-slecht')),
+      grafiek, tabel,
+      h('p', { class: 'hint' }, [
+        `Uit de vergelijkingsperiode wordt je stooklijn bepaald (vast ${m3(r.fit.vast)} per dag, stookgrens ${fmtGetal(r.fit.stookgrens, 1)} °C, ${m3(r.fit.k)} per graad kouder; zie Stooklijn). `,
+        `Alleen dagen met een temperatuur die ook in de vergelijkingsperiode voorkwam (${fmtGetal(r.bereik[0], 1)} tot ${fmtGetal(r.bereik[1], 1)} °C) tellen mee; daarbuiten is de lijn een gok. `,
+        'Met die lijn en de temperaturen van deze periode volgt wat je verbruikt zou hebben als je net zo had gestookt. Het verschil met wat je echt verbruikte komt dus niet door het weer, maar door bijvoorbeeld de thermostaat, isolatie of thuis zijn. ',
+        '"Vorig jaar echt" is ter vergelijking het werkelijke verbruik in dezelfde maand een jaar eerder, zonder correctie.',
+      ].join('')));
+  },
+};
+
 /** Alle soorten, in de volgorde van de keuzelijst. "Zelf samenstellen" wordt in scherm-analyse.js getekend. */
 export const SOORTEN = [
   { key: 'samenstellen', naam: 'Zelf samenstellen', uitleg: null },
@@ -182,4 +246,5 @@ export const SOORTEN = [
   salderingSoort,
   zonurenSoort,
   stooklijnSoort,
+  weerSoort,
 ];

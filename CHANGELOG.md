@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.17.0
+
+**Toegevoegd**
+- **Gas weer-gecorrigeerd vergelijken** als soort analyse. De app bepaalt je stooklijn in de vergelijkingsperiode (standaard dezelfde periode vorig jaar, of een periode die je zelf kiest) en rekent uit hoeveel gas je met dat stookgedrag bij het weer van nu verbruikt zou hebben. Het verschil met wat je echt verbruikte laat zien of je zuiniger stookt, los van een koude of warme winter. Per maand in een grafiek en tabel, met graaddagen en het ongecorrigeerde verbruik van vorig jaar ernaast.
+- Dagen met een temperatuur die in de vergelijkingsperiode niet voorkwam tellen niet mee; dat staat er dan bij.
+
 ## 1.16.0
 
 **Toegevoegd**
