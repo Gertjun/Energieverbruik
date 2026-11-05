@@ -10,7 +10,10 @@ import {
 import { addDays, fmtDag, fmtDatumKort, fmtMaand, monthKey, daysBetween } from './tijd.js';
 import { kaart, veld, fmtGetal, fmtKwh, fmtM3, fmtPct, leesGetal } from './ui.js';
 
-const SOORT_NAAM = { 'homewizard-stroom': 'HomeWizard stroom', 'homewizard-gas': 'HomeWizard gas', excel: 'Excel' };
+const SOORT_NAAM = {
+  'vattenfall-stroom': 'Vattenfall stroom', 'vattenfall-gas': 'Vattenfall gas',
+  'homewizard-stroom': 'HomeWizard stroom', 'homewizard-gas': 'HomeWizard gas', excel: 'Excel',
+};
 const fmtMaat = (maat, v, d) => (maat === 'gas' ? fmtM3(v, d ?? 2) : fmtKwh(v, d ?? 1));
 const jaarErbij = (iso) => `${fmtDatumKort(iso)} ${iso.slice(0, 4)}`;
 
@@ -150,7 +153,7 @@ function ontbrekendKaart(ontbrekend, staat, opnieuw) {
       o.reeksen.length > 20 ? h('p', { class: 'hint' }, `… en nog ${o.reeksen.length - 20} stukken.`) : null);
   };
   return kaart('Ontbrekende dagen',
-    h('p', { class: 'hint' }, 'Dagen zonder gegevens tussen de eerste en laatste dag. Vul ze aan met een nieuwe HomeWizard-export of handmatig via Invoer.'),
+    h('p', { class: 'hint' }, 'Dagen zonder gegevens tussen de eerste en laatste dag. Vul ze aan met een nieuwe Vattenfall- of HomeWizard-export, of handmatig via Invoer.'),
     blok('Stroom', ontbrekend.stroom), blok('Gas', ontbrekend.gas));
 }
 
@@ -208,7 +211,7 @@ function steekproefKaart(a, staat, opnieuw) {
   staat.steekproefSeed ??= Math.floor(Math.random() * 1e9);
   const lijst = steekproef(a, staat.steekproefSeed);
   return kaart('Steekproef',
-    h('p', { class: 'hint' }, 'Zoek deze dagen op in je Excel of de HomeWizard-app en vergelijk de getallen. Naast willekeurige dagen staan er lastige dagen tussen: de eerste en laatste dag en de wissel van zomer- en wintertijd.'),
+    h('p', { class: 'hint' }, 'Zoek deze dagen op in Mijn Vattenfall, je Excel of de HomeWizard-app en vergelijk de getallen. Naast willekeurige dagen staan er lastige dagen tussen: de eerste en laatste dag en de wissel van zomer- en wintertijd.'),
     h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel' },
       h('thead', {}, h('tr', {}, h('th', {}, 'Dag'), h('th', { class: 'num' }, 'kWh'), h('th', { class: 'num' }, 'terug'), h('th', { class: 'num' }, 'm³'), h('th', { class: 'verberg-smal' }, 'Waarom'))),
       h('tbody', {}, lijst.map(({ datum, reden }) => {
@@ -251,8 +254,11 @@ export function importRapport(imp, staat, opnieuw, ctx, { metLink = false } = {}
     ['Bijgewerkt', tal(r.gewijzigd || 0, 'dag', 'dagen')],
     ['Al gelijk', tal(r.gelijk || 0, 'dag', 'dagen')],
   ];
+  if (imp.soort === 'excel' || r.voorrang) {
+    getallen.push(['Betere bron ging voor', tal(r.voorrang || 0, 'dag', 'dagen')]);
+  }
+  if (r.uurverdeling) getallen.push(['Uurverdeling aangevuld', tal(r.uurverdeling, 'dag', 'dagen')]);
   if (imp.soort === 'excel') {
-    getallen.push(['HomeWizard ging voor', tal(r.voorrang || 0, 'dag', 'dagen')]);
     getallen.push(['Temperaturen', tal(r.weer || 0, 'dag', 'dagen')]);
     getallen.push(['Maanden (termijn/zon)', fmtGetal(r.maanden || 0, 0)]);
   }
@@ -276,7 +282,7 @@ export function importRapport(imp, staat, opnieuw, ctx, { metLink = false } = {}
       o.voorbeelden?.length ? h('span', { class: 'muted' }, ` Bijvoorbeeld ${o.voorbeelden.map((v) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? jaarErbij(v) : v)).join('; ')}.`) : null));
   }
   for (const m of r.meldingen || []) lijstjes.push(h('li', { class: 'is-waarschuwing' }, m));
-  if (r.dubbeleTijden) lijstjes.push(h('li', { class: 'muted' }, `${r.dubbeleTijden} tijdstip(pen) kwam(en) twee keer voor; bij de overgang naar wintertijd is dat normaal. De eerste meting is gebruikt.`));
+  if (r.dubbeleTijden) lijstjes.push(h('li', { class: 'muted' }, `${r.dubbeleTijden} tijdstip(pen) kwam(en) twee keer voor; bij de overgang naar wintertijd is dat normaal. Het dubbele uur telt volledig mee.`));
   for (const [soort, dagen] of Object.entries(r.ontbrekend || {})) {
     if (!dagen?.length) continue;
     lijstjes.push(h('li', { class: 'is-waarschuwing' }, `In het bestand ontbreken ${tal(dagen.length, 'dag', 'dagen')} ${soort}`,
@@ -289,21 +295,24 @@ export function importRapport(imp, staat, opnieuw, ctx, { metLink = false } = {}
   if (o.vergeleken) {
     const aantal = o.aantalAfwijkend ?? o.afwijkend.length;
     const excel = imp.soort === 'excel';
+    // Oude Excel-imports (vóór 1.2.0) hebben geen `behouden`; daar bleef de bestaande waarde altijd staan.
+    const behouden = (x) => x.behouden ?? excel;
+    const ietsBehouden = o.afwijkend.some(behouden);
     overlap = h('div', { class: 'stack' },
       h('p', { class: aantal ? 'is-waarschuwing' : 'is-goed' },
         `${tal(o.vergeleken, 'waarde', 'waarden')} vergeleken met wat er al stond: `,
         aantal ? `${aantal} wijk${aantal === 1 ? 't' : 'en'} af.` : 'alles komt overeen.'),
       aantal ? h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel' },
         h('thead', {}, h('tr', {}, h('th', {}, 'Dag'), h('th', {}, ''),
-          h('th', { class: 'num' }, excel ? 'HomeWizard' : 'Eerder'), h('th', { class: 'num' }, excel ? 'Excel' : 'Nu'))),
+          h('th', { class: 'num' }, 'Eerder'), h('th', { class: 'num' }, 'Dit bestand'))),
         h('tbody', {}, o.afwijkend.slice(0, staat.alleAfwijkend === imp.id ? 50 : 8).map((x) => h('tr', {},
           h('td', {}, dagKnop(staat, opnieuw, x.datum, fmtDatumKort(x.datum))),
           h('td', {}, MAAT_NAAM[x.maat].toLowerCase()),
-          h('td', { class: 'num' }, `${fmtGetal(x.oud, 2)}${excel || !x.bron ? '' : ` (${bronNaam(x.bron)})`}`),
-          h('td', { class: 'num' }, fmtGetal(x.nieuw, 2))))))) : null,
+          h('td', { class: 'num' }, `${behouden(x) ? '✓ ' : ''}${fmtGetal(x.oud, 2)}${x.bron ? ` (${bronNaam(x.bron)})` : ''}`),
+          h('td', { class: 'num' }, `${behouden(x) ? '' : '✓ '}${fmtGetal(x.nieuw, 2)}`)))))) : null,
       aantal > 8 && staat.alleAfwijkend !== imp.id
         ? h('button', { type: 'button', class: 'btn btn-ghost btn-small', onClick: () => { staat.alleAfwijkend = imp.id; staat.openImport = imp.id; opnieuw(); } }, `Toon ${Math.min(aantal, 50)} verschillen`) : null,
-      excel && aantal ? h('p', { class: 'hint' }, 'Bij deze dagen is de HomeWizard-waarde aangehouden. Klopt de Excel-waarde beter, pas de dag dan aan in Historie.') : null);
+      aantal ? h('p', { class: 'hint' }, `✓ = de waarde die is aangehouden.${ietsBehouden ? ' Waar de eerdere waarde bleef staan, kwam die uit een betere bron (Vattenfall gaat voor HomeWizard, HomeWizard voor Excel). Klopt het bestand toch beter, pas de dag dan aan in Historie.' : ''}`) : null);
   }
 
   let actie = null;

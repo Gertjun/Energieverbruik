@@ -1,8 +1,9 @@
 // Ingelezen gegevens in de kluis zetten (muteert de draft binnen ctx.update),
 // met een importlogboek zodat elke import te controleren en terug te draaien is.
 //
-// Voorrang: HomeWizard-gegevens zijn het nauwkeurigst en overschrijven waarden
-// uit Excel. Excel vult alleen aan wat er nog niet is. Opmerkingen blijven staan.
+// Voorrang: Vattenfall (de officiële meetgegevens waarop de rekening gebaseerd is)
+// gaat voor HomeWizard, HomeWizard gaat voor Excel. Een bron overschrijft nooit een
+// waarde uit een bron die hoger staat; die wordt alleen vergeleken. Opmerkingen blijven staan.
 //
 // Per dag zijn er drie groepen velden die een import kan zetten:
 //   s = stroom (afname, terug, uurverdeling, bron), g = gas, o = opmerking.
@@ -23,7 +24,10 @@ export const HERSTEL_MAX = 10;
 /** Verschil tussen twee bronnen dat als "afwijkend" telt. */
 const TOLERANTIE = { afname: [0.1, 0.02], terug: [0.1, 0.02], gas: [0.05, 0.02] };
 
-const BRON_NAAM = { homewizard: 'HomeWizard', excel: 'Excel', handmatig: 'handmatig' };
+const BRON_NAAM = { vattenfall: 'Vattenfall', homewizard: 'HomeWizard', excel: 'Excel', handmatig: 'handmatig' };
+/** Hoe hoger, hoe betrouwbaarder. Een import overschrijft alleen waarden met een gelijke of lagere rang. */
+const RANG = { vattenfall: 3, homewizard: 2, excel: 1 };
+const rang = (bron) => RANG[bron] || 0;
 export const bronNaam = (b) => BRON_NAAM[b] || 'onbekend';
 
 const r3 = (v) => Math.round(v * 1000) / 1000;
@@ -73,14 +77,14 @@ function zetGroep(data, imp, datum, groep, velden) {
 }
 
 /** Vergelijkt een bestaande waarde met de waarde uit het bestand (overlap tussen bronnen of exports). */
-function vergelijk(imp, datum, maat, oudWaarde, nieuwWaarde, oudBron) {
+function vergelijk(imp, datum, maat, oudWaarde, nieuwWaarde, oudBron, behouden = false) {
   if (oudWaarde == null || nieuwWaarde == null) return;
   const o = imp.rapport.overlap;
   o.vergeleken++;
   const [abs, rel] = TOLERANTIE[maat];
   const verschil = nieuwWaarde - oudWaarde;
   if (Math.abs(verschil) > abs && Math.abs(verschil) > rel * Math.max(Math.abs(oudWaarde), Math.abs(nieuwWaarde))) {
-    o.afwijkend.push({ datum, maat, oud: oudWaarde, nieuw: nieuwWaarde, bron: oudBron || null });
+    o.afwijkend.push({ datum, maat, oud: oudWaarde, nieuw: nieuwWaarde, bron: oudBron || null, ...(behouden ? { behouden: true } : {}) });
   }
 }
 
@@ -128,38 +132,75 @@ function afronden(data, imp) {
   return imp;
 }
 
-// ---------- HomeWizard ----------
+// ---------- Meterbestanden (HomeWizard en Vattenfall) ----------
 
-/** HomeWizard-resultaat (uit leesHomeWizard) verwerken. Geeft het importrecord terug. */
-export function zetHomeWizard(data, res, bestand) {
-  const imp = nieuweImport(res.soort === 'stroom' ? 'homewizard-stroom' : 'homewizard-gas', bestand);
+/** Uurverdeling van een bestaande dag schalen naar een nieuw dagtotaal (Vattenfall-dagbestand). */
+function geschaald(uren, totaal) {
+  if (!Array.isArray(uren)) return null;
+  const som = uren.reduce((s, u) => s + u, 0);
+  if (!(som > 0)) return totaal === 0 ? uren.map(() => 0) : null;
+  return uren.map((u) => r3((u * totaal) / som));
+}
+
+/**
+ * Resultaat van leesHomeWizard of leesVattenfall verwerken. Geeft het importrecord terug.
+ * `bron`: 'homewizard' of 'vattenfall'.
+ */
+export function zetMeterbestand(data, res, bestand, bron) {
+  const imp = nieuweImport(`${bron}-${res.soort}`, bestand);
   const r = imp.rapport;
   r.dagenInBestand = res.dagen.length;
   r.vanaf = res.vanaf; r.tot = res.tot;
   r.regels = res.regels; r.dubbeleTijden = res.dubbeleTijden;
+  if (res.interval) r.interval = res.interval;
   r.totalen = totalenPerJaar(res.dagen);
   r.gaten = res.gatDagen;
+  if (res.ontbrekend?.length) r.ontbrekend = { [res.soort]: res.ontbrekend };
   if (res.ongeldig?.aantal) r.overgeslagen.push({ reden: 'Regels zonder geldige tijd of meterstand', aantal: res.ongeldig.aantal, voorbeelden: res.ongeldig.voorbeelden });
   const onvolledig = res.onvolledig || [];
   if (onvolledig.length) r.overgeslagen.push({ reden: 'Onvolledige dag aan het begin of eind van de export (komt mee met een volgende export)', aantal: onvolledig.length, voorbeelden: onvolledig.slice(0, 3) });
   if (res.gatDagen.length) r.meldingen.push(`Bij ${res.gatDagen.length} dag(en) ontbraken meer dan twee uur metingen; het verbruik is gelijk over die uren verdeeld.`);
   if (res.teruglopend) r.meldingen.push('De meterstand liep ergens terug (meterwissel?); dat stuk is als 0 geteld.');
+  if (res.interval === 'dag' && res.soort === 'stroom') r.meldingen.push('Dagbestand: er is geen verdeling over de uren. Waar al een uurverdeling van HomeWizard stond, is die naar het Vattenfall-dagtotaal geschaald; anders zijn de kosten een schatting.');
 
   for (const d of res.dagen) {
     const oud = vind(data.dagen, dagId(d.datum));
     if (res.soort === 'stroom') {
-      vergelijk(imp, d.datum, 'afname', oud?.afname, d.afname, oud?.bron);
-      vergelijk(imp, d.datum, 'terug', oud?.terug, d.terug, oud?.bron);
-      telUitkomst(imp, zetGroep(data, imp, d.datum, 's', {
-        afname: d.afname, terug: d.terug, uurAfname: d.uurAfname, uurTerug: d.uurTerug, bron: 'homewizard',
-      }));
+      const hoger = oud?.afname != null && rang(oud.bron) > rang(bron);
+      vergelijk(imp, d.datum, 'afname', oud?.afname, d.afname, oud?.bron, hoger);
+      vergelijk(imp, d.datum, 'terug', oud?.terug, d.terug, oud?.bron, hoger);
+      if (hoger) {
+        r.voorrang++;
+        // De betere bron heeft alleen een dagtotaal: neem de uurverdeling over, geschaald naar dat totaal.
+        const ua = !oud.uurAfname && geschaald(d.uurAfname, oud.afname);
+        const ut = ua && geschaald(d.uurTerug, oud.terug ?? 0);
+        if (ua && ut) {
+          zetGroep(data, imp, d.datum, 's', { afname: oud.afname, terug: oud.terug ?? 0, uurAfname: ua, uurTerug: ut, bron: oud.bron });
+          r.uurverdeling = (r.uurverdeling || 0) + 1;
+        }
+        continue;
+      }
+      const velden = { afname: d.afname, terug: d.terug, bron };
+      if (d.uurAfname) { velden.uurAfname = d.uurAfname; velden.uurTerug = d.uurTerug; } else {
+        const ua = geschaald(oud?.uurAfname, d.afname); const ut = geschaald(oud?.uurTerug, d.terug);
+        if (ua && ut) { velden.uurAfname = ua; velden.uurTerug = ut; }
+      }
+      telUitkomst(imp, zetGroep(data, imp, d.datum, 's', velden));
     } else {
-      vergelijk(imp, d.datum, 'gas', oud?.gas, d.gas, oud?.bronGas || oud?.bron);
-      telUitkomst(imp, zetGroep(data, imp, d.datum, 'g', { gas: d.gas, bronGas: 'homewizard' }));
+      const oudBron = oud?.bronGas || oud?.bron;
+      const hoger = oud?.gas != null && rang(oudBron) > rang(bron);
+      vergelijk(imp, d.datum, 'gas', oud?.gas, d.gas, oudBron, hoger);
+      if (hoger) { r.voorrang++; continue; }
+      telUitkomst(imp, zetGroep(data, imp, d.datum, 'g', { gas: d.gas, bronGas: bron }));
     }
   }
   return afronden(data, imp);
 }
+
+/** HomeWizard-resultaat (uit leesHomeWizard) verwerken. */
+export const zetHomeWizard = (data, res, bestand) => zetMeterbestand(data, res, bestand, 'homewizard');
+/** Vattenfall-resultaat (uit leesVattenfall) verwerken. */
+export const zetVattenfall = (data, res, bestand) => zetMeterbestand(data, res, bestand, 'vattenfall');
 
 // ---------- Excel ----------
 
@@ -180,17 +221,17 @@ export function zetExcel(data, res, bestand) {
     const uitkomsten = [];
     let voorrang = false;
     if (d.afname != null) {
-      if (oud?.afname != null && oud.bron === 'homewizard') {
-        vergelijk(imp, d.datum, 'afname', oud.afname, d.afname, 'homewizard');
-        vergelijk(imp, d.datum, 'terug', oud.terug, d.terug ?? 0, 'homewizard');
+      if (oud?.afname != null && rang(oud.bron) > rang('excel')) {
+        vergelijk(imp, d.datum, 'afname', oud.afname, d.afname, oud.bron, true);
+        vergelijk(imp, d.datum, 'terug', oud.terug, d.terug ?? 0, oud.bron, true);
         voorrang = true;
       } else {
         uitkomsten.push(zetGroep(data, imp, d.datum, 's', { afname: d.afname, terug: d.terug ?? 0, bron: 'excel' }));
       }
     }
     if (d.gas != null) {
-      if (oud?.gas != null && oud.bronGas === 'homewizard') {
-        vergelijk(imp, d.datum, 'gas', oud.gas, d.gas, 'homewizard');
+      if (oud?.gas != null && rang(oud.bronGas || oud.bron) > rang('excel')) {
+        vergelijk(imp, d.datum, 'gas', oud.gas, d.gas, oud.bronGas || oud.bron, true);
         voorrang = true;
       } else {
         uitkomsten.push(zetGroep(data, imp, d.datum, 'g', { gas: d.gas, bronGas: 'excel' }));

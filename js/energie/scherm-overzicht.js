@@ -67,7 +67,7 @@ const TITEL = { dag: 'Laatste dag', week: 'Deze week', maand: 'Deze maand', jaar
 export function renderOverzicht(a, staat, opnieuw) {
   if (!a.eerste) {
     return [kaart('Nog geen gegevens',
-      h('p', { class: 'muted' }, 'Lees eerst je HomeWizard-export of je Excel-bestand in. Daarna verschijnen hier je verbruik, kosten en grafieken.'),
+      h('p', { class: 'muted' }, 'Lees eerst je Vattenfall- of HomeWizard-export of je Excel-bestand in. Daarna verschijnen hier je verbruik, kosten en grafieken.'),
       h('div', { class: 'button-row' }, h('button', { class: 'btn btn-primary', type: 'button', onClick: () => { staat.tab = 'invoer'; opnieuw(); } }, 'Naar invoer')))];
   }
 

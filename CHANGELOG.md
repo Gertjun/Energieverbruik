@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.0
+
+Vattenfall-download inlezen.
+
+**Toegevoegd**
+- De CSV-bestanden uit Mijn Vattenfall zijn in te lezen: stroom per kwartier, gas per uur, of beide per dag. De app herkent zelf of een bestand van Vattenfall of HomeWizard komt; je kunt ze door elkaar kiezen.
+- Uitleg in Invoer: hoe download ik bij Vattenfall?
+
+**Gewijzigd**
+- Voorrang tussen bronnen: Vattenfall gaat voor HomeWizard, HomeWizard gaat voor Excel. Een bestand overschrijft nooit een dag uit een betere bron; het verschil wordt wel getoond in het importrapport.
+- Bij een Vattenfall-dagbestand (zonder uurverdeling) neemt de app de uurverdeling van HomeWizard over, geschaald naar het Vattenfall-dagtotaal, zodat de kosten per tijdvak exact blijven.
+- Het importrapport toont bij verschillen met een ✓ welke waarde is aangehouden, en hoe vaak een betere bron voorging.
+
 ## 1.1.0
 
 Controle van ingelezen gegevens.

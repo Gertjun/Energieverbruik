@@ -32,6 +32,22 @@
 - **P1 automatisch uitlezen staat op de wishlist**: vanaf een https-site blokkeert de browser
   waarschijnlijk het contact met de dongle op het thuisnetwerk.
 
+## 2026-11-05 – Vattenfall-import (versie 1.2.0)
+- **Vattenfall is leidend** (keuze Geert): dat zijn de officiële meetgegevens waarop de rekening gebaseerd is.
+  Rangorde Vattenfall > HomeWizard > Excel > handmatig. Een import overschrijft alleen waarden van een bron met
+  gelijke of lagere rang; anders alleen vergelijken (`behouden: true` in het overlap-overzicht). Vervangt de
+  regel "HomeWizard overschrijft Excel" uit 1.0.0.
+- **Zelfde omrekening als HomeWizard**: kwartier- en uurbestanden worden omgezet naar de stand aan het begin van elk
+  uur en gaan door `standenNaarDagen`. Zo worden zomer-/wintertijd en gaten precies zo behandeld.
+  Getest met Geerts bestanden (5-5 t/m 4-11-2026): alle 33 stroomdagen en 62 gasdagen gelijk aan de Excel.
+- **Herkennen aan de kopregel** (`Datum;Tijd;…Meterstand levering…`), niet aan de bestandsnaam. Het gasbestand is
+  Windows-1252 (m³); alleen de kop raakt daardoor verminkt en die wordt niet op ³ gecontroleerd.
+- **Dagbestanden**: geen uurverdeling. Bestaat er al een HomeWizard-uurverdeling (of komt die later), dan wordt die
+  geschaald naar het Vattenfall-dagtotaal; de bron blijft `vattenfall`. Bij een keuze van meerdere bestanden
+  worden Vattenfall-bestanden eerst verwerkt. Maandbestanden worden geweigerd.
+- **MINOR (1.2.0)**: geen schemawijziging; alleen een nieuwe bronwaarde `vattenfall` en nieuwe importsoorten
+  `vattenfall-stroom`/`vattenfall-gas`. Een apparaat met 1.1.0 toont die als "onbekend" tot het is bijgewerkt.
+
 ## 2026-11-05 – Importcontrole (versie 1.1.0)
 - **Schema 2**: nieuwe collectie `importen` (logboek met rapport en herstelgegevens), op dagen `imp`
   (per groep stroom `s`, gas `g`, opmerking `o`: welke import de waarde het laatst zette) en `gecontroleerd`.

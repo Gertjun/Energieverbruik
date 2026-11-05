@@ -78,6 +78,18 @@ export function leesHomeWizard(tekst) {
   }
   if (!standen.size) throw new Error('Er staan geen meterstanden in dit bestand.');
 
+  const res = standenNaarDagen(standen, soort);
+  return { ...res, regels: regels.length - 1, ongeldig, dubbeleTijden, leeg };
+}
+
+/**
+ * Zet meterstanden per uur om in verbruik per dag (met 24 uurwaarden voor stroom).
+ * `standen`: Map "yyyy-mm-dd hh" → [stand afname, stand teruglevering] (stroom)
+ * of [stand gas] (gas), met de stand aan het begin van dat uur.
+ * Gedeeld door de HomeWizard- en de Vattenfall-import.
+ */
+export function standenNaarDagen(standen, soort) {
+  const aantal = soort === 'stroom' ? 2 : 1;
   const sleutels = [...standen.keys()].sort();
   const eersteDag = sleutels[0].slice(0, 10);
   const index = (s) => daysBetween(eersteDag, s.slice(0, 10)) * 24 + Number(s.slice(11, 13));
@@ -114,7 +126,7 @@ export function leesHomeWizard(tekst) {
     const uren = [];
     let gat = false;
     for (let h = 0; h < 24; h++) {
-      uren.push(perUur.get(start + h) || kolommen.map(() => 0));
+      uren.push(perUur.get(start + h) || Array(aantal).fill(0));
       if (gatIdx.has(start + h)) gat = true;
     }
     if (gat) gatDagen.push(datum);
@@ -134,7 +146,6 @@ export function leesHomeWizard(tekst) {
   if (!dagen.length) throw new Error('Er staat geen enkele volledige dag in dit bestand.');
   return {
     soort, dagen, onvolledig, gatDagen, teruglopend,
-    regels: regels.length - 1, ongeldig, dubbeleTijden, leeg,
     vanaf: dagen[0].datum, tot: dagen[dagen.length - 1].datum,
   };
 }

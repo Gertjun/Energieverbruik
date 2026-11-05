@@ -1,8 +1,9 @@
-// Invoer: HomeWizard-export inlezen, een dag handmatig invullen, maandgegevens.
+// Invoer: Vattenfall- of HomeWizard-export inlezen, een dag handmatig invullen, maandgegevens.
 
 import { h, today, parseEuro, formatEuro } from '../core/dom.js';
 import { leesHomeWizard } from './import-homewizard.js';
-import { zetHomeWizard, losVanImport } from './importeren.js';
+import { leesVattenfall, isVattenfall } from './import-vattenfall.js';
+import { zetHomeWizard, zetVattenfall, losVanImport } from './importeren.js';
 import { importRapport, meldingenInPeriode } from './scherm-controle.js';
 import { upsert, dagId, maandId } from './model.js';
 import { addDays, fmtDatumKort, monthKey, maandPlus } from './tijd.js';
@@ -23,7 +24,10 @@ function homewizardKaart(a, staat, opnieuw, ctx) {
       const resultaten = [];
       for (const f of files) {
         try {
-          resultaten.push({ res: leesHomeWizard(await f.text()), naam: f.name });
+          const tekst = await f.text();
+          resultaten.push(isVattenfall(tekst)
+            ? { res: leesVattenfall(tekst), naam: f.name, bron: 'vattenfall' }
+            : { res: leesHomeWizard(tekst), naam: f.name, bron: 'homewizard' });
         } catch (err) {
           fouten.push(`${f.name}: ${err.message}`);
         }
@@ -32,7 +36,11 @@ function homewizardKaart(a, staat, opnieuw, ctx) {
       staat.laatsteImports = [];
       if (resultaten.length) {
         const ids = [];
-        await ctx.update((data) => { for (const r of resultaten) ids.push(zetHomeWizard(data, r.res, r.naam).id); });
+        // Vattenfall eerst: dan kan HomeWizard bij Vattenfall-dagbestanden nog de uurverdeling aanvullen.
+        resultaten.sort((x, y) => (x.bron === y.bron ? 0 : x.bron === 'vattenfall' ? -1 : 1));
+        await ctx.update((data) => {
+          for (const r of resultaten) ids.push((r.bron === 'vattenfall' ? zetVattenfall : zetHomeWizard)(data, r.res, r.naam).id);
+        });
         staat.laatsteImports = ids;
         ctx.toast('Ingelezen', 'ok');
         staat.weerOpnieuw = true;
@@ -47,15 +55,23 @@ function homewizardKaart(a, staat, opnieuw, ctx) {
       importen.map((imp) => {
         const n = meldingenInPeriode(a, imp.rapport.vanaf, imp.rapport.tot);
         return h('div', { class: 'rapport-blok' },
-          h('h3', {}, `Importrapport ${imp.soort === 'homewizard-stroom' ? 'stroom' : 'gas'}`),
+          h('h3', {}, `Importrapport ${imp.soort.startsWith('vattenfall') ? 'Vattenfall' : 'HomeWizard'} ${imp.soort.endsWith('stroom') ? 'stroom' : 'gas'}`),
           n ? h('p', { class: 'is-waarschuwing' }, `${n} controlemelding${n === 1 ? '' : 'en'} in deze periode.`) : h('p', { class: 'is-goed' }, 'Geen verdachte waarden in deze periode.'),
           importRapport(imp, staat, opnieuw, ctx, { metLink: true }));
       }))
     : null;
-  return kaart('HomeWizard-export inlezen',
+  return kaart('Export inlezen',
     h('p', { class: 'muted' }, a.laatste
       ? `Gegevens tot en met ${fmtDatumKort(a.laatste)}. Exporteer vanaf die dag (of eerder; dubbele dagen worden gewoon bijgewerkt).`
-      : 'Lees je export van stroom en gas in. Je kunt beide bestanden tegelijk kiezen.'),
+      : 'Lees je export van stroom en gas in, van Vattenfall of HomeWizard. Je kunt meerdere bestanden tegelijk kiezen.'),
+    h('p', { class: 'hint' }, 'Vattenfall gaat voor: dat zijn de meetgegevens waarop je rekening gebaseerd is. HomeWizard vult aan waar Vattenfall (nog) niets heeft, zoals gisteren en vandaag.'),
+    h('details', { class: 'uitleg' },
+      h('summary', {}, 'Hoe download ik bij Vattenfall?'),
+      h('ol', {},
+        h('li', {}, 'Log in op Mijn Vattenfall (website of app) en ga naar Verbruik.'),
+        h('li', {}, 'Kies Stroom, de periode en "per kwartier", en download als CSV.'),
+        h('li', {}, 'Doe hetzelfde voor Gas, "per uur".'),
+        h('li', {}, 'Kies de bestanden hieronder. Een download per dag kan ook, maar dan is er geen uurverdeling.'))),
     h('details', { class: 'uitleg' },
       h('summary', {}, 'Hoe exporteer ik uit HomeWizard?'),
       h('ol', {},
