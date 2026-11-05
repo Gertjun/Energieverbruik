@@ -5,9 +5,11 @@ Voorgestelde functies. Zodra iets gebouwd is, verdwijnt het hier en staat het in
 - **HomeWizard P1 automatisch uitlezen**: eerst onderzoeken of dit vanaf GitHub Pages kan
   (https-site ↔ dongle op het thuisnetwerk zonder geldig certificaat).
 - **SolarEdge-opbrengst automatisch ophalen** in plaats van per maand invoeren.
-- **Historie → Dagen: maandtotaal even nauwkeurig als Maanden**: de regel boven de dagtabel toont nu
-  afgeronde getallen (658 kWh, 187 kWh, 32,3 m³), terwijl Maanden 658,4 / 186,6 / 32,31 toont. Zelfde
-  afronding gebruiken (kWh 1 decimaal, m³ 2 decimalen), zodat beide weergaven exact overeenkomen.
+- **Historie → Dagen: maandtotaal als vetgedrukte regel in de tabel**, net als de jaarregels in Maanden.
+  Nu staat het totaal in lichte tekst boven de tabel; dat wordt een vetgedrukte eerste tabelregel (bijv.
+  "Oktober 2026") met de totalen onder de juiste kolommen: kWh, terug, m³, m³/gd (maandwaarde), °C
+  (maandgemiddelde) en kosten. De losse tekstregel boven de tabel vervalt. Zelfde afronding als Maanden
+  (kWh 1 decimaal, m³ 2 decimalen).
 - **SolarEdge-opbrengst importeren uit een bestand**: export uit het SolarEdge-monitoringportaal inlezen
   (per dag of kwartier), zodat de opbrengst niet meer per maand ingetypt hoeft te worden. Nodig: een
   voorbeeldexport van Geert om het formaat te kennen.
