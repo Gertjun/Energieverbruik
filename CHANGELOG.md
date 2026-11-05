@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.1
+
+**Gewijzigd**
+- De grafiek Gas per graaddag in het Overzicht volgt nu de gekozen periode (Dag, Week, Maand of Jaar), net als de andere grafiek. Eerst was die altijd per maand. Vergelijking met vorig jaar zoals bij de andere grafiek.
+- Een periode met te weinig graaddagen wordt overgeslagen (dag: minder dan 1, week: minder dan 3, maand en jaar: minder dan 5), omdat delen door een heel kleine graaddag grote uitschieters geeft.
+
 ## 1.3.0
 
 Gas per graaddag per dag.

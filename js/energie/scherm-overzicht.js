@@ -62,6 +62,10 @@ function huidigePeriode(soort, laatste) {
   return { van, tot: laatste, vorigVan: sameDayLastYear(van), vorigTot: sameDayLastYear(laatste) };
 }
 
+// Minimaal aantal graaddagen in een periode om gas per graaddag te tonen.
+const GD_MINIMUM = { dag: 1, week: 3, maand: 5, jaar: 5 };
+const PER_TEKST = { dag: 'per dag', week: 'per week', maand: 'per maand', jaar: 'per jaar' };
+
 const TITEL = { dag: 'Laatste dag', week: 'Deze week', maand: 'Deze maand', jaar: 'Dit jaar' };
 
 export function renderOverzicht(a, staat, opnieuw) {
@@ -111,19 +115,20 @@ export function renderOverzicht(a, staat, opnieuw) {
 
   const delen = [h('div', { class: 'keuzes' }, periodeKeus, maatKeus), kpis, grafiek];
 
-  // Gas per graaddag (per maand)
+  // Gas per graaddag (volgt de gekozen periode)
   const mnd = perioden('maand', a.laatste);
-  const gdWaarde = (van, tot) => { const t = totaal(a, van, tot); return t.graaddagen >= 5 ? t.gasStookdagen / t.graaddagen : null; };
-  const gd = mnd.map((p) => gdWaarde(p.van, p.tot));
-  const gdVorig = mnd.map((p) => gdWaarde(p.vorig[0], p.vorig[1]));
+  const minGd = GD_MINIMUM[staat.periode];
+  const gdWaarde = (van, tot) => { const t = totaal(a, van, tot); return t.graaddagen >= minGd && t.graaddagen > 0 ? t.gasStookdagen / t.graaddagen : null; };
+  const gd = lijst.map((p) => gdWaarde(p.van, p.tot));
+  const gdVorig = lijst.map((p) => (p.vorig ? gdWaarde(p.vorig[0], p.vorig[1]) : null));
   if (gd.some((v) => v != null)) {
-    delen.push(kaart('Gas per graaddag',
+    delen.push(kaart(`Gas per graaddag · ${PER_TEKST[staat.periode]}`,
       staafGrafiek({
-        labels: mnd.map((p) => p.label), korteLabels: mnd.map((p) => p.kort), waarden: gd,
+        labels: lijst.map((p) => p.label), korteLabels: lijst.map((p) => p.kort), waarden: gd,
         vergelijk: gdVorig.some((v) => v != null) ? gdVorig : null,
         fmt: (v, as) => (as ? fmtGetal(v, 2) : `${fmtGetal(v, 3)} m³ per graaddag`),
       }),
-      h('p', { class: 'hint' }, 'Hoe lager, hoe zuiniger je stookt, los van het weer. Graaddag: 18 °C min de gemiddelde buitentemperatuur, gewogen per seizoen.')));
+      h('p', { class: 'hint' }, `Hoe lager, hoe zuiniger je stookt, los van het weer. Graaddag: 18 °C min de gemiddelde buitentemperatuur, gewogen per seizoen. Niet getoond bij minder dan ${fmtGetal(minGd, 0)} graaddag${minGd === 1 ? '' : 'en'} in de periode: dan is er te weinig gestookt en geeft de deling grote uitschieters.`)));
   }
 
   // Zonnepanelen

@@ -1,5 +1,12 @@
 # Beslissingen
 
+## 2026-11-05 – Gas per graaddag volgt de periode (versie 1.3.1)
+- **Zelfde perioden als de hoofdgrafiek** (31 dagen, 13 weken, 12 maanden, 5 jaar), met vorig jaar ter vergelijking.
+- **Minimum graaddagen per periode**: dag 1, week 3, maand en jaar 5. In de grafiek zouden zachte dagen met een
+  graaddag van bijv. 0,1 enorme staven geven en de rest platdrukken. In de dagtabel van Historie staat de
+  waarde wel bij elke graaddag boven 0 (zoals de Excel).
+- **PATCH**: verbetering van een bestaande grafiek.
+
 ## 2026-11-05 – Gas per graaddag per dag (versie 1.3.0)
 - **Zelf berekend, niet uit de Excel**: gas ÷ gewogen graaddag, alleen als er gas is en de graaddag boven 0 ligt
   (anders –; de Excel toont dan 0). Zelfde uitkomst als kolom O voor alle 268 vergeleken dagen.

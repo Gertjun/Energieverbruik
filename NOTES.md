@@ -31,6 +31,9 @@
 - Niet visueel getest op iPhone-breedte (geen browser in de testomgeving): nakijken of de dagtabel met de
   extra kolom nog goed past.
 
+## Stand (5 november 2026) – versie 1.3.1
+- Grafiek Gas per graaddag in het Overzicht volgt de periodekeuze (dag/week/maand/jaar).
+
 ## Openstaande punten
 - [ ] Geert: Historie op de iPhone bekijken; past de dagtabel met de kolom m³/gd? (°C valt daar al weg.)
 - [ ] Geert: Vattenfall-bestanden inlezen (kwartier/uur). Daarna HomeWizard alleen nog voor de laatste dagen.
