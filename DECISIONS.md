@@ -1,5 +1,23 @@
 # Beslissingen
 
+## 2026-11-05 – SolarEdge-import (versie 1.4.0)
+- **Maandbestand** (de export die Geert aanleverde: alle maanden van alle jaren in één bestand). Dagbestanden
+  worden geweigerd met een duidelijke melding; per dag staat op de wishlist.
+- **SolarEdge gaat voor de opbrengst**: een bestaande waarde (Excel of handmatig) wordt overschreven, het verschil
+  staat in het rapport (afwijkend bij > 1 kWh én > 2%). Reden: de Excel had maanden die halverwege waren overgetikt
+  (nov 2025: 35 i.p.v. 139). Handmatig invullen blijft mogelijk en wist de import-merker, zodat ongedaan maken
+  een handmatige correctie laat staan.
+- **Overslaan**: maanden met 0 vóór de eerste opbrengst (vóór de installatie) en de lopende/toekomstige maanden
+  (onvolledig, zelfde gedachte als de onvolledige dag bij meterbestanden). Een 0 tussen andere maanden wordt wel
+  ingelezen, met een melding.
+- **Herkennen aan de kopregel** (Meettijd/Time + Energy), zodat het bestand ook via "Export inlezen" kan. Maandnamen
+  Nederlands én Engels; eenheid uit de kop (Wh/kWh/MWh); punt als decimaalteken, komma's met groepjes van drie
+  als duizendtallen.
+- **Ongedaan maken herstelt de oude waarde**: `herstel.maanden[m].oud` bewaart waarde en import-merker. Oude
+  Excel-imports hebben geen `oud` en zetten zoals voorheen terug naar leeg.
+- **Geen schemawijziging**; alleen een nieuwe importsoort `solaredge`. **MINOR (1.4.0)**: nieuwe functie. Een apparaat
+  met een oudere versie toont deze import als "solaredge" in de lijst tot het is bijgewerkt.
+
 ## 2026-11-05 – Maandtotaal als tabelregel (versie 1.3.4)
 - **Zelfde vorm als Maanden** (klasse `jaar-rij`), op Geerts verzoek: totalen onder de kolommen in plaats van een
   tekstregel erboven.

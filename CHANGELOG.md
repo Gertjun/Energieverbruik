@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.0
+
+**Toegevoegd**
+- Zonne-opbrengst inlezen uit de SolarEdge-export (monitoringportaal, CSV met de opbrengst per maand). Bij Invoer → Maandgegevens staat een knop met uitleg; het bestand kan ook via "Export inlezen" gekozen worden.
+- SolarEdge gaat voor: een eerder ingevulde opbrengst (uit Excel of met de hand) wordt overschreven. Het importrapport toont per jaar de opbrengst, welke maanden zijn overgeslagen (vóór de installatie, en de lopende maand die nog niet compleet is), maanden met 0 kWh, en de maanden waar de oude waarde afweek.
+- De SolarEdge-import staat in Historie → Controle bij de imports en is ongedaan te maken; dan komen de eerdere waarden terug.
+
+**Opgelost**
+- Het Vattenfall-importbestand ontbrak in de offline-opslag, waardoor de app zonder internet niet kon starten.
+
 ## 1.3.4
 
 **Gewijzigd**

@@ -22,7 +22,7 @@ export const GROEPEN = {
 /** Hoeveel imports terug te draaien blijven (oudere herstelgegevens worden opgeruimd). */
 export const HERSTEL_MAX = 10;
 /** Verschil tussen twee bronnen dat als "afwijkend" telt. */
-const TOLERANTIE = { afname: [0.1, 0.02], terug: [0.1, 0.02], gas: [0.05, 0.02] };
+const TOLERANTIE = { afname: [0.1, 0.02], terug: [0.1, 0.02], gas: [0.05, 0.02], zon: [1, 0.02] };
 
 const BRON_NAAM = { vattenfall: 'Vattenfall', homewizard: 'HomeWizard', excel: 'Excel', handmatig: 'handmatig' };
 /** Hoe hoger, hoe betrouwbaarder. Een import overschrijft alleen waarden met een gelijke of lagere rang. */
@@ -269,6 +269,39 @@ export function zetExcel(data, res, bestand) {
   return afronden(data, imp);
 }
 
+// ---------- SolarEdge ----------
+
+/**
+ * SolarEdge-resultaat (uit leesSolarEdge) verwerken: zonne-opbrengst per maand.
+ * SolarEdge is de bron van de opbrengst, dus een eerder ingevulde waarde (Excel of
+ * handmatig) wordt overschreven; verschillen staan in het rapport.
+ */
+export function zetSolarEdge(data, res, bestand) {
+  const imp = nieuweImport('solaredge', bestand);
+  const r = imp.rapport;
+  r.maandenInBestand = res.maanden.length;
+  r.vanaf = res.vanaf; r.tot = res.tot; r.regels = res.regels;
+  r.overgeslagen.push(...res.overgeslagen);
+  r.meldingen.push(...res.meldingen);
+  r.zonPerJaar = {};
+  for (const m of res.maanden) {
+    const j = m.maand.slice(0, 4);
+    r.zonPerJaar[j] = r3((r.zonPerJaar[j] || 0) + m.zon);
+  }
+  r.maanden = 0;
+  for (const m of res.maanden) {
+    const oud = vind(data.maanden, maandId(m.maand));
+    if (oud?.zon != null) vergelijk(imp, m.maand, 'zon', oud.zon, m.zon, null);
+    if (oud?.zon === m.zon) { r.gelijk++; continue; }
+    imp.herstel.maanden[m.maand] = { nieuw: !oud, velden: ['zon'], oud: { zon: oud?.zon ?? null, imp: oud?.imp?.zon ?? null } };
+    const rec = upsert(data.maanden, maandId(m.maand), { maand: m.maand, zon: m.zon });
+    rec.imp = { ...(rec.imp || {}), zon: imp.id };
+    r[oud?.zon != null ? 'gewijzigd' : 'nieuw']++;
+    r.maanden++;
+  }
+  return afronden(data, imp);
+}
+
 // ---------- Ongedaan maken ----------
 
 /**
@@ -307,12 +340,16 @@ export function maakImportOngedaan(data, importId) {
   for (const [maand, h] of Object.entries(imp.herstel.maanden)) {
     const m = vind(data.maanden, maandId(maand));
     if (!m) continue;
+    let veranderd = false;
     for (const k of h.velden) {
-      if (m.imp?.[k] !== importId) continue;
-      m[k] = null;
-      delete m.imp[k];
+      if (m.imp?.[k] !== importId) { if (imp.soort === 'solaredge') behouden++; continue; }
+      veranderd = true;
+      // SolarEdge bewaart de oude waarde (die kan overschreven zijn); Excel vulde alleen lege velden.
+      m[k] = h.oud?.[k] ?? null;
+      if (h.oud?.imp) m.imp[k] = h.oud.imp; else delete m.imp[k];
     }
     m.updatedAt = now;
+    if (veranderd && imp.soort === 'solaredge') teruggezet++; // bij SolarEdge telt per maand, niet per dag
     if (h.nieuw && m.termijn == null && m.zon == null) removeById(data.maanden, m.id);
   }
 

@@ -13,9 +13,11 @@ import { kaart, veld, fmtGetal, fmtKwh, fmtM3, fmtPct, leesGetal } from './ui.js
 const SOORT_NAAM = {
   'vattenfall-stroom': 'Vattenfall stroom', 'vattenfall-gas': 'Vattenfall gas',
   'homewizard-stroom': 'HomeWizard stroom', 'homewizard-gas': 'HomeWizard gas', excel: 'Excel',
+  solaredge: 'SolarEdge opbrengst',
 };
 const fmtMaat = (maat, v, d) => (maat === 'gas' ? fmtM3(v, d ?? 2) : fmtKwh(v, d ?? 1));
-const jaarErbij = (iso) => `${fmtDatumKort(iso)} ${iso.slice(0, 4)}`;
+/** Dag ('yyyy-mm-dd') of maand ('yyyy-mm') leesbaar, met jaartal. */
+const jaarErbij = (iso) => (iso.length === 7 ? fmtMaand(iso) : `${fmtDatumKort(iso)} ${iso.slice(0, 4)}`);
 
 /** Naar een dag in Historie → Dagen springen (opent de dag bovenaan). */
 export function naarDag(staat, opnieuw, datum) {
@@ -248,11 +250,13 @@ function importenKaart(importen, staat, opnieuw, ctx) {
 export function importRapport(imp, staat, opnieuw, ctx, { metLink = false } = {}) {
   const r = imp.rapport || {};
   const tal = (n, enkel, meer) => `${fmtGetal(n, 0)} ${n === 1 ? enkel : meer}`;
+  const zon = imp.soort === 'solaredge';
+  const eenh = zon ? ['maand', 'maanden'] : ['dag', 'dagen'];
   const getallen = [
-    ['In bestand', r.dagenInBestand != null ? tal(r.dagenInBestand, 'dag', 'dagen') : '–'],
-    ['Nieuw', tal(r.nieuw || 0, 'dag', 'dagen')],
-    ['Bijgewerkt', tal(r.gewijzigd || 0, 'dag', 'dagen')],
-    ['Al gelijk', tal(r.gelijk || 0, 'dag', 'dagen')],
+    ['In bestand', zon ? tal(r.maandenInBestand || 0, ...eenh) : r.dagenInBestand != null ? tal(r.dagenInBestand, 'dag', 'dagen') : '–'],
+    ['Nieuw', tal(r.nieuw || 0, ...eenh)],
+    ['Bijgewerkt', tal(r.gewijzigd || 0, ...eenh)],
+    ['Al gelijk', tal(r.gelijk || 0, ...eenh)],
   ];
   if (imp.soort === 'excel' || r.voorrang) {
     getallen.push(['Betere bron ging voor', tal(r.voorrang || 0, 'dag', 'dagen')]);
@@ -263,6 +267,10 @@ export function importRapport(imp, staat, opnieuw, ctx, { metLink = false } = {}
     getallen.push(['Maanden (termijn/zon)', fmtGetal(r.maanden || 0, 0)]);
   }
 
+  const zonJaren = Object.entries(r.zonPerJaar || {}).sort();
+  const zonTotalen = zonJaren.length ? h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel' },
+    h('thead', {}, h('tr', {}, h('th', {}, 'Opbrengst in bestand'), h('th', { class: 'num' }, 'kWh'))),
+    h('tbody', {}, zonJaren.map(([j, v]) => h('tr', {}, h('td', {}, j), h('td', { class: 'num' }, fmtGetal(v, 0))))))) : null;
   const jaren = Object.entries(r.totalen || {}).sort();
   const metStroom = jaren.some(([, t]) => t.dagenStroom); const metGas = jaren.some(([, t]) => t.dagenGas);
   const totalen = jaren.length && (metStroom || metGas) ? h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel' },
@@ -303,22 +311,23 @@ export function importRapport(imp, staat, opnieuw, ctx, { metLink = false } = {}
         `${tal(o.vergeleken, 'waarde', 'waarden')} vergeleken met wat er al stond: `,
         aantal ? `${aantal} wijk${aantal === 1 ? 't' : 'en'} af.` : 'alles komt overeen.'),
       aantal ? h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel' },
-        h('thead', {}, h('tr', {}, h('th', {}, 'Dag'), h('th', {}, ''),
-          h('th', { class: 'num' }, 'Eerder'), h('th', { class: 'num' }, 'Dit bestand'))),
+        h('thead', {}, h('tr', {}, h('th', {}, zon ? 'Maand' : 'Dag'), zon ? null : h('th', {}, ''),
+          h('th', { class: 'num' }, zon ? 'Eerder (kWh)' : 'Eerder'), h('th', { class: 'num' }, zon ? 'SolarEdge' : 'Dit bestand'))),
         h('tbody', {}, o.afwijkend.slice(0, staat.alleAfwijkend === imp.id ? 50 : 8).map((x) => h('tr', {},
-          h('td', {}, dagKnop(staat, opnieuw, x.datum, fmtDatumKort(x.datum))),
-          h('td', {}, MAAT_NAAM[x.maat].toLowerCase()),
-          h('td', { class: 'num' }, `${behouden(x) ? '✓ ' : ''}${fmtGetal(x.oud, 2)}${x.bron ? ` (${bronNaam(x.bron)})` : ''}`),
-          h('td', { class: 'num' }, `${behouden(x) ? '' : '✓ '}${fmtGetal(x.nieuw, 2)}`)))))) : null,
+          h('td', {}, x.datum.length === 7 ? jaarErbij(x.datum) : dagKnop(staat, opnieuw, x.datum, fmtDatumKort(x.datum))),
+          zon ? null : h('td', {}, MAAT_NAAM[x.maat].toLowerCase()),
+          h('td', { class: 'num' }, `${behouden(x) ? '✓ ' : ''}${fmtGetal(x.oud, zon ? 0 : 2)}${x.bron ? ` (${bronNaam(x.bron)})` : ''}`),
+          h('td', { class: 'num' }, `${behouden(x) ? '' : '✓ '}${fmtGetal(x.nieuw, zon ? 0 : 2)}`)))))) : null,
       aantal > 8 && staat.alleAfwijkend !== imp.id
         ? h('button', { type: 'button', class: 'btn btn-ghost btn-small', onClick: () => { staat.alleAfwijkend = imp.id; staat.openImport = imp.id; opnieuw(); } }, `Toon ${Math.min(aantal, 50)} verschillen`) : null,
-      aantal ? h('p', { class: 'hint' }, `✓ = de waarde die is aangehouden.${ietsBehouden ? ' Waar de eerdere waarde bleef staan, kwam die uit een betere bron (Vattenfall gaat voor HomeWizard, HomeWizard voor Excel). Klopt het bestand toch beter, pas de dag dan aan in Historie.' : ''}`) : null);
+      aantal && zon ? h('p', { class: 'hint' }, '✓ = de waarde die is aangehouden. SolarEdge gaat voor; eerder ingevulde waarden (Excel of handmatig) zijn vervangen.') : null,
+      aantal && !zon ? h('p', { class: 'hint' }, `✓ = de waarde die is aangehouden.${ietsBehouden ? ' Waar de eerdere waarde bleef staan, kwam die uit een betere bron (Vattenfall gaat voor HomeWizard, HomeWizard voor Excel). Klopt het bestand toch beter, pas de dag dan aan in Historie.' : ''}`) : null);
   }
 
   let actie = null;
   if (imp.ongedaan) {
     const t = imp.ongedaanTelling || {};
-    actie = h('p', { class: 'hint' }, `Teruggedraaid ${formatWhen(imp.ongedaan)}: ${tal(t.teruggezet || 0, 'dag', 'dagen')} teruggezet${t.behouden ? `, ${t.behouden} waarde(n) bleven staan omdat ze daarna opnieuw zijn ingelezen of gewijzigd` : ''}.`);
+    actie = h('p', { class: 'hint' }, `Teruggedraaid ${formatWhen(imp.ongedaan)}: ${tal(t.teruggezet || 0, ...eenh)} teruggezet${t.behouden ? `, ${t.behouden} waarde(n) bleven staan omdat ze daarna opnieuw zijn ingelezen of gewijzigd` : ''}.`);
   } else if (imp.herstel && imp.veranderd !== false) {
     actie = h('div', { class: 'button-row' }, h('button', {
       type: 'button', class: 'btn btn-danger btn-small',
@@ -328,7 +337,7 @@ export function importRapport(imp, staat, opnieuw, ctx, { metLink = false } = {}
         try {
           await ctx.update((data) => { telling = maakImportOngedaan(data, imp.id); });
         } catch (err) { ctx.toast(err.message, 'error'); return; }
-        if (telling) ctx.toast(`Teruggedraaid: ${tal(telling.teruggezet, 'dag', 'dagen')}`, 'ok');
+        if (telling) ctx.toast(`Teruggedraaid: ${tal(telling.teruggezet, ...eenh)}`, 'ok');
         staat.weerOpnieuw = true;
         staat.openImport = imp.id;
         opnieuw();
@@ -341,10 +350,11 @@ export function importRapport(imp, staat, opnieuw, ctx, { metLink = false } = {}
   return h('div', { class: 'import-rapport stack' },
     h('p', { class: 'muted' },
       imp.bestand ? `${imp.bestand} · ` : '',
-      r.vanaf ? `${jaarErbij(r.vanaf)} t/m ${jaarErbij(r.tot)}` : 'geen dagen',
+      r.vanaf ? `${jaarErbij(r.vanaf)} t/m ${jaarErbij(r.tot)}` : zon ? 'geen maanden' : 'geen dagen',
       r.regels ? ` · ${fmtGetal(r.regels, 0)} regels gelezen` : ''),
     h('dl', { class: 'rapport-getallen' }, getallen.map(([k, w]) => h('div', {}, h('dt', {}, k), h('dd', {}, w)))),
     totalen,
+    zonTotalen,
     h('ul', { class: 'rapport-lijst' }, lijstjes),
     overlap,
     metLink ? h('div', { class: 'button-row' }, h('button', {

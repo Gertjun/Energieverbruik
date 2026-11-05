@@ -1,69 +1,92 @@
-// Invoer: Vattenfall- of HomeWizard-export inlezen, een dag handmatig invullen, maandgegevens.
+// Invoer: Vattenfall- of HomeWizard-export inlezen, een dag handmatig invullen, maandgegevens
+// (met import van de SolarEdge-export voor de zonne-opbrengst).
 
 import { h, today, parseEuro, formatEuro } from '../core/dom.js';
 import { leesHomeWizard } from './import-homewizard.js';
 import { leesVattenfall, isVattenfall } from './import-vattenfall.js';
-import { zetHomeWizard, zetVattenfall, losVanImport } from './importeren.js';
+import { leesSolarEdge, isSolarEdge } from './import-solaredge.js';
+import { zetHomeWizard, zetVattenfall, zetSolarEdge, losVanImport } from './importeren.js';
 import { importRapport, meldingenInPeriode } from './scherm-controle.js';
 import { upsert, dagId, maandId } from './model.js';
 import { addDays, fmtDatumKort, monthKey, maandPlus } from './tijd.js';
 import { kaart, veld, leesGetal, toonGetal } from './ui.js';
 
 export function renderInvoer(a, staat, opnieuw, ctx) {
-  return [homewizardKaart(a, staat, opnieuw, ctx), dagKaart(a, ctx), maandKaart(a, ctx)];
+  return [homewizardKaart(a, staat, opnieuw, ctx), dagKaart(a, ctx), maandKaart(a, staat, opnieuw, ctx)];
+}
+
+const BRON_VOLGORDE = { vattenfall: 0, homewizard: 1, solaredge: 2 };
+const ZET = { vattenfall: zetVattenfall, homewizard: zetHomeWizard, solaredge: zetSolarEdge };
+
+/**
+ * Gekozen bestanden herkennen (Vattenfall, HomeWizard of SolarEdge), inlezen en verwerken.
+ * `plek` bepaalt in welke kaart het rapport verschijnt ('export' of 'maand').
+ */
+async function verwerkBestanden(files, staat, opnieuw, ctx, plek) {
+  const fouten = [];
+  const resultaten = [];
+  for (const f of files) {
+    try {
+      const tekst = await f.text();
+      if (isSolarEdge(tekst)) resultaten.push({ res: leesSolarEdge(tekst, monthKey(today())), naam: f.name, bron: 'solaredge' });
+      else if (isVattenfall(tekst)) resultaten.push({ res: leesVattenfall(tekst), naam: f.name, bron: 'vattenfall' });
+      else resultaten.push({ res: leesHomeWizard(tekst), naam: f.name, bron: 'homewizard' });
+    } catch (err) {
+      fouten.push(`${f.name}: ${err.message}`);
+    }
+  }
+  staat.importPlek = plek;
+  staat.importFouten = fouten;
+  staat.laatsteImports = [];
+  if (resultaten.length) {
+    const ids = [];
+    // Vattenfall eerst: dan kan HomeWizard bij Vattenfall-dagbestanden nog de uurverdeling aanvullen.
+    resultaten.sort((x, y) => BRON_VOLGORDE[x.bron] - BRON_VOLGORDE[y.bron]);
+    await ctx.update((data) => {
+      for (const r of resultaten) ids.push(ZET[r.bron](data, r.res, r.naam).id);
+    });
+    staat.laatsteImports = ids;
+    ctx.toast('Ingelezen', 'ok');
+    if (resultaten.some((r) => r.bron !== 'solaredge')) staat.weerOpnieuw = true;
+  }
+  opnieuw();
+}
+
+const RAPPORT_TITEL = {
+  'vattenfall-stroom': 'Vattenfall stroom', 'vattenfall-gas': 'Vattenfall gas',
+  'homewizard-stroom': 'HomeWizard stroom', 'homewizard-gas': 'HomeWizard gas', solaredge: 'SolarEdge opbrengst',
+};
+
+/** Fouten en importrapporten van de laatste keuze, in de kaart waar het bestand gekozen is. */
+function importMelding(a, staat, opnieuw, ctx, plek) {
+  if ((staat.importPlek || 'export') !== plek) return null;
+  const importen = (staat.laatsteImports || []).map((id) => (ctx.data.importen || []).find((i) => i.id === id && !i.deleted)).filter(Boolean);
+  if (!staat.importFouten?.length && !importen.length) return null;
+  return h('div', { class: 'import-melding' },
+    (staat.importFouten || []).map((t) => h('p', { class: 'form-error' }, t)),
+    importen.map((imp) => {
+      const n = imp.soort === 'solaredge' ? 0 : meldingenInPeriode(a, imp.rapport.vanaf, imp.rapport.tot);
+      return h('div', { class: 'rapport-blok' },
+        h('h3', {}, `Importrapport ${RAPPORT_TITEL[imp.soort] || imp.soort}`),
+        imp.soort === 'solaredge' ? null
+          : n ? h('p', { class: 'is-waarschuwing' }, `${n} controlemelding${n === 1 ? '' : 'en'} in deze periode.`) : h('p', { class: 'is-goed' }, 'Geen verdachte waarden in deze periode.'),
+        importRapport(imp, staat, opnieuw, ctx, { metLink: imp.soort !== 'solaredge' }));
+    }));
 }
 
 function homewizardKaart(a, staat, opnieuw, ctx) {
   const input = h('input', {
     type: 'file', accept: '.csv,text/csv', multiple: true, class: 'visually-hidden', id: 'hw-bestand',
-    onChange: async (e) => {
+    onChange: (e) => {
       const files = [...e.target.files];
       e.target.value = '';
-      if (!files.length) return;
-      const fouten = [];
-      const resultaten = [];
-      for (const f of files) {
-        try {
-          const tekst = await f.text();
-          resultaten.push(isVattenfall(tekst)
-            ? { res: leesVattenfall(tekst), naam: f.name, bron: 'vattenfall' }
-            : { res: leesHomeWizard(tekst), naam: f.name, bron: 'homewizard' });
-        } catch (err) {
-          fouten.push(`${f.name}: ${err.message}`);
-        }
-      }
-      staat.importFouten = fouten;
-      staat.laatsteImports = [];
-      if (resultaten.length) {
-        const ids = [];
-        // Vattenfall eerst: dan kan HomeWizard bij Vattenfall-dagbestanden nog de uurverdeling aanvullen.
-        resultaten.sort((x, y) => (x.bron === y.bron ? 0 : x.bron === 'vattenfall' ? -1 : 1));
-        await ctx.update((data) => {
-          for (const r of resultaten) ids.push((r.bron === 'vattenfall' ? zetVattenfall : zetHomeWizard)(data, r.res, r.naam).id);
-        });
-        staat.laatsteImports = ids;
-        ctx.toast('Ingelezen', 'ok');
-        staat.weerOpnieuw = true;
-      }
-      opnieuw();
+      if (files.length) verwerkBestanden(files, staat, opnieuw, ctx, 'export');
     },
   });
-  const importen = (staat.laatsteImports || []).map((id) => (ctx.data.importen || []).find((i) => i.id === id && !i.deleted)).filter(Boolean);
-  const melding = staat.importFouten?.length || importen.length
-    ? h('div', { class: 'import-melding' },
-      (staat.importFouten || []).map((t) => h('p', { class: 'form-error' }, t)),
-      importen.map((imp) => {
-        const n = meldingenInPeriode(a, imp.rapport.vanaf, imp.rapport.tot);
-        return h('div', { class: 'rapport-blok' },
-          h('h3', {}, `Importrapport ${imp.soort.startsWith('vattenfall') ? 'Vattenfall' : 'HomeWizard'} ${imp.soort.endsWith('stroom') ? 'stroom' : 'gas'}`),
-          n ? h('p', { class: 'is-waarschuwing' }, `${n} controlemelding${n === 1 ? '' : 'en'} in deze periode.`) : h('p', { class: 'is-goed' }, 'Geen verdachte waarden in deze periode.'),
-          importRapport(imp, staat, opnieuw, ctx, { metLink: true }));
-      }))
-    : null;
   return kaart('Export inlezen',
     h('p', { class: 'muted' }, a.laatste
       ? `Gegevens tot en met ${fmtDatumKort(a.laatste)}. Exporteer vanaf die dag (of eerder; dubbele dagen worden gewoon bijgewerkt).`
-      : 'Lees je export van stroom en gas in, van Vattenfall of HomeWizard. Je kunt meerdere bestanden tegelijk kiezen.'),
+      : 'Lees je export van stroom en gas in, van Vattenfall of HomeWizard. Je kunt meerdere bestanden tegelijk kiezen (ook een SolarEdge-export).'),
     h('p', { class: 'hint' }, 'Vattenfall gaat voor: dat zijn de meetgegevens waarop je rekening gebaseerd is. HomeWizard vult aan waar Vattenfall (nog) niets heeft, zoals gisteren en vandaag.'),
     h('details', { class: 'uitleg' },
       h('summary', {}, 'Hoe download ik bij Vattenfall?'),
@@ -82,7 +105,7 @@ function homewizardKaart(a, staat, opnieuw, ctx) {
         h('li', {}, 'Bewaar de bestanden in Bestanden en kies ze hieronder.'))),
     input,
     h('label', { class: 'btn btn-primary btn-block', for: 'hw-bestand' }, 'Bestanden kiezen (.csv)'),
-    melding);
+    importMelding(a, staat, opnieuw, ctx, 'export'));
 }
 
 function dagKaart(a, ctx) {
@@ -135,7 +158,7 @@ function dagKaart(a, ctx) {
     h('div', { class: 'button-row' }, h('button', { class: 'btn btn-primary', type: 'submit' }, 'Opslaan'))));
 }
 
-function maandKaart(a, ctx) {
+function maandKaart(a, staat, opnieuw, ctx) {
   const maand = h('input', { type: 'month', value: maandPlus(monthKey(today()), -1), required: true });
   const zon = h('input', { inputmode: 'decimal', autocomplete: 'off', placeholder: 'kWh' });
   const termijn = h('input', { inputmode: 'decimal', autocomplete: 'off', placeholder: '€' });
@@ -147,7 +170,7 @@ function maandKaart(a, ctx) {
   maand.addEventListener('change', vul);
   vul();
   return kaart('Maandgegevens',
-    h('p', { class: 'hint' }, 'De opbrengst van je zonnepanelen (uit de SolarEdge-app) en je termijnbedrag. Daarmee berekent de app je zelfvoorzienendheid en verwachte eindafrekening.'),
+    h('p', { class: 'hint' }, 'De opbrengst van je zonnepanelen en je termijnbedrag. Daarmee berekent de app je zelfvoorzienendheid en verwachte eindafrekening.'),
     h('form', {
       class: 'stack',
       onSubmit: async (e) => {
@@ -167,6 +190,31 @@ function maandKaart(a, ctx) {
     veld('Maand', maand),
     h('div', { class: 'field-row' }, veld('Zonne-opbrengst (kWh)', zon), veld('Termijnbedrag (€)', termijn)),
     h('div', { class: 'button-row' }, h('button', { class: 'btn btn-primary', type: 'submit' }, 'Opslaan'))),
-    a.maanden.size ? h('p', { class: 'hint' }, `Laatst ingevuld: ${[...a.maanden.values()].filter((m) => m.zon != null).map((m) => m.maand).sort().slice(-1)[0] || '–'} (opbrengst).`) : null);
+    a.maanden.size ? h('p', { class: 'hint' }, `Laatst ingevuld: ${[...a.maanden.values()].filter((m) => m.zon != null).map((m) => m.maand).sort().slice(-1)[0] || '–'} (opbrengst).`) : null,
+    solarEdgeDeel(a, staat, opnieuw, ctx));
+}
+
+function solarEdgeDeel(a, staat, opnieuw, ctx) {
+  const input = h('input', {
+    type: 'file', accept: '.csv,text/csv', class: 'visually-hidden', id: 'se-bestand',
+    onChange: (e) => {
+      const files = [...e.target.files];
+      e.target.value = '';
+      if (files.length) verwerkBestanden(files, staat, opnieuw, ctx, 'maand');
+    },
+  });
+  return h('div', { class: 'stack' },
+    h('h3', {}, 'Opbrengst uit SolarEdge inlezen'),
+    h('p', { class: 'hint' }, 'Alle maanden in één keer, in plaats van overtikken. SolarEdge gaat voor: een eerder ingevulde opbrengst wordt overschreven en verschillen zie je in het rapport. De lopende maand wordt overgeslagen tot hij compleet is.'),
+    h('details', { class: 'uitleg' },
+      h('summary', {}, 'Hoe exporteer ik uit SolarEdge?'),
+      h('ol', {},
+        h('li', {}, 'Log op de laptop in op het SolarEdge-monitoringportaal (monitoring.solaredge.com).'),
+        h('li', {}, 'Zoek de grafiek waarin je de energie per maand van verschillende jaren vergelijkt.'),
+        h('li', {}, 'Kies daar exporteren als CSV. Het bestand heet ongeveer "comparative-month-chart-data_….csv".'),
+        h('li', {}, 'Kies het bestand hieronder. Je kunt dit elke maand opnieuw doen; dubbele maanden worden gewoon bijgewerkt.'))),
+    input,
+    h('label', { class: 'btn btn-block', for: 'se-bestand' }, 'SolarEdge-bestand kiezen (.csv)'),
+    importMelding(a, staat, opnieuw, ctx, 'maand'));
 }
 

@@ -48,6 +48,19 @@
 - Maandtotaal in Historie → Dagen als vette tabelregel. Visueel gecontroleerd met testgegevens op laptop- en
   iPhone-breedte (op de iPhone loopt "Oktober 2026" over twee regels; past verder).
 
+## Stand (5 november 2026) – versie 1.4.0
+- SolarEdge-export (opbrengst per maand) in te lezen. Getest met Geerts bestand
+  `comparative-month-chart-data_11_05_2026_02_53_PM.csv` (jan 2020 t/m dec 2026) na de Excel-import:
+  75 maanden ingelezen (aug 2020 t/m okt 2026), 7 maanden vóór de installatie en nov/dec 2026 overgeslagen.
+  Jaartotalen 2021–2025: 4.138 / 4.728 / 4.168 / 3.848 / 3.487 kWh.
+- Verschil met de Excel (blad Kosten): nov 2025 35 → 139 kWh, jul 2026 493 → 582 kWh (vermoedelijk halverwege
+  de maand overgetikt). Vijf maanden kregen alleen de decimaal erbij (bijv. 87 → 87,2).
+- Augustus 2025 is 0 kWh in SolarEdge en september 2025 laag (97 kWh): melding in het rapport. Geert vragen of de
+  omvormer toen stuk/uit was.
+- Ongedaan maken getest: de Excel-waarden komen precies terug. Visueel gecontroleerd in de echte app (kluis
+  aangemaakt in een testbrowser) op laptop- en iPhone-breedte.
+- `import-vattenfall.js` stond niet in de offline-cache van sw.js; toegevoegd.
+
 ## Openstaande punten
 - [ ] Geert: Historie op de iPhone bekijken; past de dagtabel met de kolom m³/gd? (°C valt daar al weg.)
 - [ ] Geert: Vattenfall-bestanden inlezen (kwartier/uur). Daarna HomeWizard alleen nog voor de laatste dagen.
@@ -62,11 +75,18 @@
 - [ ] Tarieven nalopen: de app start met de tarieven van de tariefkaart, geldig vanaf 1-1-2025. De oudere
       tarieven uit Blad1 (linkerkolom) zijn niet ingevoerd; als die voor een eerdere periode gelden,
       een extra contract met de juiste data toevoegen.
+- [ ] Geert: SolarEdge-export inlezen (Invoer → Maandgegevens); maandelijks herhalen na de 1e.
+- [ ] Geert: augustus 2025 = 0 kWh opbrengst: klopt dat (storing)? Zo ja, mag de melding zo blijven.
+- [ ] De uitleg "Hoe exporteer ik uit SolarEdge?" is algemeen gehouden; Geert laten bevestigen welke
+      menunamen het portaal gebruikt en de uitleg daarop aanpassen.
 - [ ] Saldering met tijdvakken is een aanname (zie DECISIONS.md); vergelijken met de volgende jaarafrekening.
 
 ## Bronbestanden in het Claude-project
 - Vattenfall-downloads `E-<EAN>-Kwartier.csv` (stroom) en `G-<EAN>-Uur.csv` (gas): `Datum;Tijd;Meterstand levering;
   Verbruik;(Stand teruglevering;Teruglevering)`, Nederlandse getallen, nieuwste regel bovenaan, gas in Windows-1252.
+- SolarEdge-export `comparative-month-chart-data_<datum>.csv`: `"Meettijd","Energy (kWh)"`, één regel per maand
+  (`"jan. 2020","0"`), UTF-8 met BOM, komma als scheiding, punt als decimaalteken, alle jaren t/m december van
+  het huidige jaar (toekomstige maanden 0).
 - `Gasverbruik.xlsx`: blad DATA (per dag), blad Kosten (per maand: termijn €243, SolarEdge-opbrengst),
   blad Blad1 (jaarafrekening-schatting per tijdvak).
 - `Energietarieven.png` en `Gastarieven.png`: Vattenfall-tarieven (6 tijdvakken).

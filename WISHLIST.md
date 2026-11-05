@@ -4,10 +4,10 @@ Voorgestelde functies. Zodra iets gebouwd is, verdwijnt het hier en staat het in
 
 - **HomeWizard P1 automatisch uitlezen**: eerst onderzoeken of dit vanaf GitHub Pages kan
   (https-site ↔ dongle op het thuisnetwerk zonder geldig certificaat).
-- **SolarEdge-opbrengst automatisch ophalen** in plaats van per maand invoeren.
-- **SolarEdge-opbrengst importeren uit een bestand**: export uit het SolarEdge-monitoringportaal inlezen
-  (per dag of kwartier), zodat de opbrengst niet meer per maand ingetypt hoeft te worden. Nodig: een
-  voorbeeldexport van Geert om het formaat te kennen.
+- **SolarEdge-opbrengst automatisch ophalen** in plaats van het bestand zelf te downloaden en in te lezen
+  (SolarEdge heeft een API met sleutel; nagaan of dat vanaf GitHub Pages kan).
+- **Zonne-opbrengst per dag**: een SolarEdge-export per dag inlezen, voor zelfvoorzienendheid per dag/week.
+  Nodig: een voorbeeldexport per dag van Geert.
 - **Nieuw hoofdscherm Analyse** (naast Overzicht, Invoer, Historie, Instellingen): zelf grafieken en tabellen
   samenstellen door keuzes te maken, bijv. welke gegevens (stroom, terug, gas, kosten, temperatuur, m³/gd,
   opbrengst), welke periode, per dag/week/maand/jaar, en vergelijken met vorig jaar. Eerst samen de

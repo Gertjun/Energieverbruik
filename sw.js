@@ -3,7 +3,7 @@
 // BIJ ELKE RELEASE: VERSION ophogen (gelijk aan js/config.js).
 // NIEUW BESTAND?    Toevoegen aan PRECACHE.
 
-const VERSION = '1.3.4';
+const VERSION = '1.4.0';
 
 // De cache-naam bevat het pad van de app, zodat meerdere apps onder
 // <gebruiker>.github.io elkaars cache niet opruimen.
@@ -28,6 +28,8 @@ const PRECACHE = [
   './js/energie/weer.js',
   './js/energie/xlsx.js',
   './js/energie/import-homewizard.js',
+  './js/energie/import-vattenfall.js',
+  './js/energie/import-solaredge.js',
   './js/energie/import-excel.js',
   './js/energie/importeren.js',
   './js/energie/controle.js',
