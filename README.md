@@ -16,6 +16,9 @@ Vervangt het Excel-bestand *Gasverbruik.xlsx*. Gebouwd op de eigen PWA-template.
 - **Overzicht**: kerncijfers en grafieken per dag, week, maand en jaar, steeds vergeleken met vorig jaar;
   gas per graaddag; zelfvoorzienendheid van de zonnepanelen; termijnbedragen tegenover de werkelijke kosten.
 - **Historie**: tabel per dag, per maand te bladeren, met ontbrekende dagen gemarkeerd.
+  Daarnaast *Maanden* (totalen om naast de Excel te leggen) en *Controle* (verdachte waarden,
+  ontbrekende dagen, steekproef, vergelijking met de jaarafrekening en alle imports).
+- **Importcontrole**: na elke import een rapport; elke import (de laatste 10) is ongedaan te maken.
 - **Temperaturen** worden automatisch opgehaald bij Open-Meteo (gratis, geen account).
 - **Export** als CSV (opent in Excel) of JSON.
 
@@ -32,6 +35,9 @@ js/energie/model.js           Datamodel, samenvoegen, totalen per periode
 js/energie/tarief.js          Tijdvakken, contracten, kosten, graaddagen
 js/energie/import-homewizard.js  HomeWizard CSV → verbruik per uur en per dag
 js/energie/import-excel.js    Oude Excel inlezen (via xlsx.js, zonder library)
+js/energie/importeren.js      Imports in de kluis zetten, importlogboek, ongedaan maken
+js/energie/controle.js        Controles: verdachte waarden, ontbrekende dagen, steekproef
+js/energie/scherm-controle.js Historie → Maanden en Controle, importrapport
 js/energie/weer.js            Temperaturen bij Open-Meteo
 js/energie/grafiek.js         Staafgrafieken in SVG
 js/energie/scherm-*.js        De vier schermen

@@ -6,6 +6,7 @@ import { leesXlsx } from './xlsx.js';
 import { fromExcelSerial } from './tijd.js';
 
 const norm = (v) => String(v ?? '').trim().toLowerCase();
+const kolomLetter = (i) => { let s = ''; for (let n = i + 1; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s; return s; };
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
 function kopRij(rijen, moetHebben) {
@@ -28,21 +29,61 @@ export async function leesExcel(buffer) {
   };
 
   const dagen = []; const weer = [];
-  for (const rij of data.slice(kop.index + 1)) {
+  // Controle: wat is er overgeslagen en waarom (met celverwijzingen als voorbeeld).
+  const geenDatum = []; const tekstGetal = []; const negatief = [];
+  const perDatum = new Map();
+  let rijen = 0;
+  const cel = (kol, rij) => `${kolomLetter(kol)}${rij + 1}`;
+  const getalCel = (rij, kol, r) => {
+    if (kol < 0) return null;
+    const v = rij[kol];
+    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+    if (typeof v === 'string' && /\d/.test(v)) tekstGetal.push(cel(kol, r));
+    return null;
+  };
+
+  for (let r = kop.index + 1; r < data.length; r++) {
+    const rij = data[r];
     if (!rij) continue;
+    const waarden = [k.afname, k.terug, k.gas].map((kol) => getalCel(rij, kol, r));
+    const heeftWaarde = waarden.some((v) => v != null);
     const serie = num(rij[k.datum]);
-    if (!serie) continue;
+    if (!serie || serie < 20000 || serie > 80000) {
+      if (heeftWaarde || (rij[k.datum] != null && String(rij[k.datum]).trim())) geenDatum.push(cel(k.datum, r));
+      continue;
+    }
+    rijen++;
     const datum = fromExcelSerial(serie);
     const dag = { datum };
-    if (num(rij[k.afname]) != null) dag.afname = num(rij[k.afname]);
-    if (num(rij[k.terug]) != null) dag.terug = num(rij[k.terug]);
-    if (num(rij[k.gas]) != null) dag.gas = num(rij[k.gas]);
+    const [afname, terug, gas] = waarden;
+    if (afname != null) dag.afname = afname;
+    if (terug != null) dag.terug = terug;
+    if (gas != null) dag.gas = gas;
+    if ([afname, terug, gas].some((v) => v != null && v < 0)) negatief.push(datum);
     const opm = k.opmerking >= 0 ? String(rij[k.opmerking] ?? '').trim() : '';
     if (opm && opm !== '0') dag.opmerking = opm;
-    if (Object.keys(dag).length > 1) dagen.push(dag);
+    if (Object.keys(dag).length > 1) {
+      if (perDatum.has(datum)) perDatum.get(datum).push(r + 1);
+      else perDatum.set(datum, [r + 1]);
+      dagen.push(dag);
+    }
     const tgem = num(rij[k.tgem]);
     if (tgem != null) weer.push({ datum, tgem, tmax: num(rij[k.tmax]), tmin: num(rij[k.tmin]), bron: 'excel' });
   }
+
+  // Dubbele datums: de laatste regel telt, de eerdere worden overgeslagen.
+  const dubbel = [...perDatum.entries()].filter(([, r]) => r.length > 1);
+  const uniek = new Map();
+  for (const d of dagen) uniek.set(d.datum, d);
+  const dagenUniek = [...uniek.values()].sort((x, y) => (x.datum < y.datum ? -1 : 1));
+
+  const overgeslagen = [];
+  if (geenDatum.length) overgeslagen.push({ reden: 'Regels zonder geldige datum in kolom Datum', aantal: geenDatum.length, voorbeelden: geenDatum.slice(0, 5) });
+  if (tekstGetal.length) overgeslagen.push({ reden: 'Cellen met tekst in plaats van een getal (bijvoorbeeld een punt of komma verkeerd)', aantal: tekstGetal.length, voorbeelden: tekstGetal.slice(0, 5) });
+  if (dubbel.length) overgeslagen.push({ reden: 'Datums die meer dan één keer voorkomen (de onderste regel is gebruikt)', aantal: dubbel.length, voorbeelden: dubbel.slice(0, 5).map(([d, r]) => `${d} (regels ${r.join(', ')})`) });
+  const meldingen = [];
+  if (negatief.length) meldingen.push(`${negatief.length} dag(en) met een negatieve waarde, bijvoorbeeld ${negatief.slice(0, 3).join(', ')}.`);
+  const controle = { rijen, overgeslagen, meldingen };
 
   const maanden = [];
   const kosten = bladen.Kosten;
@@ -59,5 +100,5 @@ export async function leesExcel(buffer) {
       maanden.push({ maand, termijn: termijn == null ? null : Math.round(termijn * 100), zon });
     }
   }
-  return { dagen, weer, maanden };
+  return { dagen: dagenUniek, weer, maanden, controle };
 }

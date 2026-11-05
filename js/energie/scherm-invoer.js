@@ -2,7 +2,8 @@
 
 import { h, today, parseEuro, formatEuro } from '../core/dom.js';
 import { leesHomeWizard } from './import-homewizard.js';
-import { zetHomeWizard } from './importeren.js';
+import { zetHomeWizard, losVanImport } from './importeren.js';
+import { importRapport, meldingenInPeriode } from './scherm-controle.js';
 import { upsert, dagId, maandId } from './model.js';
 import { addDays, fmtDatumKort, monthKey, maandPlus } from './tijd.js';
 import { kaart, veld, leesGetal, toonGetal } from './ui.js';
@@ -18,35 +19,38 @@ function homewizardKaart(a, staat, opnieuw, ctx) {
       const files = [...e.target.files];
       e.target.value = '';
       if (!files.length) return;
-      const meldingen = [];
+      const fouten = [];
       const resultaten = [];
       for (const f of files) {
         try {
-          const res = leesHomeWizard(await f.text());
-          resultaten.push(res);
-          let tekst = `${res.soort === 'stroom' ? 'Stroom' : 'Gas'}: ${res.dagen.length} dagen (${fmtDatumKort(res.vanaf)} t/m ${fmtDatumKort(res.tot)}).`;
-          const laatsteOnvolledig = res.onvolledig.filter((d) => d > res.tot);
-          if (laatsteOnvolledig.length) tekst += ` ${fmtDatumKort(laatsteOnvolledig[0])} was nog niet compleet en is overgeslagen; die komt mee met je volgende export.`;
-          if (res.gatDagen.length) tekst += ` Bij ${res.gatDagen.length} dag(en) ontbraken metingen; het verbruik is over die uren verdeeld.`;
-          if (res.teruglopend) tekst += ' Let op: de meterstand liep ergens terug (meterwissel?); dat stuk is als 0 geteld.';
-          meldingen.push({ ok: true, tekst });
+          resultaten.push({ res: leesHomeWizard(await f.text()), naam: f.name });
         } catch (err) {
-          meldingen.push({ ok: false, tekst: `${f.name}: ${err.message}` });
+          fouten.push(`${f.name}: ${err.message}`);
         }
       }
+      staat.importFouten = fouten;
+      staat.laatsteImports = [];
       if (resultaten.length) {
-        await ctx.update((data) => { for (const r of resultaten) zetHomeWizard(data, r); });
-        staat.importMelding = meldingen;
+        const ids = [];
+        await ctx.update((data) => { for (const r of resultaten) ids.push(zetHomeWizard(data, r.res, r.naam).id); });
+        staat.laatsteImports = ids;
         ctx.toast('Ingelezen', 'ok');
         staat.weerOpnieuw = true;
-      } else {
-        staat.importMelding = meldingen;
       }
       opnieuw();
     },
   });
-  const melding = staat.importMelding?.length
-    ? h('div', { class: 'import-melding' }, staat.importMelding.map((m) => h('p', { class: m.ok ? 'is-goed' : 'form-error' }, m.tekst)))
+  const importen = (staat.laatsteImports || []).map((id) => (ctx.data.importen || []).find((i) => i.id === id && !i.deleted)).filter(Boolean);
+  const melding = staat.importFouten?.length || importen.length
+    ? h('div', { class: 'import-melding' },
+      (staat.importFouten || []).map((t) => h('p', { class: 'form-error' }, t)),
+      importen.map((imp) => {
+        const n = meldingenInPeriode(a, imp.rapport.vanaf, imp.rapport.tot);
+        return h('div', { class: 'rapport-blok' },
+          h('h3', {}, `Importrapport ${imp.soort === 'homewizard-stroom' ? 'stroom' : 'gas'}`),
+          n ? h('p', { class: 'is-waarschuwing' }, `${n} controlemelding${n === 1 ? '' : 'en'} in deze periode.`) : h('p', { class: 'is-goed' }, 'Geen verdachte waarden in deze periode.'),
+          importRapport(imp, staat, opnieuw, ctx, { metLink: true }));
+      }))
     : null;
   return kaart('HomeWizard-export inlezen',
     h('p', { class: 'muted' }, a.laatste
@@ -97,9 +101,13 @@ function dagKaart(a, ctx) {
           if (w.afname !== (oud?.afname ?? null) || w.terug !== (oud?.terug ?? null)) {
             Object.assign(velden, { afname: w.afname ?? undefined, terug: w.terug ?? (w.afname != null ? 0 : undefined), uurAfname: undefined, uurTerug: undefined, bron: 'handmatig' });
           }
-          if (w.gas !== (oud?.gas ?? null)) Object.assign(velden, { gas: w.gas ?? undefined, bronGas: 'handmatig' });
+          const gasAnders = w.gas !== (oud?.gas ?? null);
+          if (gasAnders) Object.assign(velden, { gas: w.gas ?? undefined, bronGas: 'handmatig' });
           const rec = upsert(data.dagen, dagId(dag), velden);
-          rec.bron ??= 'handmatig';
+          if (rec.afname != null) rec.bron ??= 'handmatig';
+          if (velden.bron) losVanImport(rec, 's');
+          if (gasAnders) losVanImport(rec, 'g');
+          if (opm !== (oud?.opmerking || '')) losVanImport(rec, 'o');
           for (const k of Object.keys(rec)) if (rec[k] === undefined) delete rec[k];
         });
         ctx.toast(`${fmtDatumKort(dag)} opgeslagen`, 'ok');
@@ -133,7 +141,10 @@ function maandKaart(a, ctx) {
         if (Number.isNaN(z) || (z != null && z < 0)) { ctx.toast('Vul een geldige opbrengst in.', 'error'); return; }
         if (termijn.value.trim() && t == null) { ctx.toast('Vul een geldig bedrag in.', 'error'); return; }
         if (!/^\d{4}-\d{2}$/.test(maand.value)) { ctx.toast('Kies een maand.', 'error'); return; }
-        await ctx.update((data) => { upsert(data.maanden, maandId(maand.value), { maand: maand.value, zon: z, termijn: t }); });
+        await ctx.update((data) => {
+          const rec = upsert(data.maanden, maandId(maand.value), { maand: maand.value, zon: z, termijn: t });
+          delete rec.imp; // handmatig ingevuld: een Excel-import ongedaan maken laat dit staan
+        });
         ctx.toast('Opgeslagen', 'ok');
       },
     },

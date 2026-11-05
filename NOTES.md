@@ -8,7 +8,19 @@
 - Temperaturen ophalen kon in de testomgeving niet getest worden (Open-Meteo geblokkeerd in de sandbox);
   in de app zelf moet het werken. Controleren op de iPhone.
 
+## Stand (5 november 2026) – versie 1.1.0
+- Importcontrole gebouwd: importrapport, Historie → Maanden en Controle, ongedaan maken (laatste 10 imports).
+- Getest met Gasverbruik.xlsx en een nagemaakte HomeWizard-export (de echte exports zaten niet in deze sessie).
+  Met de Excel alleen geeft de controle 8 meldingen: 6 dagen begin juni–juli met 43–53 kWh stroom
+  (veel meer dan de dagen eromheen; vermoedelijk echt, bijv. auto laden) en 2 dagen met veel gas per graaddag
+  (20-10-2025 en 15-4-2026). Geert kan die afvinken als ze kloppen.
+- Datamodel naar schema 2 (zie DECISIONS.md). Een apparaat met 1.0.0 kan na synchronisatie niets meer
+  wijzigen tot het is bijgewerkt.
+
 ## Openstaande punten
+- [ ] Geert: na het inlezen Historie → Controle doorlopen, Maanden naast de Excel leggen en de jaarafrekening
+      invullen bij "Vergelijken".
+- [ ] Imports van vóór 1.1.0 hebben geen rapport en zijn niet ongedaan te maken (wel gecontroleerd).
 - [ ] Geert: kluis aanmaken, sync koppelen (`gertjun/SyncData`, pad `energieverbruik/vault.json`),
       Face ID aan, HomeWizard-bestanden en Excel inlezen.
 - [ ] Controleren of temperaturen automatisch verschijnen (Historie → tik op een dag).

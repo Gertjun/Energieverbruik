@@ -4,9 +4,12 @@ import { alive, mergeCollections, purgeTombstones } from '../core/records.js';
 import { contractOp, kostenDag, maakProfielen, graaddag, standaardContracten } from './tarief.js';
 import { monthKey, yearKey, isoWeekKey, eachDay, maandStart, maandEinde } from './tijd.js';
 
-export const SCHEMA = 1;
+// Schema 2 (versie 1.1.0): collectie `importen` (importlogboek met herstelgegevens),
+// en op dagen/maanden/weer het veld `imp` (welke import een waarde heeft gezet)
+// en op dagen `gecontroleerd` (afgevinkte controlemelding).
+export const SCHEMA = 2;
 const TOMBSTONE_DAYS = 180;
-const COLLECTIES = ['dagen', 'weer', 'maanden', 'contracten'];
+const COLLECTIES = ['dagen', 'weer', 'maanden', 'contracten', 'importen'];
 
 export const STANDAARD_INSTELLINGEN = { plaats: 'Eindhoven', lat: 51.44, lon: 5.48, updatedAt: 0 };
 
@@ -14,7 +17,7 @@ export function initialData() {
   const now = Date.now();
   return {
     schema: SCHEMA,
-    dagen: [], weer: [], maanden: [],
+    dagen: [], weer: [], maanden: [], importen: [],
     contracten: standaardContracten().map((c) => ({ id: crypto.randomUUID(), createdAt: now, updatedAt: now, ...c })),
     instellingen: { ...STANDAARD_INSTELLINGEN },
   };
@@ -23,7 +26,8 @@ export function initialData() {
 export function migrate(data) {
   for (const k of COLLECTIES) data[k] = purgeTombstones(data[k] ?? [], TOMBSTONE_DAYS);
   data.instellingen ??= { ...STANDAARD_INSTELLINGEN };
-  data.schema ??= SCHEMA;
+  // Schema 1 → 2: alleen een lege collectie erbij; bestaande gegevens blijven gelijk.
+  data.schema = Math.max(data.schema ?? SCHEMA, SCHEMA);
   return data;
 }
 

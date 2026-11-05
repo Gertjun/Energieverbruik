@@ -46,10 +46,15 @@ export function leesHomeWizard(tekst) {
 
   // Eerste meterstand per uur ("yyyy-mm-dd hh").
   const standen = new Map();
-  for (const regel of regels.slice(1)) {
+  const tijden = new Set();
+  const ongeldig = { aantal: 0, voorbeelden: [] };
+  let dubbeleTijden = 0; let leeg = 0;
+  const fout = (nr) => { ongeldig.aantal++; if (ongeldig.voorbeelden.length < 5) ongeldig.voorbeelden.push(`regel ${nr}`); };
+  for (let nr = 1; nr < regels.length; nr++) {
+    const regel = regels[nr];
     const v = splitRegel(regel, sep);
     const tijd = v[iTijd];
-    if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(tijd || '')) continue;
+    if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(tijd || '')) { fout(nr + 1); continue; }
     const waarden = kolommen.map((groep) => {
       let som = 0;
       for (const i of groep) {
@@ -60,7 +65,14 @@ export function leesHomeWizard(tekst) {
       }
       return som;
     });
-    if (waarden.some((w) => w == null)) continue;
+    if (waarden.some((w) => w == null)) {
+      // Lege meterstand (bijv. gas wordt niet elk kwartier gemeten) is normaal; tekst is een fout.
+      const cellen = kolommen.flat().filter((i) => i >= 0).map((i) => v[i]);
+      if (cellen.some((c) => c != null && c !== '')) fout(nr + 1); else leeg++;
+      continue;
+    }
+    const tijdSleutel = tijd.slice(0, 16);
+    if (tijden.has(tijdSleutel)) dubbeleTijden++; else tijden.add(tijdSleutel);
     const uurSleutel = tijd.slice(0, 13);
     if (!standen.has(uurSleutel)) standen.set(uurSleutel, waarden);
   }
@@ -122,6 +134,7 @@ export function leesHomeWizard(tekst) {
   if (!dagen.length) throw new Error('Er staat geen enkele volledige dag in dit bestand.');
   return {
     soort, dagen, onvolledig, gatDagen, teruglopend,
+    regels: regels.length - 1, ongeldig, dubbeleTijden, leeg,
     vanaf: dagen[0].datum, tot: dagen[dagen.length - 1].datum,
   };
 }
