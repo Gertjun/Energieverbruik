@@ -221,3 +221,63 @@ export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs
   }
   return h('div', { class: 'grafiek' }, info, svg);
 }
+
+/**
+ * Heatmap: rijen (datum) × 24 kolommen (uur van de dag).
+ * heatmap({ rijen: [{ label, kort, waarden: [24] | null }], fmt, deelbaar: bool })
+ * Eén kleur van licht naar donker voor één grootheid; bij `deelbaar` (netto) twee kleuren met
+ * een neutraal midden: afname (positief) warm, teruglevering (negatief) koel.
+ */
+export function heatmap({ rijen, fmt, deelbaar = false, breedte = null }) {
+  const W = grafiekBreedte(breedte);
+  const L = W < 500 ? 46 : 64; const R = 4; const T = 4; const B = 20;
+  const cel = (W - L - R) / 24;
+  const rh = Math.max(4, Math.min(18, Math.floor(560 / Math.max(1, rijen.length))));
+  const H = T + rh * rijen.length + B;
+  const alle = rijen.flatMap((r) => r.waarden || []);
+  const maxAbs = Math.max(1e-9, ...alle.map(Math.abs));
+  const maxPos = Math.max(1e-9, ...alle);
+  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, class: 'grafiek-svg', role: 'img', 'aria-label': 'Heatmap per uur' });
+
+  const kleur = (v) => {
+    if (deelbaar) {
+      const f = Math.min(1, Math.abs(v) / maxAbs);
+      const pct = Math.round(Math.sqrt(f) * 100);
+      return `color-mix(in oklab, ${v >= 0 ? 'var(--hm-plus)' : 'var(--hm-min)'} ${pct}%, var(--hm-nul))`;
+    }
+    const f = Math.max(0, Math.min(1, v / maxPos));
+    return `color-mix(in oklab, var(--hm-hoog) ${Math.round(Math.sqrt(f) * 100)}%, var(--hm-laag))`;
+  };
+
+  const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, ' ');
+  const labelStap = Math.max(1, Math.ceil(14 / rh));
+  rijen.forEach((r, i) => {
+    const y = T + i * rh;
+    if (i % labelStap === 0) svg.append(s('text', { x: L - 6, y: y + Math.min(rh, 12) - 1, class: 'g-as', 'text-anchor': 'end' }, r.kort));
+    if (!r.waarden) {
+      svg.append(s('rect', { x: L, y, width: cel * 24, height: rh - 1, class: 'hm-leeg' }));
+      return;
+    }
+    r.waarden.forEach((v, uur) => {
+      const rect = s('rect', { x: L + uur * cel, y, width: Math.max(1, cel - 1), height: Math.max(1, rh - 1), rx: 1.5, style: `fill:${kleur(v)}`, class: 'hm-cel' });
+      const toon = () => {
+        info.textContent = `${r.label}, ${String(uur).padStart(2, '0')}:00–${String((uur + 1) % 24).padStart(2, '0')}:00: ${fmt(v)} per uur (gemiddeld)`;
+        svg.querySelectorAll('.hm-cel.is-actief').forEach((el) => el.classList.remove('is-actief'));
+        rect.classList.add('is-actief');
+      };
+      rect.addEventListener('pointerenter', toon);
+      rect.addEventListener('click', toon);
+      svg.append(rect);
+    });
+  });
+  for (let uur = 0; uur <= 24; uur += (W < 500 ? 6 : 3)) {
+    svg.append(s('text', { x: L + uur * cel, y: H - 6, class: 'g-as', 'text-anchor': uur === 0 ? 'start' : uur === 24 ? 'end' : 'middle' }, `${uur}`));
+  }
+
+  const legenda = deelbaar
+    ? h('div', { class: 'hm-legenda' },
+      h('span', {}, `${fmt(-maxAbs)} terug`), h('i', { class: 'hm-balk hm-balk-deel' }), h('span', {}, `${fmt(maxAbs)} afname`))
+    : h('div', { class: 'hm-legenda' },
+      h('span', {}, fmt(0)), h('i', { class: 'hm-balk' }), h('span', {}, fmt(maxPos)));
+  return h('div', { class: 'grafiek' }, info, svg, legenda);
+}

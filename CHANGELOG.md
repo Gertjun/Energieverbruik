@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.13.0
+
+**Toegevoegd**
+- **Soort analyse** bovenaan Analyse: naast "Zelf samenstellen" kun je nu kant-en-klare analyses kiezen. Ook die kun je als favoriet bewaren.
+- **Heatmap: uur van de dag × datum.** Elke rij is een dag, week of maand (afhankelijk van de lengte van de periode), elke kolom een uur van de dag. Hoe donkerder het vakje, hoe meer stroom je in dat uur afnam of terugleverde. Bij "netto" zie je in twee kleuren wanneer je per saldo afnam (oranje) en wanneer je terugleverde. Tik op een vakje voor de waarde.
+
 ## 1.12.0
 
 **Toegevoegd**

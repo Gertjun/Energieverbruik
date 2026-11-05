@@ -9,11 +9,15 @@ import { staafGrafiek } from './grafiek.js';
 import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief, AANSLUITING, GRENS_FASE } from './analyse.js';
 import { daysBetween, fmtDatumKort } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
+import { SOORTEN, SOORT_STANDAARD } from './analyse-soorten.js';
 
 const VERGELIJK = [
   ['geen', 'Niets'], ['vorigjaar', 'Dezelfde periode vorig jaar'], ['periode', 'Een andere periode'], ['maat', 'Een tweede grootheid'],
 ];
-const STANDAARD = { maat: 'afname', indeling: 'maand', preset: 'laatste12', van: '', tot: '', vergelijk: 'vorigjaar', van2: '', maat2: 'temp' };
+const STANDAARD = {
+  soort: 'samenstellen', maat: 'afname', indeling: 'maand', preset: 'laatste12', van: '', tot: '', vergelijk: 'vorigjaar', van2: '', maat2: 'temp',
+  ...SOORT_STANDAARD,
+};
 const CONFIG_VELDEN = Object.keys(STANDAARD);
 
 const fmtWaarde = (maat) => (v) => {
@@ -57,9 +61,28 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
   const p = c.preset ? snelPeriode(c.preset, a) : { van: c.van || a.eerste, tot: c.tot || a.laatste };
   const van = p.van <= p.tot ? p.van : p.tot; const tot = p.van <= p.tot ? p.tot : p.van;
 
+  const soort = SOORTEN.find((x) => x.key === c.soort) || SOORTEN[0];
+  const soortKeus = veld('Soort analyse', h('select', { onChange: (e) => wijzig({ soort: e.target.value }) },
+    SOORTEN.map((x) => h('option', { value: x.key, selected: x.key === soort.key }, x.naam))));
+  const periodeKeus = soort.geenPeriode ? null : h('div', { class: 'field' }, h('span', {}, 'Periode'),
+    h('div', { class: 'snelknoppen' }, SNEL.map(([k, t]) => h('button', {
+      type: 'button', class: 'btn btn-small', 'aria-pressed': c.preset === k ? 'true' : 'false',
+      onClick: () => wijzig({ preset: k }),
+    }, t))),
+    h('div', { class: 'field-row' },
+      veld('Van', h('input', { type: 'date', value: van, min: a.eerste, onChange: (e) => { if (e.target.value) wijzig({ preset: null, van: e.target.value, tot }); } })),
+      veld('Tot en met', h('input', { type: 'date', value: tot, onChange: (e) => { if (e.target.value) wijzig({ preset: null, van, tot: e.target.value }); } }))));
+
+  if (soort.key !== 'samenstellen') {
+    const keuzesAnders = kaart('Samenstellen', favorietenRegel(ctx, c, opnieuw),
+      h('div', { class: 'analyse-keuzes' }, soortKeus, ...(soort.velden?.(c, wijzig, a) || [])), periodeKeus);
+    return [keuzesAnders, ...[].concat(soort.resultaat(a, c, van, tot))];
+  }
+
   const keuzes = kaart('Samenstellen',
     favorietenRegel(ctx, c, opnieuw),
     h('div', { class: 'analyse-keuzes' },
+      soortKeus,
       veld('Wat', maatSelect(c.maat, c.indeling, (v) => wijzig({ maat: v }))),
       veld('Indeling', h('select', { onChange: (e) => wijzig({ indeling: e.target.value }) },
         INDELINGEN.map(([k, t]) => h('option', { value: k, selected: k === c.indeling, disabled: !past(c.maat, k) }, t)))),
@@ -74,14 +97,7 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
           onChange: (e) => { if (e.target.value) wijzig({ van2: e.target.value }); },
         }), 'even lang als de gekozen periode')
         : null),
-    h('div', { class: 'field' }, h('span', {}, 'Periode'),
-      h('div', { class: 'snelknoppen' }, SNEL.map(([k, t]) => h('button', {
-        type: 'button', class: 'btn btn-small', 'aria-pressed': c.preset === k ? 'true' : 'false',
-        onClick: () => wijzig({ preset: k }),
-      }, t))),
-      h('div', { class: 'field-row' },
-        veld('Van', h('input', { type: 'date', value: van, min: a.eerste, onChange: (e) => { if (e.target.value) wijzig({ preset: null, van: e.target.value, tot }); } })),
-        veld('Tot en met', h('input', { type: 'date', value: tot, onChange: (e) => { if (e.target.value) wijzig({ preset: null, van, tot: e.target.value }); } })))));
+    periodeKeus);
 
   if (c.indeling === 'dag' && daysBetween(van, tot) + 1 > MAX_DAGEN_PER_DAG) {
     return [keuzes, kaart(null, h('p', { class: 'muted' },
@@ -220,7 +236,8 @@ function favorietenRegel(ctx, c, opnieuw) {
     h('button', {
       class: 'btn btn-small', type: 'button',
       onClick: async () => {
-        const voorstel = `${MATEN[c.maat].naam} ${INDELINGEN.find(([k]) => k === c.indeling)[1].toLowerCase()}`;
+        const sd = SOORTEN.find((x) => x.key === c.soort);
+        const voorstel = sd && sd.key !== 'samenstellen' ? sd.naam : `${MATEN[c.maat].naam} ${INDELINGEN.find(([k]) => k === c.indeling)[1].toLowerCase()}`;
         const naam = window.prompt('Naam van deze favoriet:', voorstel)?.trim();
         if (!naam) return;
         await ctx.update((d) => { d.analyses ??= []; d.analyses.push(newRecord({ naam, config: configVan(c) })); });

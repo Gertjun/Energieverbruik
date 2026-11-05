@@ -288,3 +288,33 @@ export function vorigJaar(indeling, van, tot) {
 export function anderePeriode(van, tot, van2) {
   return { van: van2, tot: addDays(van2, daysBetween(van, tot)) };
 }
+
+// ---------- Heatmap: uur van de dag × datum ----------
+
+/** Rijindeling voor de heatmap: per dag tot 2 maanden, per week tot 13 maanden, anders per maand. */
+export function heatmapIndeling(van, tot) {
+  const n = daysBetween(van, tot) + 1;
+  return n <= 62 ? 'dag' : n <= 400 ? 'week' : 'maand';
+}
+
+/**
+ * Rijen voor de heatmap: per dag/week/maand de gemiddelde kWh per uur (24 waarden),
+ * alleen uit dagen met echte uurgegevens (geen geschatte profielen).
+ * maat: 'afname', 'terug' of 'netto'.
+ */
+export function heatmapRijen(a, maat, van, tot) {
+  const indeling = heatmapIndeling(van, tot);
+  return tijdVakjes(indeling, van, tot).map((vk) => {
+    const som = new Array(24).fill(0); let dagen = 0;
+    for (const d of eachDay(vk.van, vk.tot)) {
+      const dag = a.perDag.get(d)?.dag;
+      if (!dag?.uurAfname) continue;
+      dagen++;
+      for (let h = 0; h < 24; h++) {
+        const af = dag.uurAfname[h] || 0; const te = dag.uurTerug?.[h] || 0;
+        som[h] += maat === 'afname' ? af : maat === 'terug' ? te : af - te;
+      }
+    }
+    return { label: vk.label, kort: vk.kort, van: vk.van, dagen, waarden: dagen ? som.map((x) => x / dagen) : null };
+  });
+}
