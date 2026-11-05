@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.18.0
+
+**Toegevoegd**
+- **Opgeteld verloop door het jaar** als soort analyse. Een lijn per jaar die optelt vanaf 1 januari, dit jaar naast vorig jaar (of de laatste 3 of 4 jaar), voor stroom, teruglevering, gas of kosten. Beweeg of tik in de grafiek voor de stand op een dag. Bovenaan staat hoe dit jaar er tot vandaag voor staat tegenover vorig jaar, en een tabel geeft de stand aan het eind van elke maand.
+
 ## 1.17.0
 
 **Toegevoegd**

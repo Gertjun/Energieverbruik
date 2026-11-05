@@ -500,3 +500,46 @@ export function weerGecorrigeerd(a, van, tot, refVan, refTot) {
 }
 
 function graaddagVan(a, datum) { return a.perDag.get(datum)?.graaddag ?? null; }
+
+// ---------- Cumulatief verloop door het jaar ----------
+
+/** Waarde van een grootheid op één dag (null als er geen gegevens zijn). Voor optellende grootheden. */
+export function dagWaarde(a, maat, datum) {
+  const x = a.perDag.get(datum);
+  if (!x) return null;
+  const d = x.dag;
+  switch (maat) {
+    case 'afname': return d.afname ?? null;
+    case 'terug': return d.afname != null ? (d.terug || 0) : null;
+    case 'netto': return d.afname != null ? d.afname - (d.terug || 0) : null;
+    case 'gas': return d.gas ?? null;
+    case 'kosten': return x.kosten.contract ? x.kosten.totaal : null;
+    case 'kostenStroom': return x.kosten.contract && d.afname != null ? x.kosten.stroom + x.kosten.terug : null;
+    case 'kostenGas': return x.kosten.contract && d.gas != null ? x.kosten.gas : null;
+    default: return null;
+  }
+}
+
+/** Plaats van een datum op een raster van 366 dagen (schrikkeljaar), zodat 1 maart altijd op dezelfde plek staat. */
+export const dagVanJaar = (iso) => daysBetween('2024-01-01', `2024-${iso.slice(5)}`);
+
+/**
+ * Per jaar de opgetelde waarde vanaf 1 januari, per dag van het jaar (index 0 = 1 januari, 366 plaatsen).
+ * Dagen vóór de eerste dag met gegevens zijn null; daarna loopt de som door (ontbrekende dagen tellen als 0).
+ */
+export function cumulatief(a, maat, jaren) {
+  return jaren.map((jaar) => {
+    const waarden = new Array(366).fill(null);
+    let som = null; let eerste = null; let laatste = null;
+    const eind = `${jaar}-12-31` < a.laatste ? `${jaar}-12-31` : a.laatste;
+    for (const d of eachDay(`${jaar}-01-01`, `${jaar}-12-31`)) {
+      if (d > eind) break;
+      const v = dagWaarde(a, maat, d);
+      if (v != null) { som = (som || 0) + v; eerste ??= d; laatste = d; }
+      if (som != null) waarden[dagVanJaar(d)] = som;
+    }
+    // In een gewoon jaar is 29 februari leeg: neem de stand van 28 februari over, zodat de lijn doorloopt.
+    if (waarden[59] == null && waarden[58] != null && waarden[60] != null) waarden[59] = waarden[58];
+    return { jaar, waarden, eerste, laatste, totaal: som };
+  });
+}

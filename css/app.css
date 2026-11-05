@@ -345,3 +345,8 @@ input[type="month"] {
 .g-wolk { fill: color-mix(in srgb, var(--accent) 55%, transparent); stroke: var(--surface); stroke-width: 1; cursor: pointer; }
 .g-wolk:hover { fill: var(--accent); }
 .leg-punt { border-radius: 50% !important; }
+.g-jaarlijn { fill: none; stroke: var(--c); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.g-jaar-0 { --c: var(--jaar-0); } .g-jaar-1 { --c: var(--jaar-1); } .g-jaar-2 { --c: var(--jaar-2); } .g-jaar-3 { --c: var(--jaar-3); }
+.leg-jaarlijn { background: var(--c); height: 3px !important; border-radius: 2px !important; }
+.g-kruis { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
+.g-hit-vlak { fill: transparent; cursor: crosshair; }

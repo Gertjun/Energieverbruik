@@ -3,13 +3,13 @@
 // De keuzes staan in de analyse-staat `c` en gaan mee in favorieten (zie SOORT_STANDAARD).
 
 import { h } from '../core/dom.js';
-import { heatmap, staafGrafiek, puntenGrafiek } from './grafiek.js';
-import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks, stooklijn, weerGecorrigeerd, vorigJaar } from './analyse.js';
-import { fmtDatumKort } from './tijd.js';
+import { heatmap, staafGrafiek, puntenGrafiek, lijnenGrafiek } from './grafiek.js';
+import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks, stooklijn, weerGecorrigeerd, vorigJaar, cumulatief, dagVanJaar } from './analyse.js';
+import { fmtDatumKort, addDays } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 
 /** Standaardwaarden van de keuzes van alle soorten (worden onderdeel van een favoriet). */
-export const SOORT_STANDAARD = { hmMaat: 'afname', wgRef: 'vorigjaar', wgVan: '', wgTot: '' };
+export const SOORT_STANDAARD = { hmMaat: 'afname', wgRef: 'vorigjaar', wgVan: '', wgTot: '', cuMaat: 'gas', cuJaren: '2' };
 
 const periodeTekst = (van, tot) => `${fmtDatumKort(van)} ${van.slice(0, 4)} – ${fmtDatumKort(tot)} ${tot.slice(0, 4)}`;
 const keuze = (waarde, opties, onChange) => h('select', { onChange: (e) => onChange(e.target.value) },
@@ -239,6 +239,71 @@ const weerSoort = {
   },
 };
 
+// ---------- Cumulatief verloop ----------
+
+const CU_MATEN = [
+  ['afname', 'Stroom afgenomen', 'kWh'], ['terug', 'Stroom teruggeleverd', 'kWh'], ['netto', 'Stroom netto (afname − terug)', 'kWh'],
+  ['gas', 'Gas', 'm³'], ['kosten', 'Kosten totaal', '€'], ['kostenStroom', 'Kosten stroom (variabel)', '€'], ['kostenGas', 'Kosten gas (variabel)', '€'],
+];
+
+const cumulatiefSoort = {
+  key: 'cumulatief',
+  naam: 'Opgeteld verloop door het jaar',
+  geenPeriode: true,
+  velden: (c, wijzig) => [
+    veld('Wat', keuze(c.cuMaat, CU_MATEN.map(([k, t]) => [k, t]), (v) => wijzig({ cuMaat: v }))),
+    veld('Jaren', keuze(c.cuJaren, [['2', 'Dit jaar en vorig jaar'], ['3', 'De laatste 3 jaar'], ['4', 'De laatste 4 jaar']], (v) => wijzig({ cuJaren: v }))),
+  ],
+  resultaat(a, c) {
+    const [, naam, eenheid] = CU_MATEN.find(([k]) => k === c.cuMaat) || CU_MATEN[3];
+    const dit = Number(a.laatste.slice(0, 4));
+    const jaren = Array.from({ length: Number(c.cuJaren) || 2 }, (_, i) => dit - i).reverse();
+    const reeksen = cumulatief(a, c.cuMaat, jaren).filter((r) => r.totaal != null);
+    if (!reeksen.length) return kaart(naam, h('p', { class: 'muted' }, 'Geen gegevens in deze jaren.'));
+    const fmt = (v, as) => (eenheid === '€' ? (as ? `€${fmtGetal(v, 0)}` : euro(v)) : `${fmtGetal(v, as || Math.abs(v) >= 100 ? 0 : 1)}${as ? '' : ` ${eenheid}`}`);
+    const xLabel = (i) => fmtDatumKort(addDays('2024-01-01', i));
+    const grafiek = lijnenGrafiek({
+      reeksen: reeksen.map((r) => ({ naam: String(r.jaar), kleur: dit - r.jaar, waarden: r.waarden })),
+      fmt, xLabel,
+    });
+    // Vergelijking op dezelfde dag: tot en met de laatste dag met gegevens van dit jaar.
+    const idx = dagVanJaar(a.laatste);
+    const nu = reeksen.find((r) => r.jaar === dit);
+    const vj = reeksen.find((r) => r.jaar === dit - 1);
+    const opDag = (r) => r?.waarden[idx] ?? null;
+    const MND = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+    const maandEindIdx = [30, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365];
+    const cel = (v) => (v == null ? '–' : eenheid === '€' ? euro(v) : fmtGetal(v, Math.abs(v) >= 100 ? 0 : 1));
+    const tabel = h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel tabel-analyse' },
+      h('thead', {}, h('tr', {}, h('th', {}, 'Tot en met'), reeksen.map((r) => h('th', { class: 'num' }, `${r.jaar}${eenheid === '€' ? '' : ` (${eenheid})`}`)))),
+      h('tbody', {},
+        h('tr', { class: 'jaar-rij' }, h('th', { scope: 'row' }, xLabel(idx)), reeksen.map((r) => h('td', { class: 'num' }, cel(opDag(r))))),
+        MND.map((m, i) => h('tr', {}, h('td', {}, `eind ${m}`), reeksen.map((r) => {
+          const v = r.laatste && dagVanJaar(r.laatste) >= maandEindIdx[i] ? r.waarden[maandEindIdx[i]] : null;
+          return h('td', { class: 'num' }, cel(v));
+        }))))));
+    const laat = reeksen.filter((r) => r.eerste && r.eerste.slice(5) > '01-07');
+    let kern = null;
+    if (nu && vj && opDag(nu) != null && opDag(vj) != null) {
+      // Vergelijk alleen het stuk van het jaar dat in beide jaren gegevens heeft.
+      const start = Math.max(dagVanJaar(nu.eerste), dagVanJaar(vj.eerste));
+      if (start <= idx) {
+        const stuk = (r) => r.waarden[idx] - (start > 0 ? (r.waarden[start - 1] ?? 0) : 0);
+        const x = stuk(nu); const y = stuk(vj); const vv = x - y;
+        const pct = y ? vv / Math.abs(y) : null;
+        kern = h('p', {}, `${start > 0 ? `Van ${xLabel(start)} t/m` : 'Tot en met'} ${xLabel(idx)}: ${dit} ${fmt(x)}, ${dit - 1} ${fmt(y)} (${vv > 0 ? '+' : '−'}${fmt(Math.abs(vv))}${pct != null ? `, ${vv > 0 ? '+' : '−'}${fmtGetal(Math.abs(pct) * 100, 0)}%` : ''}).`);
+      }
+    }
+    return kaart(`${naam}: opgeteld vanaf 1 januari`,
+      kern, grafiek, tabel,
+      h('p', { class: 'hint' }, [
+        'Elke lijn telt op vanaf 1 januari van dat jaar; een steile lijn = veel verbruik in die weken. Ligt de lijn van dit jaar onder die van vorig jaar, dan zit je tot nu toe lager. Beweeg of tik in de grafiek voor de stand op een dag. ',
+        laat.length ? `Let op: ${laat.map((r) => `${r.jaar} begint pas op ${fmtDatumKort(r.eerste)}`).join(', ')} (eerste dag met gegevens), dus die lijn ligt lager dan het hele jaar zou zijn. ` : '',
+        'Dagen zonder gegevens tellen als 0.',
+      ].join('')));
+  },
+};
+
 /** Alle soorten, in de volgorde van de keuzelijst. "Zelf samenstellen" wordt in scherm-analyse.js getekend. */
 export const SOORTEN = [
   { key: 'samenstellen', naam: 'Zelf samenstellen', uitleg: null },
@@ -247,4 +312,5 @@ export const SOORTEN = [
   zonurenSoort,
   stooklijnSoort,
   weerSoort,
+  cumulatiefSoort,
 ];

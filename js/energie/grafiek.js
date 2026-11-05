@@ -329,3 +329,57 @@ export function puntenGrafiek({ punten, lijn = null, fmtX, fmtY, naamX, naamY, n
     lijn ? h('span', {}, h('i', { class: 'leg-lijn' }), naamLijn) : null);
   return h('div', { class: 'grafiek' }, info, svg, legenda);
 }
+
+/**
+ * Lijnen door het jaar (x = dag van het jaar, 1 jan t/m 31 dec), één per jaar, kleur per jaar (--jaar-N).
+ * lijnenGrafiek({ reeksen: [{ naam, kleur (0–3), waarden: [366] }], fmt, xLabel: (i) => tekst })
+ * Aanwijzen toont de waarden van alle jaren op die dag (kruisdraad).
+ */
+export function lijnenGrafiek({ reeksen, fmt, xLabel, breedte = null }) {
+  const W = grafiekBreedte(breedte);
+  const H = W < 500 ? 220 : 280; const L = 48; const R = 10; const T = 10; const B = 26;
+  const n = 366;
+  const alle = reeksen.flatMap((r) => r.waarden).filter((v) => v != null);
+  const maxV = niceMax(Math.max(0, ...alle));
+  const minV = Math.min(0, ...alle) < 0 ? -niceMax(-Math.min(0, ...alle)) : 0;
+  const px = (i) => L + ((W - L - R) * i) / (n - 1);
+  const py = (v) => T + (H - T - B) * (1 - (v - minV) / (maxV - minV));
+  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, class: 'grafiek-svg', role: 'img', 'aria-label': 'Opgeteld verloop per jaar' });
+  for (let i = 0; i <= 4; i++) {
+    const v = minV + ((maxV - minV) * i) / 4;
+    svg.append(s('line', { x1: L, x2: W - R, y1: py(v), y2: py(v), class: v === 0 ? 'g-nul' : 'g-raster' }));
+    svg.append(s('text', { x: L - 6, y: py(v) + 4, class: 'g-as', 'text-anchor': 'end' }, fmt(v, true)));
+  }
+  // Maandlabels op de 1e van de maand (jaar met 366 dagen als raster).
+  const maandStartIdx = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+  const MND = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+  maandStartIdx.forEach((idx, m) => {
+    if (W < 500 && m % 2) return;
+    svg.append(s('text', { x: px(idx + 15), y: H - 8, class: 'g-as', 'text-anchor': 'middle' }, MND[m]));
+  });
+  reeksen.forEach((r) => {
+    let d = ''; let open = false;
+    r.waarden.forEach((v, i) => {
+      if (v == null) { open = false; return; }
+      d += `${open ? 'L' : 'M'}${px(i).toFixed(1)},${py(v).toFixed(1)} `; open = true;
+    });
+    if (d) svg.append(s('path', { d, class: `g-jaarlijn g-jaar-${r.kleur}` }));
+  });
+  const kruis = s('line', { x1: 0, x2: 0, y1: T, y2: H - B, class: 'g-kruis', visibility: 'hidden' });
+  svg.append(kruis);
+  const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, ' ');
+  const hit = s('rect', { x: L, y: T, width: W - L - R, height: H - T - B, class: 'g-hit-vlak' });
+  const toon = (e) => {
+    const box = svg.getBoundingClientRect();
+    const x = ((e.clientX - box.left) / box.width) * W;
+    const i = Math.max(0, Math.min(n - 1, Math.round(((x - L) / (W - L - R)) * (n - 1))));
+    kruis.setAttribute('x1', px(i)); kruis.setAttribute('x2', px(i)); kruis.setAttribute('visibility', 'visible');
+    info.textContent = `${xLabel(i)}: ${reeksen.map((r) => `${r.naam} ${r.waarden[i] == null ? '–' : fmt(r.waarden[i])}`).join(' · ')}`;
+  };
+  hit.addEventListener('pointermove', toon);
+  hit.addEventListener('click', toon);
+  svg.append(hit);
+  const legenda = h('div', { class: 'grafiek-legenda' },
+    reeksen.map((r) => h('span', {}, h('i', { class: `leg-jaarlijn g-jaar-${r.kleur}` }), r.naam)));
+  return h('div', { class: 'grafiek' }, info, svg, legenda);
+}
