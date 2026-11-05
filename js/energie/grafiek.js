@@ -51,7 +51,8 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
     svg.append(s('text', { x: L - 6, y: yy + 4, class: 'g-as', 'text-anchor': 'end' }, fmt(v, true)));
   }
 
-  const stap = Math.max(1, Math.ceil(n / 12));
+  // Op een smal scherm minder labels onder de as, zodat ze niet tegen elkaar aan staan.
+  const stap = Math.max(1, Math.ceil(n / (W < 500 ? 6 : 12)));
   const staaf = (x, v, cls) => {
     if (v == null || v === 0) return null;
     const y0 = y(0); const y1 = y(v);

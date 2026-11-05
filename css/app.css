@@ -112,6 +112,9 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 /* ---------- Kaarten en kerncijfers ---------- */
 .kaart { display: grid; gap: 12px; padding: 16px; min-width: 0; }
 .kaart-titel { font-size: 1.05rem; margin: 0; }
+.kaart-kop { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; }
+.kaart-wissel .segmented { padding: 3px; }
+.kaart-wissel .segmented button { min-height: 30px; padding: 0 12px; font-size: 0.8rem; }
 .keuzes { display: grid; gap: 8px; }
 @media (min-width: 640px) { .keuzes { grid-template-columns: 1fr 1fr; } }
 
@@ -153,6 +156,9 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .tabel th { text-align: left; font-weight: 600; color: var(--muted); font-size: 0.75rem; padding: 6px 6px; border-bottom: 1px solid var(--border); }
 .tabel td { padding: 8px 6px; border-bottom: 1px solid var(--border); white-space: nowrap; }
 .tabel .num { text-align: right; }
+.tabel-lijst td:first-child { white-space: normal; }
+.tabel-lijst .lopend { display: block; font-size: 0.75rem; }
+.tabel-lijst th.num { white-space: normal; }
 .tabel-dagen tbody tr:not(.bewerk-rij) { cursor: pointer; }
 .tabel-dagen tbody tr:not(.bewerk-rij):hover { background: var(--surface-2); }
 .tabel-dagen tr.is-open { background: var(--surface-2); }

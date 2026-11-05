@@ -132,6 +132,15 @@
 - **P1 automatisch uitlezen staat op de wishlist**: vanaf een https-site blokkeert de browser
   waarschijnlijk het contact met de dongle op het thuisnetwerk.
 
+## 2026-11-05 – Grafiek of lijst per kaart (versie 1.7.0)
+- **Keuze per kaart, niet één knop voor alles**: bij zonnepanelen wil je misschien de tabel en bij verbruik de
+  grafiek. Bewaard in localStorage (weergavevoorkeur, geen gegevens; niet gesynchroniseerd), standaard Grafiek.
+- **Zonnepanelen in één grafiek**: opbrengst en zelf gebruikt als staven (kWh), zelfvoorzienendheid als lijn met
+  eigen as rechts, met de bestaande `lijn`-optie van `staafGrafiek`. Altijd per maand (opbrengst is alleen per
+  maand bekend), los van de periodekeuze.
+- **Lopende periode in de lijst**: geen verschilpercentage, omdat de vergelijking met de hele periode vorig jaar
+  een vertekend beeld geeft. De Kerncijfers vergelijken wel netjes dezelfde dagen.
+
 ## 2026-11-05 – Vattenfall-import (versie 1.2.0)
 - **Vattenfall is leidend** (keuze Geert): dat zijn de officiële meetgegevens waarop de rekening gebaseerd is.
   Rangorde Vattenfall > HomeWizard > Excel > handmatig. Een import overschrijft alleen waarden van een bron met

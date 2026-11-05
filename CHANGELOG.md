@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.7.0
+
+**Toegevoegd**
+- Elke grafiekkaart in het **Overzicht** (verbruik/kosten, gas per graaddag, zonnepanelen) heeft rechtsboven een knop **Grafiek | Lijst**. De keuze wordt per kaart onthouden op dit apparaat.
+- **Zonnepanelen als grafiek**: staven voor opbrengst en zelf gebruikt per maand, met zelfvoorzienendheid als lijn (percentage op de as rechts). De tabel blijft beschikbaar via Lijst.
+- In de lijst van verbruik en gas per graaddag staan vorig jaar en het verschil in procenten; de lopende periode krijgt "loopt nog" en geen verschil (een halve maand tegen een hele maand vergelijken zegt niets).
+
+**Gewijzigd**
+- Op de iPhone staat onder grafieken minder labels (om de week/maand), zodat ze niet meer tegen elkaar aan staan.
+
 ## 1.6.0
 
 **Toegevoegd**

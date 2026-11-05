@@ -14,10 +14,10 @@ const PERIODES = [['dag', 'Dag'], ['week', 'Week'], ['maand', 'Maand'], ['jaar',
 const MATEN = [['afname', 'Stroom'], ['terug', 'Terug'], ['gas', 'Gas'], ['kosten', 'Kosten']];
 
 const MAAT = {
-  afname: { naam: 'Stroom afgenomen', fmt: (v, as) => (as ? fmtGetal(v, 0) : fmtKwh(v)), geldig: (t) => t.dagenAfname > 0 },
-  terug: { naam: 'Teruggeleverd', fmt: (v, as) => (as ? fmtGetal(v, 0) : fmtKwh(v)), geldig: (t) => t.dagenAfname > 0 },
-  gas: { naam: 'Gas', fmt: (v, as) => (as ? fmtGetal(v, v < 10 ? 1 : 0) : fmtM3(v)), geldig: (t) => t.dagenGas > 0 },
-  kosten: { naam: 'Kosten', fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), geldig: (t) => t.dagen > 0 && !t.zonderContract },
+  afname: { naam: 'Stroom afgenomen', kop: 'Stroom (kWh)', cel: (v) => fmtGetal(v, 1), fmt: (v, as) => (as ? fmtGetal(v, 0) : fmtKwh(v)), geldig: (t) => t.dagenAfname > 0 },
+  terug: { naam: 'Teruggeleverd', kop: 'Terug (kWh)', cel: (v) => fmtGetal(v, 1), fmt: (v, as) => (as ? fmtGetal(v, 0) : fmtKwh(v)), geldig: (t) => t.dagenAfname > 0 },
+  gas: { naam: 'Gas', kop: 'Gas (m³)', cel: (v) => fmtGetal(v, 2), fmt: (v, as) => (as ? fmtGetal(v, v < 10 ? 1 : 0) : fmtM3(v)), geldig: (t) => t.dagenGas > 0 },
+  kosten: { naam: 'Kosten', kop: 'Kosten', cel: euro, fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), geldig: (t) => t.dagen > 0 && !t.zonderContract },
 };
 
 /** Lijst van perioden (van/tot/label) die eindigt bij `eind`. */
@@ -68,6 +68,53 @@ const PER_TEKST = { dag: 'per dag', week: 'per week', maand: 'per maand', jaar: 
 
 const TITEL = { dag: 'Laatste dag', week: 'Deze week', maand: 'Deze maand', jaar: 'Dit jaar' };
 
+// Per kaart een keuze tussen grafiek en lijst. Dat is een weergavevoorkeur (geen gegevens),
+// dus per apparaat in localStorage, net als de ingeklapte zijbalk.
+const WEERGAVE_KEY = 'energieverbruik.overzichtWeergave';
+const WEERGAVEN = [['grafiek', 'Grafiek'], ['lijst', 'Lijst']];
+function leesWeergaven() {
+  try { return JSON.parse(localStorage.getItem(WEERGAVE_KEY)) || {}; } catch { return {}; }
+}
+function bewaarWeergave(id, soort) {
+  const alle = leesWeergaven(); alle[id] = soort;
+  try { localStorage.setItem(WEERGAVE_KEY, JSON.stringify(alle)); } catch { /* geen opslag */ }
+}
+
+/** Kaart met rechtsboven een keuze Grafiek/Lijst. `maak(soort)` levert de inhoud. */
+function wisselKaart(id, titel, maak, opnieuw) {
+  const soort = leesWeergaven()[id] === 'lijst' ? 'lijst' : 'grafiek';
+  return h('section', { class: 'card kaart' },
+    h('div', { class: 'kaart-kop' },
+      h('h2', { class: 'kaart-titel' }, titel),
+      h('div', { class: 'kaart-wissel' }, segmented(WEERGAVEN, soort, (v) => { bewaarWeergave(id, v); opnieuw(); }, `Weergave ${titel}`))),
+    ...[].concat(maak(soort)));
+}
+
+/** Tabel bij een grafiek: nieuwste periode bovenaan, met vorig jaar en verschil als die er is. */
+function lijstTabel({ kop, labels, waarden, vergelijk, fmt, markeer = [], lopend = [] }) {
+  const metVorig = Array.isArray(vergelijk);
+  const verschil = (nu, toen) => {
+    if (nu == null || toen == null || toen === 0) return '–';
+    const pct = (nu - toen) / Math.abs(toen);
+    return `${pct > 0 ? '+' : pct < 0 ? '−' : ''}${fmtGetal(Math.abs(pct) * 100, 0)}%`;
+  };
+  const rijen = [];
+  for (let i = labels.length - 1; i >= 0; i--) {
+    if (waarden[i] == null && (!metVorig || vergelijk[i] == null)) continue;
+    rijen.push(h('tr', {},
+      h('td', {}, labels[i], lopend[i] ? h('small', { class: 'muted lopend' }, 'loopt nog') : null),
+      h('td', { class: 'num' }, waarden[i] == null ? '–' : `${markeer[i] ? '≈ ' : ''}${fmt(waarden[i])}`),
+      metVorig ? h('td', { class: 'num muted' }, vergelijk[i] == null ? '–' : fmt(vergelijk[i])) : null,
+      metVorig ? h('td', { class: 'num' }, lopend[i] ? '–' : verschil(waarden[i], vergelijk[i])) : null));
+  }
+  return h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel tabel-lijst' },
+    h('thead', {}, h('tr', {},
+      h('th', {}, 'Periode'), h('th', { class: 'num' }, kop),
+      metVorig ? h('th', { class: 'num' }, 'Vorig jaar') : null,
+      metVorig ? h('th', { class: 'num' }, 'Verschil') : null)),
+    h('tbody', {}, rijen)));
+}
+
 export function renderOverzicht(a, staat, opnieuw) {
   if (!a.eerste) {
     return [kaart('Nog geen gegevens',
@@ -106,12 +153,18 @@ export function renderOverzicht(a, staat, opnieuw) {
     }
   }
   const heeftVergelijk = staat.periode !== 'jaar' && vergelijk.some((v) => v != null);
-  const grafiek = kaart(maat.naam,
-    staafGrafiek({
-      labels: lijst.map((p) => p.label), korteLabels: lijst.map((p) => p.kort), waarden,
-      vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.fmt, markeer,
-    }),
-    staat.maat === 'kosten' ? h('p', { class: 'hint' }, 'Inclusief vaste kosten en verrekening van teruglevering. Lichtere staven zijn (deels) geschat.') : null);
+  const labels = lijst.map((p) => p.label);
+  // De laatste periode loopt meestal nog; dan is een verschil met de hele periode vorig jaar misleidend.
+  const lopend = lijst.map((p) => p.tot > a.laatste);
+  const grafiek = wisselKaart('hoofd', maat.naam, (soort) => [
+    soort === 'lijst'
+      ? lijstTabel({ kop: maat.kop, labels, waarden, vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.cel, markeer, lopend })
+      : staafGrafiek({
+        labels, korteLabels: lijst.map((p) => p.kort), waarden,
+        vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.fmt, markeer,
+      }),
+    staat.maat === 'kosten' ? h('p', { class: 'hint' }, `Inclusief vaste kosten en verrekening van teruglevering. ${soort === 'lijst' ? 'Bedragen met ≈ zijn' : 'Lichtere staven zijn'} (deels) geschat.`) : null,
+  ], opnieuw);
 
   const delen = [h('div', { class: 'keuzes' }, periodeKeus, maatKeus), kpis, grafiek];
 
@@ -122,24 +175,38 @@ export function renderOverzicht(a, staat, opnieuw) {
   const gd = lijst.map((p) => gdWaarde(p.van, p.tot));
   const gdVorig = lijst.map((p) => (p.vorig ? gdWaarde(p.vorig[0], p.vorig[1]) : null));
   if (gd.some((v) => v != null)) {
-    delen.push(kaart(`Gas per graaddag · ${PER_TEKST[staat.periode]}`,
-      staafGrafiek({
-        labels: lijst.map((p) => p.label), korteLabels: lijst.map((p) => p.kort), waarden: gd,
-        vergelijk: gdVorig.some((v) => v != null) ? gdVorig : null,
-        fmt: (v, as) => (as ? fmtGetal(v, 2) : `${fmtGetal(v, 3)} m³ per graaddag`),
-      }),
-      h('p', { class: 'hint' }, `Hoe lager, hoe zuiniger je stookt, los van het weer. Graaddag: 18 °C min de gemiddelde buitentemperatuur, gewogen per seizoen. Niet getoond bij minder dan ${fmtGetal(minGd, 0)} graaddag${minGd === 1 ? '' : 'en'} in de periode: dan is er te weinig gestookt en geeft de deling grote uitschieters.`)));
+    const heeftGdVorig = gdVorig.some((v) => v != null);
+    delen.push(wisselKaart('graaddag', `Gas per graaddag · ${PER_TEKST[staat.periode]}`, (soort) => [
+      soort === 'lijst'
+        ? lijstTabel({ kop: 'm³/graaddag', labels: lijst.map((p) => p.label), waarden: gd, lopend, vergelijk: heeftGdVorig ? gdVorig : null, fmt: (v) => fmtGetal(v, 3) })
+        : staafGrafiek({
+          labels: lijst.map((p) => p.label), korteLabels: lijst.map((p) => p.kort), waarden: gd,
+          vergelijk: heeftGdVorig ? gdVorig : null,
+          fmt: (v, as) => (as ? fmtGetal(v, 2) : `${fmtGetal(v, 3)} m³ per graaddag`),
+        }),
+      h('p', { class: 'hint' }, `Hoe lager, hoe zuiniger je stookt, los van het weer. Graaddag: 18 °C min de gemiddelde buitentemperatuur, gewogen per seizoen. Niet getoond bij minder dan ${fmtGetal(minGd, 0)} graaddag${minGd === 1 ? '' : 'en'} in de periode: dan is er te weinig gestookt en geeft de deling grote uitschieters.`),
+    ], opnieuw));
   }
 
-  // Zonnepanelen
-  const zonRijen = mnd.map((p) => ({ p, z: zonMaand(a, p.van.slice(0, 7)) })).filter((x) => x.z);
+  // Zonnepanelen (altijd per maand: de opbrengst is alleen per maand bekend)
+  const zonPerMaand = mnd.map((p) => ({ p, z: zonMaand(a, p.van.slice(0, 7)) }));
+  const zonRijen = zonPerMaand.filter((x) => x.z);
   if (zonRijen.length) {
-    delen.push(kaart('Zonnepanelen',
-      h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel' },
-        h('thead', {}, h('tr', {}, h('th', {}, 'Maand'), h('th', { class: 'num' }, 'Opbrengst'), h('th', { class: 'num' }, 'Zelf gebruikt'), h('th', { class: 'num' }, 'Zelf­voorzienend'))),
-        h('tbody', {}, zonRijen.reverse().map(({ p, z }) => h('tr', {},
-          h('td', {}, fmtMaandKort(p.van.slice(0, 7)), ' ', p.van.slice(0, 4)), h('td', { class: 'num' }, fmtKwh(z.zon, 0)), h('td', { class: 'num' }, fmtKwh(z.eigen, 0)), h('td', { class: 'num' }, fmtPct(z.aandeel))))))),
-      h('p', { class: 'hint' }, 'Zelf gebruikt = opbrengst min teruglevering. Zelfvoorzienend = zelf gebruikt gedeeld door je totale stroomverbruik.')));
+    const zonTabel = () => h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel' },
+      h('thead', {}, h('tr', {}, h('th', {}, 'Maand'), h('th', { class: 'num' }, 'Opbrengst'), h('th', { class: 'num' }, 'Zelf gebruikt'), h('th', { class: 'num' }, 'Zelf\u00advoorzienend'))),
+      h('tbody', {}, [...zonRijen].reverse().map(({ p, z }) => h('tr', {},
+        h('td', {}, fmtMaandKort(p.van.slice(0, 7)), ' ', p.van.slice(0, 4)), h('td', { class: 'num' }, fmtKwh(z.zon, 0)), h('td', { class: 'num' }, fmtKwh(z.eigen, 0)), h('td', { class: 'num' }, fmtPct(z.aandeel)))))));
+    const zonGrafiek = () => staafGrafiek({
+      labels: zonPerMaand.map(({ p }) => p.label), korteLabels: zonPerMaand.map(({ p }) => p.kort),
+      waarden: zonPerMaand.map(({ z }) => (z ? z.zon : null)), naam: 'Opbrengst',
+      vergelijk: zonPerMaand.map(({ z }) => (z ? z.eigen : null)), vergelijkNaam: 'Zelf gebruikt',
+      fmt: (v, as) => (as ? fmtGetal(v, 0) : fmtKwh(v, 0)),
+      lijn: { naam: 'Zelfvoorzienend', waarden: zonPerMaand.map(({ z }) => (z ? z.aandeel : null)), fmt: (v) => fmtPct(v) },
+    });
+    delen.push(wisselKaart('zon', 'Zonnepanelen', (soort) => [
+      soort === 'lijst' ? zonTabel() : zonGrafiek(),
+      h('p', { class: 'hint' }, 'Zelf gebruikt = opbrengst min teruglevering. Zelfvoorzienend = zelf gebruikt gedeeld door je totale stroomverbruik.'),
+    ], opnieuw));
   }
 
   // Termijnbedragen

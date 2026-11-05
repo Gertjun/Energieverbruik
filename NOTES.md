@@ -84,7 +84,14 @@
   opent App en sync. Laptop- en iPhone-breedte bekeken (tabbalk met 5 knoppen past).
 - Temperatuur ná de Excel kon in de testomgeving niet opgehaald worden (Open-Meteo geblokkeerd); in de app wel.
 
+## Stand (5 november 2026) – versie 1.7.0
+- Knop Grafiek/Lijst per kaart in het Overzicht; Zonnepanelen standaard als grafiek (staven + lijn).
+- Getest met een testpagina met nagemaakte gegevens (zon-opbrengst gelijk aan Geerts schermafbeelding) op laptop
+  (donker) en iPhone-breedte (licht); keuze blijft na herladen staan.
+- Kerncijfers en Termijnen hebben geen knop: dat zijn losse getallen, geen reeks.
+
 ## Openstaande punten
+- [ ] Geert: Overzicht op iPhone/iPad bekijken; past de lijst (4 kolommen) en is de zon-grafiek leesbaar?
 - [ ] Geert: Analyse en Instellingen bekijken op iPhone en iPad. Na het bijwerken eenmaal alle apparaten openen
       (gegevensversie 3).
 - [ ] Template-afwijking: shell.js en index.html (instellingen als paneel i.p.v. venster). Bij een update vanuit
