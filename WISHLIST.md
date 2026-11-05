@@ -17,15 +17,3 @@ Voorgestelde functies. Zodra iets gebouwd is, verdwijnt het hier en staat het in
   dezelfde plek. Raakt het template-deel (shell.js); nagaan hoe Vaste Lasten/Crypto Portfolio dit doen.
 - **Kleuren kiezen**: accentkleur (en eventueel licht/donker/automatisch) instelbaar in Instellingen, bewaard
   per apparaat.
-- **Leveringscontract met start- en einddatum** (Instellingen): één contract als "map" boven de tarieven.
-  Nu zijn er alleen tariefperiodes (geldig van/tot); dit voegt het contract zelf toe. Gegevens per contract:
-  - Algemeen: leverancier, productnaam, vast of variabel, startdatum, einddatum (of onbepaalde tijd),
-    opzegtermijn.
-  - Aansluiting: EAN-code stroom en gas, netbeheerder, aansluitwaarde stroom (3x25) en gas (G6).
-  - Betalen: termijnbedrag + vanaf wanneer, datum jaarafrekening (afrekenmoment).
-  - Tarieven: één of meer tariefperiodes binnen het contract (bij variabel wijzigen die tussentijds), zoals nu.
-  - Teruglevering: regeling (saldering / per kWh), vergoeding, terugleverkosten, ingangsdatum wijziging.
-  - Eenmalig: welkomstbonus/cashback (wanneer verrekend).
-  Gebruik in de app: melding X weken voor einddatum/opzegtermijn, termijnen vs kosten en verwachte
-  eindafrekening per contractjaar, controle dat er geen dagen zonder tarief zijn. Eerst met Geert afstemmen
-  welke velden hij echt wil.
