@@ -132,6 +132,16 @@
 - **P1 automatisch uitlezen staat op de wishlist**: vanaf een https-site blokkeert de browser
   waarschijnlijk het contact met de dongle op het thuisnetwerk.
 
+## 2026-11-05 – Zonnepanelen per jaar vergelijken (versie 1.8.0)
+- **Overlappende kolommen** (keuze Geert): zelf gebruikt kan nooit hoger zijn dan de opbrengst, dus past het als
+  gevuld deel binnen de opbrengst-kolom. Percentage als bijschrift; geen tweede as. Vervangt de lijn uit 1.7.0.
+- **Kalenderjaar als x-as (jan–dec)** met de gekozen jaren naast elkaar, in plaats van de laatste 12 maanden; zo is
+  elke maand direct met dezelfde maand in andere jaren te vergelijken.
+- **Jaarkeuze als weergavevoorkeur** in localStorage (niet gesynchroniseerd). Standaard de laatste twee jaren met
+  opbrengst; hoogstens 4 (anders worden kolommen te smal en zijn de kleuren niet meer uit elkaar te houden).
+- **Kleuren per jaar**: nieuwste accent, dan grijs, oranje, paars. Percentage liggend als de kolom ≥18 px breed is,
+  staand vanaf 7 px, anders alleen in de tekst bij aantikken.
+
 ## 2026-11-05 – Grafiek of lijst per kaart (versie 1.7.0)
 - **Keuze per kaart, niet één knop voor alles**: bij zonnepanelen wil je misschien de tabel en bij verbruik de
   grafiek. Bewaard in localStorage (weergavevoorkeur, geen gegevens; niet gesynchroniseerd), standaard Grafiek.

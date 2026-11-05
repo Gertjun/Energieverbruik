@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.8.0
+
+**Gewijzigd**
+- **Grafiek Zonnepanelen vernieuwd**: per maand één kolom voor de opbrengst, met daarin (fel gekleurd, onderin) wat je zelf gebruikt hebt. Het percentage zelfvoorzienendheid staat klein boven de kolom; de oranje lijn en de tweede as zijn weg.
+- De grafiek loopt nu van januari t/m december.
+
+**Toegevoegd**
+- **Jaren vergelijken bij Zonnepanelen**: tik op de jaartallen boven de grafiek om jaren aan of uit te zetten (hoogstens 4 tegelijk, standaard de laatste twee). Elk jaar heeft een eigen kleur; het nieuwste jaar de accentkleur. Ook de Lijst toont de gekozen jaren.
+- Bij oudere jaren zonder stroomgegevens zie je alleen de opbrengst.
+
 ## 1.7.0
 
 **Toegevoegd**

@@ -90,6 +90,11 @@
   (donker) en iPhone-breedte (licht); keuze blijft na herladen staan.
 - Kerncijfers en Termijnen hebben geen knop: dat zijn losse getallen, geen reeks.
 
+## Stand (5 november 2026) – versie 1.8.0
+- Zonnepanelen-grafiek op verzoek van Geert: zelf gebruikt binnen de opbrengst-kolom, percentage erboven, jaren naast
+  elkaar (jan–dec). Getest met nagemaakte gegevens (opbrengst 2024–2026, stroom vanaf 20-11-2025) op laptop (donker)
+  en iPhone (licht). Op de iPhone passen de percentages bij 1–2 jaren (staand bij 2); bij 3+ jaren alleen via aantikken.
+
 ## Openstaande punten
 - [ ] Geert: Overzicht op iPhone/iPad bekijken; past de lijst (4 kolommen) en is de zon-grafiek leesbaar?
 - [ ] Geert: Analyse en Instellingen bekijken op iPhone en iPad. Na het bijwerken eenmaal alle apparaten openen

@@ -148,6 +148,18 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .g-lijn { fill: none; stroke: var(--warn); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .g-punt { fill: var(--warn); }
 .g-as-lijn { fill: var(--warn); }
+.g-zon-0 { --c: var(--accent); }
+.g-zon-1 { --c: var(--muted); }
+.g-zon-2 { --c: var(--warn); }
+.g-zon-3 { --c: #a06cd5; }
+.g-zon-buiten { fill: color-mix(in srgb, var(--c) 35%, var(--surface)); }
+.g-zon-binnen { fill: var(--c); }
+.g-pct { fill: var(--muted); font-size: 10px; font-family: var(--font); font-variant-numeric: tabular-nums; }
+.jaar-keus { display: flex; flex-wrap: wrap; gap: 6px; }
+.jaar-knop { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px; font: inherit; font-size: 0.8rem; font-weight: 600; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 999px; cursor: pointer; }
+.jaar-knop[aria-pressed="true"] { color: var(--text); background: var(--surface-2); }
+.jaar-knop i { width: 10px; height: 10px; border-radius: 3px; background: var(--c, transparent); border: 1px solid var(--border); }
+.jaar-knop i[class^="g-zon-"] { border-color: transparent; }
 .leg-lijn { background: var(--warn); height: 3px !important; border-radius: 2px !important; }
 
 /* ---------- Tabellen ---------- */

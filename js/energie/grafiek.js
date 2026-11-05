@@ -126,3 +126,81 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
     : null;
   return h('div', { class: 'grafiek' }, info, svg, legenda);
 }
+
+/** Kolom met afgeronde bovenkant (alleen positieve waarden). */
+function kolom(x, y0, y1, bw, cls) {
+  const hgt = Math.max(1, y0 - y1); const top = y0 - hgt;
+  const r = Math.min(3, bw / 2, hgt);
+  return s('path', { d: `M${x},${y0} V${top + r} Q${x},${top} ${x + r},${top} H${x + bw - r} Q${x + bw},${top} ${x + bw},${top + r} V${y0} Z`, class: cls });
+}
+
+/**
+ * Zonnepanelen per kalendermaand, één kolom per jaar naast elkaar.
+ * De lichte kolom is de opbrengst, het donkere deel daarin wat zelf gebruikt is,
+ * en boven de kolom staat de zelfvoorzienendheid.
+ * zonGrafiek({ labels (12), korteLabels (12), reeksen: [{ naam, kleur (0–3), waarden: [{ zon, eigen, aandeel } | null] }], fmtKwh, fmtPct })
+ * Reeksen van oud naar nieuw.
+ */
+export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs }) {
+  const W = Math.round(Math.min(960, Math.max(300, (window.innerWidth || 640) - (window.innerWidth >= 900 ? 300 : 66))));
+  const H = W < 500 ? 220 : 260; const L = 44; const R = 8; const T = 24; const B = 26;
+  const alle = reeksen.flatMap((r) => r.waarden).filter(Boolean).map((w) => w.zon);
+  const maxV = niceMax(Math.max(0, ...alle));
+  const y = (v) => T + (H - T - B) * (1 - v / maxV);
+  const n = labels.length; const k = Math.max(1, reeksen.length);
+  const slot = (W - L - R) / n;
+  const tussen = k > 1 ? (slot < 30 ? 1 : 2) : 0;
+  const groep = Math.min(slot * 0.86, k * 26 + (k - 1) * tussen);
+  const bw = (groep - (k - 1) * tussen) / k;
+
+  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, class: 'grafiek-svg', role: 'img', 'aria-label': 'Zonnepanelen per maand' });
+  const span = maxV;
+  const mant = span / 10 ** Math.floor(Math.log10(span));
+  const stappenAs = Math.abs(mant - 2.5) < 1e-9 || Math.abs(mant - 5) < 1e-9 ? 5 : 4;
+  for (let i = 0; i <= stappenAs; i++) {
+    const v = (span * i) / stappenAs; const yy = y(v);
+    svg.append(s('line', { x1: L, x2: W - R, y1: yy, y2: yy, class: v === 0 ? 'g-nul' : 'g-raster' }));
+    svg.append(s('text', { x: L - 6, y: yy + 4, class: 'g-as', 'text-anchor': 'end' }, fmtAs(v)));
+  }
+
+  // Percentage boven de kolom: liggend als het past, anders staand, bij heel smalle kolommen weg.
+  const pctStand = bw >= 18 ? 'liggend' : bw >= 7 ? 'staand' : null;
+  const y0 = y(0);
+  for (let i = 0; i < n; i++) {
+    const x0 = L + slot * i + (slot - groep) / 2;
+    reeksen.forEach((r, j) => {
+      const w = r.waarden[i];
+      if (!w || !w.zon) return;
+      const x = x0 + j * (bw + tussen);
+      svg.append(kolom(x, y0, y(w.zon), bw, `g-zon g-zon-${r.kleur} g-zon-buiten`));
+      if (w.eigen != null && w.eigen > 0) svg.append(kolom(x, y0, y(Math.min(w.eigen, w.zon)), bw, `g-zon g-zon-${r.kleur} g-zon-binnen`));
+      if (w.aandeel != null && pctStand) {
+        const cx = x + bw / 2; const top = y(w.zon) - 4;
+        svg.append(pctStand === 'liggend'
+          ? s('text', { x: cx, y: top, class: 'g-pct', 'text-anchor': 'middle' }, fmtPct(w.aandeel))
+          : s('text', { x: cx + 3, y: top, class: 'g-pct', 'text-anchor': 'start', transform: `rotate(-90 ${cx + 3} ${top})` }, fmtPct(w.aandeel)));
+      }
+    });
+  }
+
+  const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, ' ');
+  const stap = Math.max(1, Math.ceil(n / (W < 500 ? 6 : 12)));
+  for (let i = 0; i < n; i++) {
+    if (i % stap === 0 || i === n - 1) svg.append(s('text', { x: L + slot * i + slot / 2, y: H - 8, class: 'g-as', 'text-anchor': 'middle' }, korteLabels[i]));
+    const hit = s('rect', { x: L + slot * i, y: T - 20, width: slot, height: H - T - B + 20, class: 'g-hit' });
+    const toon = () => {
+      const delen = [...reeksen].reverse().map((r) => {
+        const w = r.waarden[i];
+        if (!w) return `${r.naam}: –`;
+        return w.eigen == null ? `${r.naam}: ${fmtKwh(w.zon)}`
+          : `${r.naam}: ${fmtKwh(w.zon)}, zelf ${fmtKwh(w.eigen)} (${fmtPct(w.aandeel)})`;
+      });
+      info.textContent = `${labels[i]} · ${delen.join(' · ')}`;
+      svg.querySelectorAll('.g-hit').forEach((el, j) => el.classList.toggle('is-actief', j === i));
+    };
+    hit.addEventListener('pointerenter', toon);
+    hit.addEventListener('click', toon);
+    svg.append(hit);
+  }
+  return h('div', { class: 'grafiek' }, info, svg);
+}
