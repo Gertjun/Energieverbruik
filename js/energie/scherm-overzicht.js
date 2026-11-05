@@ -138,16 +138,27 @@ function breedtes(indeling, zijbalkIn) {
 const LIJST_BREEDTE = 380; // breedte van de lijst naast de grafiek (zie .samen in app.css)
 
 /**
- * Kaart met rechtsboven een keuze Grafiek/Lijst. `maak(soort)` levert de inhoud;
+ * Kaart met vier vaste vakken: kop, extra knoppen, inhoud en toelichting. Een leeg vak blijft staan
+ * (als lege div), zodat in twee kolommen de vakken van kaarten naast elkaar op dezelfde hoogte liggen
+ * (subgrid in app.css).
+ */
+function vakKaart(kop, extra, inhoud, hint) {
+  const vak = (el) => el || h('div', { class: 'kaart-leeg' });
+  return h('section', { class: 'card kaart kaart-vakken' }, kop, vak(extra), vak(inhoud), vak(hint));
+}
+
+/**
+ * Kaart met rechtsboven een keuze Grafiek/Lijst. `maak(soort)` levert [extra, inhoud, toelichting];
  * soort is 'grafiek', 'lijst' of 'samen' (beide naast elkaar, zonder keuzeknop).
  */
 function wisselKaart(id, titel, maak, opnieuw, samen = false) {
   const soort = samen ? 'samen' : leesWeergaven()[id] === 'lijst' ? 'lijst' : 'grafiek';
-  return h('section', { class: 'card kaart' },
+  const [extra, inhoud, hint] = maak(soort);
+  return vakKaart(
     h('div', { class: 'kaart-kop' },
       h('h2', { class: 'kaart-titel' }, titel),
       samen ? null : h('div', { class: 'kaart-wissel' }, segmented(WEERGAVEN, soort, (v) => { bewaarWeergave(id, v); opnieuw(); }, `Weergave ${titel}`))),
-    ...[].concat(maak(soort)));
+    extra, inhoud, hint);
 }
 
 /** Grafiek, lijst of beide naast elkaar. */
@@ -196,6 +207,8 @@ export function renderOverzicht(a, staat, opnieuw) {
   const tweeKolommen = indeling === 'naast' || indeling === 'alles';
   // Breedte voor een grafiek in een gewone kaart (één of twee kolommen, of naast de lijst).
   const bKaart = samen ? B.naastLijst : tweeKolommen ? B.half : null;
+  // In twee kolommen alle grafieken even hoog, zodat kaarten naast elkaar gelijk uitkomen.
+  const hKaart = tweeKolommen ? (bKaart < 500 ? 220 : 260) : null;
 
   const periodeKeus = segmented(PERIODES, staat.periode, (v) => { staat.periode = v; opnieuw(); }, 'Periode');
   const maatKeus = indeling === 'alles' ? null : segmented(MATEN, staat.maat, (v) => { staat.maat = v; opnieuw(); }, 'Wat tonen');
@@ -227,10 +240,11 @@ export function renderOverzicht(a, staat, opnieuw) {
     const vergelijk = totalen.map(({ vorig: v }) => (v && maat.geldig(v) ? v[maatKey] : null));
     const heeftVergelijk = staat.periode !== 'jaar' && vergelijk.some((v) => v != null);
     return wisselKaart(id, maat.naam, (soort) => [
+      null,
       grafiekOfLijst(soort,
         () => staafGrafiek({
           labels, korteLabels: lijst.map((p) => p.kort), waarden,
-          vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.fmt, markeer, breedte: bKaart,
+          vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.fmt, markeer, breedte: bKaart, hoogte: hKaart,
         }),
         () => lijstTabel({ kop: maat.kop, labels, waarden, vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.cel, markeer, lopend })),
       maatKey === 'kosten' ? h('p', { class: 'hint' }, `Inclusief vaste kosten en verrekening van teruglevering. ${soort === 'lijst' ? 'Bedragen met ≈ zijn' : soort === 'samen' ? 'Lichtere staven en bedragen met ≈ zijn' : 'Lichtere staven zijn'} (deels) geschat.`) : null,
@@ -241,6 +255,9 @@ export function renderOverzicht(a, staat, opnieuw) {
     : [maatKaart(staat.maat, 'hoofd')];
 
   const kaarten = [...grafieken]; // komen in het raster (één of twee kolommen)
+  // Een losse laatste kaart in twee kolommen loopt over de hele breedte (zie app.css); dan ook de grafiek.
+  const heeftZon = [...a.maanden.values()].some((m) => m.zon != null && !m.deleted);
+  const maat2 = (alleen) => (tweeKolommen && alleen ? { breedte: B.heel, hoogte: null } : { breedte: bKaart, hoogte: hKaart });
   // Keuze van de indeling: alleen op een breed scherm (daaronder is er maar één kolom).
   const breed = window.matchMedia?.(BREED_SCHERM).matches;
   const indelingKeus = breed
@@ -259,11 +276,13 @@ export function renderOverzicht(a, staat, opnieuw) {
   const gdVorig = lijst.map((p) => (p.vorig ? gdWaarde(p.vorig[0], p.vorig[1]) : null));
   if (gd.some((v) => v != null)) {
     const heeftGdVorig = gdVorig.some((v) => v != null);
+    const mGd = maat2(!heeftZon && kaarten.length % 2 === 0);
     kaarten.push(wisselKaart('graaddag', `Gas per graaddag · ${PER_TEKST[staat.periode]}`, (soort) => [
+      null,
       grafiekOfLijst(soort,
         () => staafGrafiek({
           labels: lijst.map((p) => p.label), korteLabels: lijst.map((p) => p.kort), waarden: gd,
-          vergelijk: heeftGdVorig ? gdVorig : null, breedte: bKaart,
+          vergelijk: heeftGdVorig ? gdVorig : null, ...mGd,
           fmt: (v, as) => (as ? fmtGetal(v, 2) : `${fmtGetal(v, 3)} m³ per graaddag`),
         }),
         () => lijstTabel({ kop: 'm³/graaddag', labels: lijst.map((p) => p.label), waarden: gd, lopend, vergelijk: heeftGdVorig ? gdVorig : null, fmt: (v) => fmtGetal(v, 3) })),
@@ -307,10 +326,11 @@ export function renderOverzicht(a, staat, opnieuw) {
         h('thead', {}, h('tr', {}, h('th', {}, 'Maand'), h('th', { class: 'num' }, 'Opbrengst'), h('th', { class: 'num' }, 'Zelf gebruikt'), h('th', { class: 'num' }, 'Zelf\u00advoorzienend'))),
         h('tbody', {}, rijen)));
     };
+    const mZon = maat2(kaarten.length % 2 === 0);
     const zonGraf = () => zonGrafiek({
       labels: MND.map((mm) => fmtMaand(`2000-${mm}`).replace(/\s*2000/, '')), korteLabels: MND.map((mm) => fmtMaandKort(`2000-${mm}`)),
       reeksen: gekozen.map((j) => ({ naam: j, kleur: kleurVan(j), waarden: MND.map((mm) => zonWaarde(`${j}-${mm}`)) })),
-      fmtKwh: (v) => fmtKwh(v, 0), fmtPct, fmtAs: (v) => fmtGetal(v, 0), breedte: bKaart,
+      fmtKwh: (v) => fmtKwh(v, 0), fmtPct, fmtAs: (v) => fmtGetal(v, 0), ...mZon,
     });
     kaarten.push(wisselKaart('zon', 'Zonnepanelen', (soort) => [
       jaarKeus,
@@ -322,6 +342,7 @@ export function renderOverzicht(a, staat, opnieuw) {
   }
 
   // Termijnbedragen
+  let termijnKaart = null;
   const termijnMaanden = mnd.filter((p) => a.maanden.get(p.van.slice(0, 7))?.termijn != null);
   if (termijnMaanden.length) {
     let betaald = 0; let kosten = 0; let geschat = false; let volledig = 0;
@@ -336,19 +357,21 @@ export function renderOverzicht(a, staat, opnieuw) {
     }
     if (volledig) {
       const saldo = betaald - kosten;
-      kaarten.push(kaart('Termijnen en werkelijke kosten',
+      // Losse getallen, geen grafiek: altijd over de hele breedte onder de grafieken.
+      termijnKaart = vakKaart(h('h2', { class: 'kaart-titel' }, 'Termijnen en werkelijke kosten'), null,
         h('div', { class: 'kpi-raster' },
           h('div', { class: 'kpi' }, h('span', { class: 'kpi-titel' }, `Betaald (${volledig} mnd)`), h('strong', { class: 'kpi-waarde' }, euro(betaald))),
           h('div', { class: 'kpi' }, h('span', { class: 'kpi-titel' }, 'Berekende kosten'), h('strong', { class: 'kpi-waarde' }, euro(kosten))),
           h('div', { class: 'kpi' }, h('span', { class: 'kpi-titel' }, saldo >= 0 ? 'Verwacht terug' : 'Verwacht bijbetalen'),
             h('strong', { class: `kpi-waarde ${saldo >= 0 ? 'is-goed' : 'is-slecht'}` }, euro(Math.abs(saldo))))),
-        h('p', { class: 'hint' }, `Over de laatste 12 maanden met een ingevuld termijnbedrag. Dit is een schatting${geschat ? ' (niet alle dagen zijn compleet)' : ''}; de jaarafrekening van je leverancier is leidend.`)));
+        h('p', { class: 'hint' }, `Over de laatste 12 maanden met een ingevuld termijnbedrag. Dit is een schatting${geschat ? ' (niet alle dagen zijn compleet)' : ''}; de jaarafrekening van je leverancier is leidend.`));
     }
   }
 
   // Eén kolom: kaarten gewoon onder elkaar. Twee kolommen: in een raster.
   if (tweeKolommen) delen.push(h('div', { class: 'overzicht-raster' }, kaarten));
   else delen.push(...kaarten);
+  if (termijnKaart) delen.push(termijnKaart);
 
   const missen = ontbrekendeDagen(a);
   const meldingen = [];

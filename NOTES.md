@@ -106,6 +106,10 @@
 - Indelingskeuze verplaatst van Instellingen naar het Overzicht, rechts naast de titel (op verzoek van Geert). Alleen
   zichtbaar vanaf 1200 px. Bekeken op 1860 px (donker), 1280 px (licht) en iPhone-breedte.
 
+## Stand (5 november 2026) – versie 1.9.2
+- Uitlijning in twee kolommen verbeterd (Geert: blokken niet even groot/uitgelijnd). Gemeten in de testpagina
+  (1860 px): grafieken in dezelfde rij starten op dezelfde pixel; ook bekeken op 1280 px (licht).
+
 ## Openstaande punten
 - [ ] Geert: de vier indelingen op de laptop bekijken en er één kiezen; de andere eventueel later weer weghalen.
 - [ ] Geert: Overzicht op iPhone/iPad bekijken; past de lijst (4 kolommen) en is de zon-grafiek leesbaar?

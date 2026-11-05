@@ -34,10 +34,10 @@ function niceMax(v) {
  * staafGrafiek({ labels, korteLabels, waarden, vergelijk, fmt, naam, vergelijkNaam, markeer })
  * waarden/vergelijk: getallen of null (geen gegevens).
  */
-export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], lijn = null, breedte = null }) {
+export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], lijn = null, breedte = null, hoogte = null }) {
   // Breedte volgt het scherm, zodat de tekst op elk apparaat even groot blijft.
   const W = grafiekBreedte(breedte);
-  const H = W < 500 ? 200 : 240; const L = 44; const R = lijn ? 44 : 8; const T = 10; const B = 26;
+  const H = hoogte || (W < 500 ? 200 : 240); const L = 44; const R = lijn ? 44 : 8; const T = 10; const B = 26;
   const alle = [...waarden, ...(vergelijk || [])].filter((v) => v != null);
   const maxV = niceMax(Math.max(0, ...alle));
   const minV = Math.min(0, ...alle) < 0 ? -niceMax(-Math.min(0, ...alle)) : 0;
@@ -151,9 +151,9 @@ function kolom(x, y0, y1, bw, cls) {
  * zonGrafiek({ labels (12), korteLabels (12), reeksen: [{ naam, kleur (0–3), waarden: [{ zon, eigen, aandeel } | null] }], fmtKwh, fmtPct })
  * Reeksen van oud naar nieuw.
  */
-export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs, breedte = null }) {
+export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs, breedte = null, hoogte = null }) {
   const W = grafiekBreedte(breedte);
-  const H = W < 500 ? 220 : 260; const L = 44; const R = 8; const T = 24; const B = 26;
+  const H = hoogte || (W < 500 ? 220 : 260); const L = 44; const R = 8; const T = 24; const B = 26;
   const alle = reeksen.flatMap((r) => r.waarden).filter(Boolean).map((w) => w.zon);
   const maxV = niceMax(Math.max(0, ...alle));
   const y = (v) => T + (H - T - B) * (1 - v / maxV);

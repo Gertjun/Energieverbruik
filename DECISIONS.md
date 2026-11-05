@@ -1,5 +1,18 @@
 # Beslissingen
 
+## 2026-11-05 – Kaarten uitlijnen in twee kolommen (versie 1.9.2)
+- **CSS subgrid**: elke kaart heeft vier vaste vakken (kop, extra knoppen, inhoud, toelichting; `vakKaart`) en deelt
+  die rijen met de kaart ernaast. Daardoor gelijke hoogte en uitlijning zonder vaste pixelhoogtes. Een leeg vak is een
+  lege `div.kaart-leeg` (bij één kolom verborgen). Subgrid werkt in Safari 16+ en Chrome 117+.
+- **Rijafstand via marge, niet via row-gap** van het raster: in Chrome viel die afstand anders ook tussen de vakken
+  binnen een kaart.
+- **`.grafiek` met align-content: start**: anders rekte de regel boven de grafiek uit als de kaart ernaast hoger was
+  (bijv. door een legenda) en zakte de grafiek een stukje.
+- **Grafieken even hoog** in twee kolommen (`hoogte`-optie, 260 px; 220 px bij een smalle kolom).
+- **Losse laatste kaart** op volle breedte krijgt ook een grafiek op volle breedte. **Termijnen** (losse getallen)
+  staan buiten het raster, altijd over de hele breedte: naast een grafiek zou er veel lege ruimte in komen.
+- **PATCH**: verbetering van een bestaande weergave.
+
 ## 2026-11-05 – Indelingskeuze op het Overzicht (versie 1.9.1)
 - **Op verzoek van Geert op het Overzicht zelf**, niet in Instellingen: je ziet direct het effect van je keuze. Uit
   Instellingen verwijderd, zodat er één plek is.

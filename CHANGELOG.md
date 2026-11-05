@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.9.2
+
+**Verbeterd**
+- Bij **Naast elkaar** en **Alles tegelijk** zijn kaarten in dezelfde rij nu even hoog, en titels, grafieken en toelichtingen staan naast elkaar op één lijn (ook als één kaart extra knoppen heeft, zoals de jaren bij Zonnepanelen).
+- Alle grafieken in twee kolommen zijn even hoog.
+- Een kaart die alleen in de laatste rij staat (bijv. Zonnepanelen bij Naast elkaar) loopt over de hele breedte, met een grafiek op die breedte in plaats van een uitgerekte.
+- Termijnen en werkelijke kosten staat altijd over de hele breedte onderaan.
+
 ## 1.9.1
 
 **Gewijzigd**

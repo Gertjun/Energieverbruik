@@ -129,7 +129,7 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .meldingen { display: grid; gap: 4px; }
 
 /* ---------- Grafiek ---------- */
-.grafiek { display: grid; gap: 6px; min-width: 0; }
+.grafiek { display: grid; gap: 6px; min-width: 0; align-content: start; }
 .grafiek-svg { width: 100%; height: auto; display: block; touch-action: pan-y; }
 .grafiek-info { margin: 0; min-height: 1.3em; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .g-raster { stroke: var(--border); stroke-width: 1; }
@@ -287,7 +287,15 @@ input[type="month"] {
 @media (min-width: 1200px) {
   body.energie-app:not([data-indeling="standaard"]) #screen-app .app-main { max-width: 1640px; }
   body.energie-app:not([data-indeling="standaard"]) #screen-app .app-header-inner { max-width: 1608px; }
-  .overzicht-raster { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .overzicht-raster { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 16px; row-gap: 0; align-items: stretch; }
+  /* Ruimte tussen de rijen kaarten via een marge, niet via row-gap: die zou ook tussen de vakken binnen een kaart vallen */
+  .overzicht-raster > .kaart-vakken:nth-child(n+3) { margin-top: 16px; }
+  /* Elke kaart beslaat vier rijen van het raster (kop, extra knoppen, inhoud, toelichting) en deelt die rijen
+     met de kaart ernaast (subgrid). Zo liggen titels, grafieken en toelichtingen naast elkaar op één lijn
+     en zijn kaarten in dezelfde rij even hoog. Lege vakken nemen geen ruimte in. */
+  .overzicht-raster > .kaart-vakken { grid-row: span 4; grid-template-rows: subgrid; row-gap: 0; align-content: start; }
+  .overzicht-raster > .kaart-vakken > * + * { margin-top: 12px; }
+  .overzicht-raster > .kaart-vakken > .kaart-leeg { margin-top: 0; }
   /* Een losse laatste kaart (oneven aantal) over de hele breedte */
   .overzicht-raster > :last-child:nth-child(odd) { grid-column: 1 / -1; }
   /* Alleen Dag/Week/Maand/Jaar: niet uitrekken over de hele breedte */
@@ -303,6 +311,10 @@ input[type="month"] {
   .overzicht-raster { display: grid; gap: 16px; }
   .samen { display: grid; gap: 16px; }
 }
+
+/* Leeg vak in een kaart (zie vakKaart in scherm-overzicht.js) */
+.kaart-leeg { display: none; }
+.overzicht-raster .kaart-leeg { display: block; }
 
 /* Keuze indeling bovenin het Overzicht (alleen op een breed scherm) */
 .scherm-kop { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
