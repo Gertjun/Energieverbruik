@@ -1,7 +1,7 @@
 // =============================================================
 //  Energieverbruik — app-specifieke code
 // =============================================================
-// Schermen: Overzicht, Invoer, Historie, Instellingen.
+// Schermen: Overzicht, Invoer, Historie, Analyse, Instellingen.
 // iPhone/iPad: tabbalk onderin. Laptop: inklapbare zijbalk links.
 
 import { h, today } from './core/dom.js';
@@ -11,12 +11,14 @@ import { haalTemperaturen } from './energie/weer.js';
 import { renderOverzicht } from './energie/scherm-overzicht.js';
 import { renderInvoer } from './energie/scherm-invoer.js';
 import { renderHistorie } from './energie/scherm-historie.js';
-import { renderInstellingen } from './energie/scherm-instellingen.js';
+import { renderAnalyse } from './energie/scherm-analyse.js';
+import { renderInstellingen, schilGroep } from './energie/scherm-instellingen.js';
 
 const TABS = [
   { key: 'overzicht', label: 'Overzicht', icoon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
   { key: 'invoer', label: 'Invoer', icoon: 'M12 5v14M5 12h14' },
   { key: 'historie', label: 'Historie', icoon: 'M4 6h16M4 12h16M4 18h16' },
+  { key: 'analyse', label: 'Analyse', icoon: 'M3 17l6-6 4 4 8-8M15 7h6v6' },
   { key: 'instellingen', label: 'Instellingen', icoon: 'M4 7h10M18 7h2M4 17h4M12 17h8M14 4v6M8 14v6' },
 ];
 
@@ -90,6 +92,13 @@ export const app = {
   migrate,
   merge,
 
+  /** Door de schil aangeroepen (bijv. sync-knop zonder koppeling): naar Instellingen → App en sync. */
+  openSettings(section) {
+    staat.tab = 'instellingen';
+    staat.instellingenDeel = section === 'backup' ? 'gegevens' : 'app';
+    opnieuw();
+  },
+
   render(root, ctx) {
     laatsteRoot = root; laatsteCtx = ctx;
     const a = afgeleid(ctx.data);
@@ -97,10 +106,12 @@ export const app = {
     let inhoud;
     if (staat.tab === 'invoer') inhoud = renderInvoer(a, staat, opnieuw, ctx);
     else if (staat.tab === 'historie') inhoud = renderHistorie(a, staat, opnieuw, ctx);
+    else if (staat.tab === 'analyse') inhoud = renderAnalyse(a, staat, opnieuw, ctx);
     else if (staat.tab === 'instellingen') inhoud = renderInstellingen(a, staat, opnieuw, ctx);
     else inhoud = renderOverzicht(a, staat, opnieuw);
     document.querySelectorAll('[data-app-version]').forEach((el) => { el.textContent = `v${APP.version}`; });
     root.replaceChildren(navigatie(), h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), ...inhoud.filter(Boolean));
+    ctx.toonSchilInstellingen?.(schilGroep(staat));
     zorgVoorWeer(ctx, a);
   },
 };

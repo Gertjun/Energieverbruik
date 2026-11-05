@@ -7,9 +7,10 @@ import { monthKey, yearKey, isoWeekKey, eachDay, maandStart, maandEinde } from '
 // Schema 2 (versie 1.1.0): collectie `importen` (importlogboek met herstelgegevens),
 // en op dagen/maanden/weer het veld `imp` (welke import een waarde heeft gezet)
 // en op dagen `gecontroleerd` (afgevinkte controlemelding).
-export const SCHEMA = 2;
+// Schema 3 (versie 1.6.0): collectie `analyses` (bewaarde favorieten van het scherm Analyse).
+export const SCHEMA = 3;
 const TOMBSTONE_DAYS = 180;
-const COLLECTIES = ['dagen', 'weer', 'maanden', 'contracten', 'importen'];
+const COLLECTIES = ['dagen', 'weer', 'maanden', 'contracten', 'importen', 'analyses'];
 
 export const STANDAARD_INSTELLINGEN = { plaats: 'Eindhoven', lat: 51.44, lon: 5.48, updatedAt: 0 };
 
@@ -17,7 +18,7 @@ export function initialData() {
   const now = Date.now();
   return {
     schema: SCHEMA,
-    dagen: [], weer: [], maanden: [], importen: [],
+    dagen: [], weer: [], maanden: [], importen: [], analyses: [],
     contracten: standaardContracten().map((c) => ({ id: crypto.randomUUID(), createdAt: now, updatedAt: now, ...c })),
     instellingen: { ...STANDAARD_INSTELLINGEN },
   };
@@ -26,7 +27,7 @@ export function initialData() {
 export function migrate(data) {
   for (const k of COLLECTIES) data[k] = purgeTombstones(data[k] ?? [], TOMBSTONE_DAYS);
   data.instellingen ??= { ...STANDAARD_INSTELLINGEN };
-  // Schema 1 → 2: alleen een lege collectie erbij; bestaande gegevens blijven gelijk.
+  // Schema 1 → 2 en 2 → 3: alleen een lege collectie erbij; bestaande gegevens blijven gelijk.
   data.schema = Math.max(data.schema ?? SCHEMA, SCHEMA);
   return data;
 }

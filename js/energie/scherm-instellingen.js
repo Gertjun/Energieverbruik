@@ -1,12 +1,17 @@
-// Instellingen van de app: tarieven (contracten), weerlocatie en export. Bestanden inlezen (ook Excel) gebeurt bij Invoer.
-// Synchronisatie, beveiliging en back-up zitten in de instellingen van de template (tandwiel).
+// Instellingen: één scherm met drie onderdelen.
+//   Tarieven  – contracten met tarieven per tijdvak
+//   Gegevens  – export (CSV/JSON), temperatuurlocatie, en de back-up van de schil
+//   App       – synchronisatie, beveiliging, versie/updates en wissen (secties van de schil)
+// De secties van de schil staan in index.html (#settings-panel); dit scherm zet ze aan via ctx.toonSchilInstellingen().
+// Bestanden inlezen (ook Excel) gebeurt bij Invoer.
 
 import { h, saveFile, today } from '../core/dom.js';
 import { newRecord, updateById, removeById } from '../core/records.js';
-import { APP } from '../config.js';
 import { TIJDVAKKEN } from './tarief.js';
 import { fmtDatumKort } from './tijd.js';
-import { kaart, veld, leesGetal, toonGetal, fmtGetal } from './ui.js';
+import { kaart, veld, leesGetal, toonGetal, fmtGetal, segmented } from './ui.js';
+
+const ONDERDELEN = [['tarieven', 'Tarieven'], ['gegevens', 'Gegevens'], ['app', 'App en sync']];
 
 const PRIJS_VELDEN = [
   ...TIJDVAKKEN.map((t) => [`stroomLevering.${t.key}`, `${t.label} (${t.uren})`, 'levering per kWh']),
@@ -32,7 +37,20 @@ function zet(obj, pad, v) {
 }
 
 export function renderInstellingen(a, staat, opnieuw, ctx) {
-  return [contractenKaart(a, staat, opnieuw, ctx), exportKaart(a, ctx), weerKaart(ctx), overKaart()];
+  staat.instellingenDeel ??= 'tarieven';
+  const deel = staat.instellingenDeel;
+  const keuze = h('div', { class: 'weergave-keuze' }, segmented(ONDERDELEN, deel, (k) => {
+    staat.instellingenDeel = k; opnieuw(); window.scrollTo({ top: 0 });
+  }, 'Onderdeel van de instellingen'));
+  if (deel === 'gegevens') return [keuze, exportKaart(a, ctx), weerKaart(ctx)];
+  if (deel === 'app') return [keuze];
+  return [keuze, contractenKaart(a, staat, opnieuw, ctx)];
+}
+
+/** Welke secties van de schil (#settings-panel) bij dit scherm horen; null = geen. */
+export function schilGroep(staat) {
+  if (staat.tab !== 'instellingen') return null;
+  return { gegevens: 'gegevens', app: 'app' }[staat.instellingenDeel] ?? null;
 }
 
 function contractenKaart(a, staat, opnieuw, ctx) {
@@ -145,11 +163,4 @@ function weerKaart(ctx) {
     veld('Plaats', plaats),
     h('div', { class: 'field-row' }, veld('Breedtegraad', lat), veld('Lengtegraad', lon)),
     h('div', { class: 'button-row' }, h('button', { class: 'btn', type: 'submit' }, 'Opslaan'))));
-}
-
-function overKaart() {
-  return kaart('Synchronisatie en beveiliging',
-    h('p', { class: 'hint' }, 'Koppelen met GitHub, Face ID, wachtwoord en back-up staan onder het tandwiel rechtsboven.'),
-    h('div', { class: 'button-row' }, h('button', { class: 'btn', type: 'button', onClick: () => document.getElementById('btn-settings')?.click() }, 'Open instellingen')),
-    h('p', { class: 'hint' }, `${APP.name} · versie ${APP.version}`));
 }

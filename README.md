@@ -22,6 +22,9 @@ Vervangt het Excel-bestand *Gasverbruik.xlsx*. Gebouwd op de eigen PWA-template.
 - **Historie**: tabel per dag, per maand te bladeren, met ontbrekende dagen gemarkeerd.
   Daarnaast *Maanden* (totalen om naast de Excel te leggen) en *Controle* (verdachte waarden,
   ontbrekende dagen, steekproef, vergelijking met de jaarafrekening en alle imports).
+- **Analyse**: zelf grafieken en tabellen samenstellen (verbruik, kosten, weer, per uur of tijdvak), vergelijken met
+  vorig jaar, een andere periode of een tweede grootheid; als favoriet bewaren en als CSV downloaden.
+- **Instellingen** op één plek: Tarieven, Gegevens (export, temperatuurlocatie, back-up) en App en sync.
 - **Importcontrole**: na elke import een rapport; elke import (de laatste 10) is ongedaan te maken.
 - **Temperaturen** worden automatisch opgehaald bij Open-Meteo (gratis, geen account).
 - **Export** als CSV (opent in Excel) of JSON.
@@ -45,9 +48,11 @@ js/energie/importeren.js      Imports in de kluis zetten, importlogboek, ongedaa
 js/energie/controle.js        Controles: verdachte waarden, ontbrekende dagen, steekproef
 js/energie/scherm-controle.js Historie → Maanden en Controle, importrapport
 js/energie/weer.js            Temperaturen bij Open-Meteo
-js/energie/grafiek.js         Staafgrafieken in SVG
-js/energie/scherm-*.js        De vier schermen
-js/core/                      Template-kern (kluis, sync, Face ID) — niet aanpassen
+js/energie/grafiek.js         Staafgrafieken in SVG (optioneel met lijn op een tweede as)
+js/energie/analyse.js         Rekenwerk voor Analyse (indelingen, vergelijkingen)
+js/energie/scherm-*.js        De vijf schermen
+js/core/                      Template-kern (kluis, sync, Face ID) — niet aanpassen, behalve:
+                              shell.js toont de instellingen als paneel (#settings-panel) i.p.v. venster (1.6.0)
 ```
 
 Zie `NOTES.md` (stand van zaken), `DECISIONS.md` (keuzes), `CHANGELOG.md` en `WISHLIST.md`.

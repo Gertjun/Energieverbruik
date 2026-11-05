@@ -89,7 +89,8 @@ export function maakProfielen(dagen) {
   return out;
 }
 
-function urenVanDag(dag, profielen) {
+/** Uurwaarden (afname/terug) van een dag; zonder uurdata geschat met het profiel. */
+export function urenVanDag(dag, profielen) {
   if (dag.uurAfname) return { afname: dag.uurAfname, terug: dag.uurTerug || new Array(24).fill(0), geschat: false };
   const p = profielen[profielSleutel(dag.datum)] || { afname: new Array(24).fill(1 / 24), terug: new Array(24).fill(1 / 24) };
   return {

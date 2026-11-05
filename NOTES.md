@@ -74,7 +74,21 @@
   Vattenfall → HomeWizard → Excel → SolarEdge. Voorrang gecontroleerd: 5-5 t/m 3-11-2026 blijft Vattenfall,
   ook als HomeWizard ná Vattenfall wordt ingelezen.
 
+## Stand (5 november 2026) – versie 1.6.0
+- Scherm Analyse gebouwd (keuzes van Geert: verbruik, kosten, weer, tijdvakken/uur; vergelijken met vorig jaar,
+  andere periode en tweede grootheid; favorieten met sync; CSV-export).
+- Instellingen samengevoegd: tandwiel-venster weg, secties van de schil staan in `#settings-panel` (index.html) en
+  worden door het scherm Instellingen getoond per onderdeel (Tarieven / Gegevens / App en sync).
+- Getest in Chrome met Geerts echte bestanden (Excel, HomeWizard, Vattenfall): maandtotalen in Analyse gelijk aan
+  Historie → Maanden; tijdvakken tellen op tot het totaal; favoriet bewaren/openen; sync-knop zonder koppeling
+  opent App en sync. Laptop- en iPhone-breedte bekeken (tabbalk met 5 knoppen past).
+- Temperatuur ná de Excel kon in de testomgeving niet opgehaald worden (Open-Meteo geblokkeerd); in de app wel.
+
 ## Openstaande punten
+- [ ] Geert: Analyse en Instellingen bekijken op iPhone en iPad. Na het bijwerken eenmaal alle apparaten openen
+      (gegevensversie 3).
+- [ ] Template-afwijking: shell.js en index.html (instellingen als paneel i.p.v. venster). Bij een update vanuit
+      de PWA-template deze wijziging meenemen; eventueel ook in de template zelf doorvoeren.
 - [ ] Geert: Historie op de iPhone bekijken; past de dagtabel met de kolom m³/gd? (°C valt daar al weg.)
 - [ ] Geert: Vattenfall-bestanden inlezen (kwartier/uur). Daarna HomeWizard alleen nog voor de laatste dagen.
 - [ ] HomeWizard-export per dag (in plaats van kwartier) wordt nu als "gat" gelezen en vlak over de uren

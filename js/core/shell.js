@@ -65,6 +65,8 @@ const ctx = {
   },
   toast,
   confirm: (msg) => window.confirm(msg),
+  /** Toont het instellingenpaneel van de schil (alleen de secties van `groep`) of verbergt het (null). */
+  toonSchilInstellingen,
 };
 
 export async function start() {
@@ -375,8 +377,7 @@ async function lockNow() {
   const mySession = session;
   clearTimeout(idleTimer);
   clearTimeout(syncTimer);
-  const dlg = $('#dlg-settings');
-  if (dlg.open) dlg.close();
+  $('#settings-panel').hidden = true;
   hideNotice();
   $('#app-root').replaceChildren();
   showLock();
@@ -473,16 +474,27 @@ function scheduleSync() {
 function wireAppBar() {
   $('#btn-sync').addEventListener('click', () => runSync({ quiet: false }));
   $('#btn-lock').addEventListener('click', lockNow);
-  $('#btn-settings').addEventListener('click', () => openSettings());
+  $('#btn-settings')?.addEventListener('click', () => openSettings());
 }
 
 // ---------- Instellingen ----------
 
+// Geen apart venster meer: de secties staan in #settings-panel onder de app-inhoud.
+// De app bepaalt via app.openSettings(section) en ctx.toonSchilInstellingen() waar en wanneer.
+
 function openSettings(section) {
-  fillSettings();
-  const dlg = $('#dlg-settings');
-  if (!dlg.open) dlg.showModal();
-  if (section) $(`#settings-${section}`)?.scrollIntoView({ block: 'start' });
+  if (app.openSettings) app.openSettings(section);
+  else toonSchilInstellingen('alles');
+  if (section) $(`#settings-${section}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+
+function toonSchilInstellingen(groep) {
+  const panel = $('#settings-panel');
+  const wasVerborgen = panel.hidden;
+  panel.hidden = !groep;
+  if (!groep) return;
+  $$('#settings-panel [data-groep]').forEach((sec) => { sec.hidden = groep !== 'alles' && sec.dataset.groep !== groep; });
+  if (wasVerborgen) fillSettings();
 }
 
 function fillSettings() {
@@ -529,10 +541,6 @@ async function checkForUpdate(button) {
 }
 
 function wireSettings() {
-  const dlg = $('#dlg-settings');
-  $('#btn-close-settings').addEventListener('click', () => dlg.close());
-  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
-
   // GitHub-sync
   const ghForm = $('#form-github');
   ghForm.addEventListener('submit', async (e) => {
@@ -709,7 +717,7 @@ function wireOtherTabs() {
     if (!vault.isUnlocked()) return;
     if (e.key === vault.KEYS.device) {
       settings = (await vault.getDeviceSettings()) ?? settings;
-      if ($('#dlg-settings').open) fillSettings();
+      if (!$('#settings-panel').hidden) fillSettings();
     }
     updateSyncIndicator();
   });

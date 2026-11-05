@@ -23,7 +23,7 @@
   z-index: 20;
   left: 0; right: 0; bottom: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   padding: 4px calc(4px + var(--safe-right)) calc(4px + var(--safe-bottom)) calc(4px + var(--safe-left));
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   -webkit-backdrop-filter: saturate(180%) blur(16px);
@@ -142,6 +142,10 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .grafiek-legenda i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 .leg-staaf { background: var(--accent); }
 .leg-vergelijk { background: color-mix(in srgb, var(--muted) 45%, var(--surface)); }
+.g-lijn { fill: none; stroke: var(--warn); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.g-punt { fill: var(--warn); }
+.g-as-lijn { fill: var(--warn); }
+.leg-lijn { background: var(--warn); height: 3px !important; border-radius: 2px !important; }
 
 /* ---------- Tabellen ---------- */
 .tabel-wrap { overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
@@ -235,3 +239,28 @@ input[type="month"] {
 @media (max-width: 899px) {
   body.energie-app .toast { bottom: calc(var(--nav-h) + 16px + var(--safe-bottom)); }
 }
+
+/* Instellingen van de schil (sync, beveiliging, back-up) als kaarten onder het scherm Instellingen */
+.settings-panel { display: grid; gap: 16px; min-width: 0; }
+.settings-panel .settings-section { padding: 16px; position: relative; overflow: hidden; scroll-margin-top: 76px; }
+.settings-panel .settings-section + .settings-section { border-top: 1px solid var(--border); }
+.settings-panel h3 { font-size: 1.05rem; margin: 0; }
+
+/* ---------- Analyse ---------- */
+.analyse-keuzes { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.analyse-keuzes select, .analyse-keuzes input { width: 100%; }
+.snelknoppen { display: flex; flex-wrap: wrap; gap: 6px; }
+.snelknoppen .btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.favorieten { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.favoriet { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+.favoriet button { background: none; border: 0; color: var(--text); font: inherit; font-size: 0.85rem; padding: 6px 10px; cursor: pointer; min-height: 32px; }
+.favoriet button + button { color: var(--muted); padding-left: 4px; }
+.favoriet.is-actief { border-color: var(--accent); }
+.favoriet.is-actief button:first-child { color: var(--accent); font-weight: 600; }
+.tabel-analyse .jaar-rij th, .tabel-analyse .jaar-rij td {
+  font-size: 0.875rem; font-weight: 700; color: var(--text); background: var(--surface-2); border-bottom: 1px solid var(--border); padding: 8px 6px;
+}
+.tabel-analyse .jaar-rij th { text-align: left; }
+.tabel-analyse td.is-geschat { font-style: italic; }
+.tabel-analyse td.plus { color: var(--danger); }
+.tabel-analyse td.min { color: var(--ok); }

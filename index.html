@@ -110,32 +110,15 @@
         <button id="btn-lock" class="icon-btn" type="button" aria-label="Vergrendelen" title="Vergrendelen">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
         </button>
-        <button id="btn-settings" class="icon-btn" type="button" aria-label="Instellingen" title="Instellingen">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
-        </button>
       </div>
       </div>
     </header>
     <div class="app-main">
       <div id="app-notice" class="notice" role="status" hidden></div>
       <main id="app-root" class="app-root"></main>
-    </div>
-  </div>
-
-  <!-- Verbergt de inhoud in de app-wisselaar en als de app op de achtergrond staat -->
-  <div id="privacy-cover" class="privacy-cover" hidden>
-    <img src="icons/icon-192.png" alt="" width="72" height="72">
-  </div>
-
-  <!-- Instellingen -->
-  <dialog id="dlg-settings" class="sheet" aria-labelledby="settings-title">
-    <div class="sheet-header">
-      <h2 id="settings-title">Instellingen</h2>
-      <button id="btn-close-settings" class="icon-btn" type="button" aria-label="Sluiten">✕</button>
-    </div>
-
-    <div class="sheet-body">
-      <section id="settings-sync" class="settings-section">
+      <!-- Instellingen van de schil (sync, beveiliging, back-up). Het scherm Instellingen van de app toont dit paneel. -->
+      <div id="settings-panel" class="settings-panel" hidden>
+      <section id="settings-sync" class="settings-section card" data-groep="app">
         <h3>Synchronisatie via GitHub</h3>
         <p class="hint">Gebruik een <strong>private</strong> repo en een fine-grained token met alleen “Contents: Read and write” op die repo. Het token blijft versleuteld op dit apparaat.</p>
         <p id="sync-status" class="status-line"></p>
@@ -159,7 +142,7 @@
         </form>
       </section>
 
-      <section id="settings-security" class="settings-section">
+      <section id="settings-security" class="settings-section card" data-groep="app">
         <h3>Beveiliging</h3>
         <div class="setting-line">
           <div>
@@ -179,7 +162,7 @@
         </form>
       </section>
 
-      <section id="settings-backup" class="settings-section">
+      <section id="settings-backup" class="settings-section card" data-groep="gegevens">
         <h3>Back-up</h3>
         <div class="button-row">
           <button id="btn-export" class="btn" type="button">Versleutelde back-up downloaden</button>
@@ -194,7 +177,7 @@
         </form>
       </section>
 
-      <section class="settings-section">
+      <section id="settings-over" class="settings-section card" data-groep="app">
         <h3>Over</h3>
         <div class="setting-line">
           <div>
@@ -205,13 +188,20 @@
         </div>
       </section>
 
-      <section class="settings-section danger-zone">
+      <section id="settings-reset" class="settings-section card danger-zone" data-groep="app">
         <h3>Gevarenzone</h3>
         <p class="hint">Wist de kluis, het token en de passkey-koppeling op dit apparaat. Het bestand op GitHub blijft bestaan.</p>
         <button id="btn-reset" class="btn btn-danger" type="button">Dit apparaat wissen</button>
       </section>
+      </div>
     </div>
-  </dialog>
+  </div>
+
+  <!-- Verbergt de inhoud in de app-wisselaar en als de app op de achtergrond staat -->
+  <div id="privacy-cover" class="privacy-cover" hidden>
+    <img src="icons/icon-192.png" alt="" width="72" height="72">
+  </div>
+
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 </body>

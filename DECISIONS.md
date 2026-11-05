@@ -1,5 +1,30 @@
 # Beslissingen
 
+## 2026-11-05 – Analyse en één plek voor Instellingen (versie 1.6.0)
+- **Instellingen als paneel, niet als venster**: de secties van de schil (sync, beveiliging, back-up, over, wissen)
+  verhuizen in index.html van `<dialog>` naar `#settings-panel` onder de app-inhoud. Ze blijven dus altijd in het
+  document, zodat shell.js ze gewoon kan vinden en vullen. Het scherm Instellingen toont via
+  `ctx.toonSchilInstellingen(groep)` alleen de secties van het gekozen onderdeel (`data-groep`). Alternatief (de
+  elementen telkens in het scherm verplaatsen) viel af: bij opnieuw tekenen zouden ze uit het document verdwijnen.
+- **Drie onderdelen**: Tarieven (vaakst gebruikt), Gegevens (export, temperatuur, back-up: alles rond je data) en
+  App en sync (koppeling en beveiliging). Tandwiel verwijderd; de sync-knop opent bij geen koppeling App en sync
+  (`app.openSettings`).
+- **Wijziging in core** (shell.js, index.html): bewust, omdat het verzoek juist over de template-instellingen gaat.
+  Klein gehouden: `openSettings` delegeert naar de app als die `app.openSettings` heeft, anders toont hij alles.
+- **Analyse-keuzes** volgens Geerts antwoorden: verbruik, kosten, weer en tijdvakken/uur; vergelijken met vorig jaar,
+  een andere periode (zelfde lengte, eigen startdatum) of een tweede grootheid (lijn, as rechts); favorieten; CSV.
+- **Eén vergelijking tegelijk** (vorig jaar óf andere periode óf tweede grootheid): een grafiek met staven, grijze
+  staven én een lijn wordt op de iPhone onleesbaar.
+- **Per uur/tijdvak alleen stroom** (afname, terug, netto): gas en kosten zijn niet per uur opgeslagen. Per uur =
+  gemiddeld per dag; dagen zonder uurdata volgen het uurprofiel en zijn als geschat gemarkeerd. Zonne-opbrengst alleen
+  per maand/jaar (SolarEdge levert maanden).
+- **Vorig jaar bij dag/week = 364 dagen eerder**, zodat weekdagen gelijk blijven; bij maand/jaar dezelfde datum.
+- **Per dag maximaal 400 dagen**: meer staven zijn niet meer te lezen.
+- **Favorieten bewaren relatieve perioden** ("laatste 12 maanden"), zodat ze meegaan in de tijd; eigen datums worden
+  vast bewaard.
+- **Favorieten in de kluis** (collectie `analyses`, schema 3), zodat ze synchroniseren. Schema-ophoging zoals bij
+  1.1.0 als MINOR: de app werkt zich bij openen zelf bij, Geert hoeft niets te koppelen.
+
 ## 2026-11-05 – Eén plek voor alle bestanden (versie 1.5.0)
 - **Op verzoek van Geert**: één knop (Invoer → Bestanden inlezen) voor alle bronnen; de app herkent het bestand aan de
   inhoud (kopregel bij CSV, zip-kop of .xlsx bij Excel), niet aan de bestandsnaam.

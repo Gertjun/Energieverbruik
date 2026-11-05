@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.6.0
+
+**Toegevoegd**
+- Nieuw scherm **Analyse**: stel zelf een grafiek en tabel samen.
+  - Kies wat je wilt zien: stroom (afname, teruglevering, netto), gas, kosten (totaal, stroom, gas, vast), temperatuur, graaddagen, gas per graaddag of zonne-opbrengst.
+  - Indeling per dag, week, maand of jaar, per uur van de dag (gemiddeld) of per tijdvak (zomer/winter, normaal/dal, nacht).
+  - Periode met snelknoppen (laatste 12 maanden, dit jaar, vorig jaar, alles) of eigen datums.
+  - Vergelijken met dezelfde periode vorig jaar, een andere periode, of een tweede grootheid als lijn met een eigen as (bijv. gas en temperatuur).
+  - Tabel met totaalregel, verschil en percentage; te downloaden als CSV voor Excel.
+  - Bewaar een analyse als favoriet; favorieten worden gesynchroniseerd tussen je apparaten.
+
+**Gewijzigd**
+- **Eén plek voor Instellingen**: het tandwiel rechtsboven is weg. Alles staat onder Instellingen, verdeeld over Tarieven, Gegevens (export, temperatuurlocatie, back-up) en App en sync (GitHub-koppeling, Face ID, wachtwoord, versie, apparaat wissen). Op laptop, iPad en iPhone op dezelfde plek.
+- Tikken op het wolkje zonder koppeling opent nu Instellingen → App en sync.
+
+**Let op**
+- Nieuwe gegevensversie (voor de favorieten). Een apparaat met een oudere versie vraagt na het synchroniseren om bij te werken; open de app daar even zodat hij zich bijwerkt.
+
 ## 1.5.0
 
 **Gewijzigd**

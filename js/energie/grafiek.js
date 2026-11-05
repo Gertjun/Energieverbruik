@@ -1,5 +1,6 @@
 // Eenvoudige staafgrafiek in SVG, zonder externe library.
-// Optioneel met een vergelijkingsreeks (vorig jaar) als grijze staaf ernaast.
+// Optioneel met een vergelijkingsreeks (vorig jaar) als grijze staaf ernaast,
+// of met een tweede grootheid als lijn met een eigen as rechts (`lijn`).
 // Aanraken of aanwijzen van een staaf toont de waarde boven de grafiek.
 
 import { h } from '../core/dom.js';
@@ -23,10 +24,10 @@ function niceMax(v) {
  * staafGrafiek({ labels, korteLabels, waarden, vergelijk, fmt, naam, vergelijkNaam, markeer })
  * waarden/vergelijk: getallen of null (geen gegevens).
  */
-export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [] }) {
+export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], lijn = null }) {
   // Breedte volgt het scherm, zodat de tekst op elk apparaat even groot blijft.
   const W = Math.round(Math.min(960, Math.max(300, (window.innerWidth || 640) - (window.innerWidth >= 900 ? 300 : 66))));
-  const H = W < 500 ? 200 : 240; const L = 44; const R = 8; const T = 10; const B = 26;
+  const H = W < 500 ? 200 : 240; const L = 44; const R = lijn ? 44 : 8; const T = 10; const B = 26;
   const alle = [...waarden, ...(vergelijk || [])].filter((v) => v != null);
   const maxV = niceMax(Math.max(0, ...alle));
   const minV = Math.min(0, ...alle) < 0 ? -niceMax(-Math.min(0, ...alle)) : 0;
@@ -63,10 +64,38 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
     return s('path', { d, class: cls });
   };
 
-  const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, ' ');
+  // Tweede grootheid als lijn met eigen schaal rechts.
+  if (lijn) {
+    const lw = lijn.waarden.filter((v) => v != null);
+    // Eigen nette schaal: 4 gelijke stappen die het bereik van de lijn omvatten (0 hoeft er niet in).
+    const lo = Math.min(0, ...lw); const hi = Math.max(...lw, lo + 1e-9);
+    const lStap = niceMax((hi - lo) / 4 || 1);
+    const lMin = Math.floor(lo / lStap) * lStap;
+    const lMax = Math.max(lMin + 4 * lStap, Math.ceil(hi / lStap) * lStap);
+    const y2 = (v) => T + (H - T - B) * (1 - (v - lMin) / (lMax - lMin));
+    for (let v = lMin; v <= lMax + lStap / 2; v += lStap) {
+      svg.append(s('text', { x: W - R + 6, y: y2(v) + 4, class: 'g-as g-as-lijn', 'text-anchor': 'start' }, lijn.fmt(v, true)));
+    }
+    let pad = ''; let open = false;
+    lijn.waarden.forEach((v, i) => {
+      if (v == null) { open = false; return; }
+      const x = L + slot * i + slot / 2;
+      pad += `${open ? 'L' : 'M'}${x.toFixed(1)},${y2(v).toFixed(1)} `;
+      open = true;
+    });
+    if (pad) svg.append(s('path', { d: pad, class: 'g-lijn' }));
+    if (n <= 60) {
+      lijn.waarden.forEach((v, i) => {
+        if (v != null) svg.append(s('circle', { cx: L + slot * i + slot / 2, cy: y2(v), r: 3, class: 'g-punt' }));
+      });
+    }
+  }
+
+  const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, '\u00a0');
   const toon = (i) => {
     const delen = [`${labels[i]}: ${waarden[i] == null ? 'geen gegevens' : fmt(waarden[i])}`];
     if (metVergelijk) delen.push(`${vergelijkNaam.toLowerCase()}: ${vergelijk[i] == null ? '–' : fmt(vergelijk[i])}`);
+    if (lijn) delen.push(`${lijn.naam.toLowerCase()}: ${lijn.waarden[i] == null ? '–' : lijn.fmt(lijn.waarden[i])}`);
     info.textContent = delen.join(' · ');
     svg.querySelectorAll('.g-hit').forEach((el, j) => el.classList.toggle('is-actief', j === i));
   };
@@ -88,10 +117,11 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
     svg.append(hit);
   }
 
-  const legenda = metVergelijk
+  const legenda = metVergelijk || lijn
     ? h('div', { class: 'grafiek-legenda' },
       h('span', {}, h('i', { class: 'leg-staaf' }), naam),
-      h('span', {}, h('i', { class: 'leg-vergelijk' }), vergelijkNaam))
+      metVergelijk ? h('span', {}, h('i', { class: 'leg-vergelijk' }), vergelijkNaam) : null,
+      lijn ? h('span', {}, h('i', { class: 'leg-lijn' }), `${lijn.naam} (as rechts)`) : null)
     : null;
   return h('div', { class: 'grafiek' }, info, svg, legenda);
 }
