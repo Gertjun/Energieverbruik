@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.4
+
+**Verbeterd**
+- **Duidelijkere kleuren per jaar** in alle grafieken. Vorig jaar is nu oranje in plaats van lichtgrijs, naast dit jaar in de accentkleur (groenblauw). Bij Zonnepanelen hebben de jaren vier goed te onderscheiden kleuren: nieuwste groenblauw, dan oranje, indigo en magenta. Het lichte deel van de zon-kolommen is iets voller, zodat ook daar de kleur van het jaar herkenbaar blijft.
+
 ## 1.9.3
 
 **Gecorrigeerd**

@@ -1,5 +1,16 @@
 # Beslissingen
 
+## 2026-11-05 – Kleuren per jaar (versie 1.9.4)
+- **Vaste jaarpalet in CSS** (`--jaar-0` t/m `--jaar-3` in app.css): accent, oranje, indigo, magenta, met een eigen
+  donkere variant. Alle vier hebben minstens 3:1 contrast met de achtergrond (licht en donker), en de tinten liggen ver
+  uit elkaar, ook voor wie rood/groen slecht onderscheidt.
+- **Vorig jaar = `--jaar-1` (oranje)** in de gewone staafgrafieken, dezelfde kleur als het op één na nieuwste jaar bij
+  Zonnepanelen. Zo betekent een kleur overal hetzelfde: "het jaar ervoor". Grijs (vroeger) leek op "geen gegevens".
+- **Kleur hangt nog af van de plek (nieuwste = accent)**, niet van het kalenderjaar zelf. Zo is "dit jaar" altijd de
+  accentkleur. Nadeel: 2025 is oranje als 2026 ook gekozen is, anders accent.
+- **Oranje lijn (tweede grootheid in Analyse) en oranje vorig-jaarstaaf** komen nooit samen voor (één vergelijking
+  tegelijk), dus geen verwarring.
+
 ## 2026-11-05 – Vaste terugleverkosten per maand verdelen (versie 1.9.3)
 - **Zoals Vattenfall**: jaarbedrag ÷ 12 ÷ dagen in de maand, in plaats van ÷ 365. Zo komen de dagkosten overeen met
   wat Geert in Mijn Vattenfall ziet; het jaartotaal blijft € 462 (ook in schrikkeljaren).

@@ -137,22 +137,28 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .g-as { fill: var(--muted); font-size: 11px; font-family: var(--font); }
 .g-staaf { fill: var(--accent); }
 .g-geschat { fill: color-mix(in srgb, var(--accent) 50%, var(--surface)); }
-.g-vergelijk { fill: color-mix(in srgb, var(--muted) 45%, var(--surface)); }
+/* Kleuren per jaar: nieuwste = accent, dan oranje, indigo, magenta. Duidelijk verschillende tinten,
+   allemaal minstens 3:1 contrast met de achtergrond (licht en donker). */
+:root { --jaar-0: var(--accent); --jaar-1: #d97706; --jaar-2: #5b5bd6; --jaar-3: #c2378f; }
+@media (prefers-color-scheme: dark) {
+  :root { --jaar-1: #f5a524; --jaar-2: #8b8cf6; --jaar-3: #e879c0; }
+}
+.g-vergelijk { fill: var(--jaar-1); }
 .g-hit { fill: transparent; cursor: pointer; }
 .g-hit.is-actief { fill: color-mix(in srgb, var(--text) 6%, transparent); }
 .grafiek-legenda { display: flex; gap: 16px; font-size: 0.8rem; color: var(--muted); }
 .grafiek-legenda span { display: inline-flex; align-items: center; gap: 6px; }
 .grafiek-legenda i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 .leg-staaf { background: var(--accent); }
-.leg-vergelijk { background: color-mix(in srgb, var(--muted) 45%, var(--surface)); }
+.leg-vergelijk { background: var(--jaar-1); }
 .g-lijn { fill: none; stroke: var(--warn); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .g-punt { fill: var(--warn); }
 .g-as-lijn { fill: var(--warn); }
-.g-zon-0 { --c: var(--accent); }
-.g-zon-1 { --c: var(--muted); }
-.g-zon-2 { --c: var(--warn); }
-.g-zon-3 { --c: #a06cd5; }
-.g-zon-buiten { fill: color-mix(in srgb, var(--c) 35%, var(--surface)); }
+.g-zon-0 { --c: var(--jaar-0); }
+.g-zon-1 { --c: var(--jaar-1); }
+.g-zon-2 { --c: var(--jaar-2); }
+.g-zon-3 { --c: var(--jaar-3); }
+.g-zon-buiten { fill: color-mix(in srgb, var(--c) 45%, var(--surface)); }
 .g-zon-binnen { fill: var(--c); }
 .g-pct { fill: var(--muted); font-size: 10px; font-family: var(--font); font-variant-numeric: tabular-nums; }
 .jaar-keus { display: flex; flex-wrap: wrap; gap: 6px; }

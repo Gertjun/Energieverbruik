@@ -1,5 +1,5 @@
 // Eenvoudige staafgrafiek in SVG, zonder externe library.
-// Optioneel met een vergelijkingsreeks (vorig jaar) als grijze staaf ernaast,
+// Optioneel met een vergelijkingsreeks (vorig jaar) als gekleurde staaf ernaast (kleur jaar-1),
 // of met een tweede grootheid als lijn met een eigen as rechts (`lijn`).
 // Aanraken of aanwijzen van een staaf toont de waarde boven de grafiek.
 

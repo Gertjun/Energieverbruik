@@ -122,7 +122,12 @@
   dal dag (12–16 u). Zelfs alles verrekend tegen het duurste tarief geeft € 11,29, dus Vattenfall rekent een deel
   van de afname tegen een lager tarief. Nachttarief 22–07 past op deze dag maar niet op de weekenddagen.
 
+## Stand (5 november 2026) – versie 1.9.4
+- Duidelijkere jaarkleuren (Geert: kleuren van de jaren beter uit elkaar). Vorig jaar oranje i.p.v. lichtgrijs; zon-jaren
+  groenblauw / oranje / indigo / magenta. Bekeken met een testpagina op laptop- (licht) en iPhone-breedte (donker).
+
 ## Openstaande punten
+- [ ] Geert: nieuwe jaarkleuren bekijken op iPhone en laptop; bevallen ze?
 - [ ] Geert stuurt Vattenfall-dagkosten van een paar doordeweekse dagen (zonnig en somber, bijv. 26, 27, 29, 30 okt,
       2 en 3 nov) om het verschil op 28-10 (€ 0,46 stroom) te verklaren.
 - [ ] Geert: de vier indelingen op de laptop bekijken en er één kiezen; de andere eventueel later weer weghalen.
