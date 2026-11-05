@@ -4,13 +4,13 @@
 
 import { h } from '../core/dom.js';
 import { heatmap, staafGrafiek, puntenGrafiek, lijnenGrafiek } from './grafiek.js';
-import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks, stooklijn, weerGecorrigeerd, vorigJaar, cumulatief, dagVanJaar, jaarPrognose } from './analyse.js';
-import { fmtDatumKort, addDays, fmtMaand, fmtMaandKort } from './tijd.js';
+import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks, stooklijn, weerGecorrigeerd, vorigJaar, cumulatief, dagVanJaar, jaarPrognose, MATEN, reeks, past } from './analyse.js';
+import { fmtDatumKort, addDays, fmtMaand, fmtMaandKort, daysBetween } from './tijd.js';
 import { totaal } from './model.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 
 /** Standaardwaarden van de keuzes van alle soorten (worden onderdeel van een favoriet). */
-export const SOORT_STANDAARD = { hmMaat: 'afname', wgRef: 'vorigjaar', wgVan: '', wgTot: '', cuMaat: 'gas', cuJaren: '2' };
+export const SOORT_STANDAARD = { hmMaat: 'afname', wgRef: 'vorigjaar', wgVan: '', wgTot: '', cuMaat: 'gas', cuJaren: '2', topMaat: 'afname', topIndeling: 'dag' };
 
 const periodeTekst = (van, tot) => `${fmtDatumKort(van)} ${van.slice(0, 4)} – ${fmtDatumKort(tot)} ${tot.slice(0, 4)}`;
 const keuze = (waarde, opties, onChange) => h('select', { onChange: (e) => onChange(e.target.value) },
@@ -359,6 +359,51 @@ const prognoseSoort = {
   },
 };
 
+// ---------- Top-10 ----------
+
+const TOP_INDELING = [['dag', 'Dagen'], ['week', 'Weken'], ['maand', 'Maanden']];
+const volledig = (vk, indeling) => {
+  const n = daysBetween(vk.van, vk.tot) + 1;
+  if (indeling === 'dag') return true;
+  if (indeling === 'week') return n === 7;
+  return n === new Date(Date.UTC(Number(vk.van.slice(0, 4)), Number(vk.van.slice(5, 7)), 0)).getUTCDate();
+};
+
+const topSoort = {
+  key: 'top',
+  naam: 'Top-10: hoogste en laagste',
+  velden: (c, wijzig) => [
+    veld('Wat', h('select', { onChange: (e) => wijzig({ topMaat: e.target.value }) },
+      Object.entries(MATEN).filter(([, m]) => m.per.includes('dag') || m.per.includes('maand')).map(([k, m]) => h('option', { value: k, selected: k === c.topMaat }, m.naam)))),
+    veld('Per', keuze(c.topIndeling, TOP_INDELING.filter(([k]) => past(c.topMaat, k)), (v) => wijzig({ topIndeling: v }))),
+  ],
+  resultaat(a, c, van, tot) {
+    const m = MATEN[c.topMaat] || MATEN.afname;
+    const indeling = past(c.topMaat, c.topIndeling) ? c.topIndeling : 'maand';
+    const r = reeks(a, c.topMaat, indeling, van, tot);
+    const kandidaten = r.vakjes.filter((vk) => vk.v != null && volledig(vk, indeling));
+    const fmt = (v) => (m.eenheid === '€' ? euro(v) : `${fmtGetal(v, m.d)} ${m.eenheid}`);
+    const naamMv = TOP_INDELING.find(([k]) => k === indeling)[1].toLowerCase();
+    if (kandidaten.length < 2) return kaart(m.naam, h('p', { class: 'muted' }, `Te weinig volledige ${naamMv} met gegevens in deze periode.`));
+    const gesorteerd = [...kandidaten].sort((x, y) => y.v - x.v);
+    const aantal = Math.min(10, Math.floor(kandidaten.length / 2) || 1);
+    const maxAbs = Math.max(...kandidaten.map((vk) => Math.abs(vk.v))) || 1;
+    const label = (vk) => (indeling === 'dag' ? `${fmtDatumKort(vk.van)} ${vk.van.slice(0, 4)}` : indeling === 'week' ? `Week ${vk.kort} ${addDays(vk.van, 3).slice(0, 4)}` : vk.label);
+    const lijst = (titel, items) => h('div', { class: 'top-lijst' }, h('h3', { class: 'top-titel' }, titel),
+      h('ol', {}, items.map((vk) => h('li', {},
+        h('span', { class: 'top-naam', title: vk.label }, label(vk)),
+        h('span', { class: 'top-balk' }, h('i', { style: `width:${Math.max(2, (Math.abs(vk.v) / maxAbs) * 100).toFixed(1)}%` })),
+        h('span', { class: 'top-waarde num' }, fmt(vk.v))))));
+    const mid = kandidaten.map((vk) => vk.v).sort((x, y) => x - y)[Math.floor(kandidaten.length / 2)];
+    return kaart(`${m.naam}: top-${aantal}`,
+      h('p', { class: 'hint' }, `${periodeTekst(van, tot)} · ${kandidaten.length} volledige ${naamMv} · middelste waarde ${fmt(mid)}`),
+      h('div', { class: 'top-raster' },
+        lijst(`Hoogste ${aantal}`, gesorteerd.slice(0, aantal)),
+        lijst(`Laagste ${aantal}`, gesorteerd.slice(-aantal).reverse())),
+      h('p', { class: 'hint' }, `Alleen ${naamMv} die helemaal in de gekozen periode vallen en gegevens hebben tellen mee. Een opvallende dag kun je in Historie aantikken voor details of een opmerking.`));
+  },
+};
+
 /** Alle soorten, in de volgorde van de keuzelijst. "Zelf samenstellen" wordt in scherm-analyse.js getekend. */
 export const SOORTEN = [
   { key: 'samenstellen', naam: 'Zelf samenstellen', uitleg: null },
@@ -369,4 +414,5 @@ export const SOORTEN = [
   weerSoort,
   cumulatiefSoort,
   prognoseSoort,
+  topSoort,
 ];

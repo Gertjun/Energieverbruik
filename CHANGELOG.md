@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.20.0
+
+**Toegevoegd**
+- **Top-10: hoogste en laagste** als soort analyse. Kies wat (bijv. stroom, gas, kosten, sluipverbruik of piekvermogen) en of je dagen, weken of maanden wilt zien; je krijgt de 10 hoogste en 10 laagste in de gekozen periode, met een balkje voor de grootte. Handig om uitschieters te vinden die je in Historie kunt nakijken.
+
 ## 1.19.0
 
 **Toegevoegd**

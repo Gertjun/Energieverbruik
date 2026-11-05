@@ -351,3 +351,14 @@ input[type="month"] {
 .g-kruis { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
 .g-hit-vlak { fill: transparent; cursor: crosshair; }
 @media (min-width: 900px) { .prognose-kpi { grid-template-columns: repeat(3, 1fr); } }
+/* Top-10 (Analyse) */
+.top-raster { display: grid; gap: 16px; }
+@media (min-width: 900px) { .top-raster { grid-template-columns: 1fr 1fr; gap: 24px; } }
+.top-titel { font-size: 0.9rem; margin: 0 0 6px; }
+.top-lijst ol { list-style: none; margin: 0; padding: 0; counter-reset: top; }
+.top-lijst li { counter-increment: top; display: grid; grid-template-columns: 1.6em minmax(0, 9em) 1fr auto; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.top-lijst li::before { content: counter(top); color: var(--muted); font-size: 0.78rem; text-align: right; }
+.top-naam { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top-balk { height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.top-balk i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.top-waarde { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
