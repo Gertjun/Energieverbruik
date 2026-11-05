@@ -8,9 +8,10 @@ import { monthKey, yearKey, isoWeekKey, eachDay, maandStart, maandEinde } from '
 // en op dagen/maanden/weer het veld `imp` (welke import een waarde heeft gezet)
 // en op dagen `gecontroleerd` (afgevinkte controlemelding).
 // Schema 3 (versie 1.6.0): collectie `analyses` (bewaarde favorieten van het scherm Analyse).
-export const SCHEMA = 3;
+// Schema 4 (versie 1.22.0): collectie `uitgesloten` (perioden die Analyse buiten beschouwing laat).
+export const SCHEMA = 4;
 const TOMBSTONE_DAYS = 180;
-const COLLECTIES = ['dagen', 'weer', 'maanden', 'contracten', 'importen', 'analyses'];
+const COLLECTIES = ['dagen', 'weer', 'maanden', 'contracten', 'importen', 'analyses', 'uitgesloten'];
 
 export const STANDAARD_INSTELLINGEN = { plaats: 'Eindhoven', lat: 51.44, lon: 5.48, updatedAt: 0 };
 
@@ -18,7 +19,7 @@ export function initialData() {
   const now = Date.now();
   return {
     schema: SCHEMA,
-    dagen: [], weer: [], maanden: [], importen: [], analyses: [],
+    dagen: [], weer: [], maanden: [], importen: [], analyses: [], uitgesloten: [],
     contracten: standaardContracten().map((c) => ({ id: crypto.randomUUID(), createdAt: now, updatedAt: now, ...c })),
     instellingen: { ...STANDAARD_INSTELLINGEN },
   };
@@ -27,7 +28,7 @@ export function initialData() {
 export function migrate(data) {
   for (const k of COLLECTIES) data[k] = purgeTombstones(data[k] ?? [], TOMBSTONE_DAYS);
   data.instellingen ??= { ...STANDAARD_INSTELLINGEN };
-  // Schema 1 → 2 en 2 → 3: alleen een lege collectie erbij; bestaande gegevens blijven gelijk.
+  // Schema 1 → 2, 2 → 3 en 3 → 4: alleen een lege collectie erbij; bestaande gegevens blijven gelijk.
   data.schema = Math.max(data.schema ?? SCHEMA, SCHEMA);
   return data;
 }
@@ -66,6 +67,7 @@ export function afgeleid(data) {
   if (cache.data === data) return cache;
   const dagen = alive(data.dagen).sort((a, b) => (a.datum < b.datum ? -1 : 1));
   const contracten = alive(data.contracten);
+  const uitgesloten = alive(data.uitgesloten || []).filter((u) => u.van && u.tot).sort((x, y) => (x.van < y.van ? -1 : 1));
   const weer = new Map(alive(data.weer).map((w) => [w.datum, w]));
   const maanden = new Map(alive(data.maanden).map((m) => [m.maand, m]));
   const profielen = maakProfielen(dagen);
@@ -78,7 +80,7 @@ export function afgeleid(data) {
     perDag.set(d.datum, { dag: d, weer: w, graaddag: gd, gasPerGd, kosten: kostenDag(d, contractOp(contracten, d.datum), profielen) });
   }
   cache = {
-    data, dagen, contracten, weer, maanden, profielen, perDag,
+    data, dagen, contracten, weer, maanden, profielen, perDag, uitgesloten,
     eerste: dagen[0]?.datum || null, laatste: dagen[dagen.length - 1]?.datum || null,
   };
   return cache;

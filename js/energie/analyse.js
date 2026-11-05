@@ -644,3 +644,31 @@ export function jaarPrognose(a) {
   }
   return { jaar, maanden, totaal: totaalT, fit, hoe, termijnen: laatsteTermijn != null ? termijnen : null, termijnenIngevuld };
 }
+
+// ---------- Uitgesloten perioden ----------
+
+const zonderCache = new WeakMap();
+
+/** Is een datum uitgesloten (valt in een van de uitgesloten perioden)? */
+export const isUitgesloten = (a, datum) => a.uitgesloten.some((u) => datum >= u.van && datum <= u.tot);
+
+/**
+ * Dezelfde afgeleide gegevens, maar zonder de dagen in uitgesloten perioden (alsof daar niets gemeten is).
+ * Een maand met zonne-opbrengst valt weg als minstens de helft van de dagen is uitgesloten.
+ */
+export function zonderUitgesloten(a) {
+  if (!a.uitgesloten?.length) return a;
+  if (zonderCache.has(a)) return zonderCache.get(a);
+  const perDag = new Map([...a.perDag].filter(([d]) => !isUitgesloten(a, d)));
+  const weer = new Map([...a.weer].filter(([d]) => !isUitgesloten(a, d)));
+  const maanden = new Map([...a.maanden].map(([mk, m]) => {
+    let uit = 0; const n = dagenVanMaand(`${mk}-01`);
+    for (let i = 1; i <= n; i++) if (isUitgesloten(a, `${mk}-${String(i).padStart(2, '0')}`)) uit++;
+    // Alleen de zonne-opbrengst vervalt; termijnbedragen blijven staan.
+    return [mk, uit * 2 >= n && m.zon != null ? { ...m, zon: null } : m];
+  }));
+  let weg = 0; for (const d of a.perDag.keys()) if (!perDag.has(d)) weg++;
+  const uit = { ...a, perDag, weer, maanden, weggelaten: weg };
+  zonderCache.set(a, uit);
+  return uit;
+}

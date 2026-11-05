@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.22.0
+
+**Toegevoegd**
+- **Uitgesloten perioden** in Analyse (onderaan het blok Samenstellen). Leg perioden vast die niet representatief zijn, zoals augustus–september 2025 toen het huis leeg stond, met een reden erbij. Analyse laat die dagen dan weg, in alle soorten analyse en ook als ze in "vorig jaar" vallen. Met één vinkje zet je het weglaten aan of uit. Onder het resultaat staat hoeveel dagen zijn weggelaten. Historie en Overzicht laten gewoon alles zien.
+- De uitgesloten perioden worden gesynchroniseerd tussen je apparaten.
+
+**Let op**
+- Nieuwe gegevensversie (voor de uitgesloten perioden). Een apparaat met een oudere versie vraagt na het synchroniseren om bij te werken; open de app daar even zodat hij zich bijwerkt.
+
 ## 1.21.0
 
 **Toegevoegd**

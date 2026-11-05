@@ -6,7 +6,7 @@
 import { h, saveFile, today } from '../core/dom.js';
 import { alive, newRecord, removeById } from '../core/records.js';
 import { staafGrafiek } from './grafiek.js';
-import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, kanPerDag, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief, AANSLUITING, GRENS_FASE } from './analyse.js';
+import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, kanPerDag, zonderUitgesloten, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief, AANSLUITING, GRENS_FASE } from './analyse.js';
 import { daysBetween, fmtDatumKort } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 import { SOORTEN, SOORT_STANDAARD } from './analyse-soorten.js';
@@ -15,7 +15,7 @@ const VERGELIJK = [
   ['geen', 'Niets'], ['vorigjaar', 'Dezelfde periode vorig jaar'], ['periode', 'Een andere periode'], ['maat', 'Een tweede grootheid'],
 ];
 const STANDAARD = {
-  soort: 'samenstellen', weergave: 'totaal', maat: 'afname', indeling: 'maand', preset: 'laatste12', van: '', tot: '', vergelijk: 'vorigjaar', van2: '', maat2: 'temp',
+  soort: 'samenstellen', weglaten: true, weergave: 'totaal', maat: 'afname', indeling: 'maand', preset: 'laatste12', van: '', tot: '', vergelijk: 'vorigjaar', van2: '', maat2: 'temp',
   ...SOORT_STANDAARD,
 };
 const CONFIG_VELDEN = Object.keys(STANDAARD);
@@ -57,6 +57,9 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
   const c = staat.analyse;
   corrigeer(c);
   const wijzig = (velden) => { Object.assign(c, velden); corrigeer(c); opnieuw(); };
+  const uitsluitKeus = uitsluitenDeel(a, c, wijzig, ctx);
+  const volledigA = a;
+  a = c.weglaten ? zonderUitgesloten(a) : a;
 
   // Periode
   const p = c.preset ? snelPeriode(c.preset, a) : { van: c.van || a.eerste, tot: c.tot || a.laatste };
@@ -76,8 +79,8 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
 
   if (soort.key !== 'samenstellen') {
     const keuzesAnders = kaart('Samenstellen', favorietenRegel(ctx, c, opnieuw),
-      h('div', { class: 'analyse-keuzes' }, soortKeus, ...(soort.velden?.(c, wijzig, a) || [])), periodeKeus);
-    return [keuzesAnders, ...[].concat(soort.resultaat(a, c, van, tot))];
+      h('div', { class: 'analyse-keuzes' }, soortKeus, ...(soort.velden?.(c, wijzig, a) || [])), periodeKeus, uitsluitKeus);
+    return [keuzesAnders, ...[].concat(soort.resultaat(a, c, van, tot)), uitsluitMelding(a, volledigA)];
   }
 
   const keuzes = kaart('Samenstellen',
@@ -100,14 +103,55 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
           onChange: (e) => { if (e.target.value) wijzig({ van2: e.target.value }); },
         }), 'even lang als de gekozen periode')
         : null),
-    periodeKeus);
+    periodeKeus, uitsluitKeus);
 
   if (c.indeling === 'dag' && daysBetween(van, tot) + 1 > MAX_DAGEN_PER_DAG) {
     return [keuzes, kaart(null, h('p', { class: 'muted' },
       `Per dag kan voor maximaal ${MAX_DAGEN_PER_DAG} dagen. Kies een kortere periode of een indeling per week of maand.`))];
   }
-  return [keuzes, resultaat(a, c, van, tot)];
+  return [keuzes, resultaat(a, c, van, tot), uitsluitMelding(a, volledigA)];
 }
+
+/** Korte regel onder het resultaat als er dagen zijn weggelaten. */
+function uitsluitMelding(a, volledigA) {
+  if (!a.weggelaten) return null;
+  return h('p', { class: 'hint analyse-uitgesloten-melding' }, `${a.weggelaten} ${a.weggelaten === 1 ? 'dag' : 'dagen'} in uitgesloten perioden ${a.weggelaten === 1 ? 'is' : 'zijn'} weggelaten (${volledigA.uitgesloten.map((u) => periodeTekst(u.van, u.tot)).join('; ')}).`);
+}
+
+/** Beheer van uitgesloten perioden (gesynchroniseerd) en de keuze om ze weg te laten. */
+function uitsluitenDeel(a, c, wijzig, ctx) {
+  const lijst = a.uitgesloten;
+  const van = h('input', { type: 'date', min: a.eerste || undefined });
+  const tot = h('input', { type: 'date', min: a.eerste || undefined });
+  const reden = h('input', { type: 'text', maxlength: 80, placeholder: 'bijv. huis leeg, verbouwing', autocomplete: 'off' });
+  return h('details', { class: 'uitleg uitsluiten', open: staatOpen.uitsluiten || null, onToggle: (e) => { staatOpen.uitsluiten = e.target.open; } },
+    h('summary', {}, `Uitgesloten perioden${lijst.length ? ` (${lijst.length})` : ''}`),
+    h('p', { class: 'hint' }, 'Perioden die niet representatief zijn (huis leeg, verbouwing, panelen uit) kun je hier uitsluiten. Analyse laat die dagen dan weg, alsof er niets gemeten is, ook in vergelijkingen met vorig jaar. Historie en Overzicht tonen ze gewoon. Wordt gesynchroniseerd.'),
+    lijst.length ? h('label', { class: 'check-regel' },
+      h('input', { type: 'checkbox', checked: !!c.weglaten, onChange: (e) => wijzig({ weglaten: e.target.checked }) }),
+      h('span', {}, 'Uitgesloten perioden weglaten in de analyse')) : null,
+    lijst.length ? h('ul', { class: 'uitsluit-lijst' }, lijst.map((u) => h('li', {},
+      h('span', {}, h('strong', {}, periodeTekst(u.van, u.tot)), u.reden ? ` · ${u.reden}` : ''),
+      h('button', {
+        type: 'button', class: 'btn btn-small', 'aria-label': `Uitsluiting ${periodeTekst(u.van, u.tot)} verwijderen`,
+        onClick: async () => {
+          if (!ctx.confirm(`Uitsluiting ${periodeTekst(u.van, u.tot)} verwijderen?`)) return;
+          await ctx.update((d) => { removeById(d.uitgesloten, u.id); });
+        },
+      }, 'Verwijderen')))) : null,
+    h('div', { class: 'uitsluit-nieuw' },
+      veld('Van', van), veld('Tot en met', tot), veld('Reden (optioneel)', reden),
+      h('button', {
+        type: 'button', class: 'btn',
+        onClick: async () => {
+          if (!van.value || !tot.value) { ctx.toast('Vul een begin- en einddatum in.', 'error'); return; }
+          const [v, t] = van.value <= tot.value ? [van.value, tot.value] : [tot.value, van.value];
+          await ctx.update((d) => { d.uitgesloten ??= []; d.uitgesloten.push(newRecord({ van: v, tot: t, reden: reden.value.trim() })); });
+          ctx.toast('Periode uitgesloten', 'ok');
+        },
+      }, 'Periode uitsluiten')));
+}
+const staatOpen = {};
 
 function resultaat(a, c, van, tot) {
   const perDag = c.weergave === 'perdag';

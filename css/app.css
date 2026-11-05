@@ -362,3 +362,12 @@ input[type="month"] {
 .top-balk { height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
 .top-balk i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
 .top-waarde { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+/* Uitgesloten perioden (Analyse) */
+.uitsluiten { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 4px; }
+.check-regel { display: flex; align-items: center; gap: 8px; min-height: var(--tap); font-size: 0.9rem; }
+.check-regel input { width: 18px; height: 18px; accent-color: var(--accent); }
+.uitsluit-lijst { list-style: none; margin: 4px 0 8px; padding: 0; }
+.uitsluit-lijst li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+.uitsluit-nieuw { display: grid; gap: 8px; align-items: end; }
+@media (min-width: 700px) { .uitsluit-nieuw { grid-template-columns: 1fr 1fr 2fr auto; } }
+.analyse-uitgesloten-melding { margin: -4px 4px 0; }
