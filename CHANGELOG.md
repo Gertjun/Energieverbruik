@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.15.0
+
+**Toegevoegd**
+- **Eigen verbruik: afname in de zonuren** als soort analyse. Een grafiek per uur van de dag toont je gemiddelde afname naast je teruglevering, zodat je ziet hoe ver die uit elkaar liggen.
+- Drie kerncijfers: hoeveel stroom je afnam in uren dat je ook terugleverde, hoeveel kWh je per dag met je eigen zonnestroom had kunnen dekken door verbruik naar de zonuren te verschuiven (bijv. wasmachine, vaatwasser of de auto), en wat dat waard is na het einde van de saldering (en nu).
+- Per maand in een tabel.
+
 ## 1.14.0
 
 **Toegevoegd**

@@ -161,13 +161,13 @@ function tijdWaarde(a, maat, van, tot, indeling) {
 }
 
 /** Per uur (gemiddeld per dag) of per tijdvak (totaal) voor afname/terug/netto. */
-function uurWaarden(a, maat, van, tot, indeling) {
+function uurWaarden(a, maat, van, tot, indeling, alleenEcht = false) {
   const sleutels = indeling === 'uur' ? [...Array(24).keys()] : TIJDVAKKEN.map((t) => t.key);
   const som = new Map(sleutels.map((k) => [k, 0]));
   let dagen = 0; let geschat = false;
   for (const d of eachDay(van, tot)) {
     const dag = a.perDag.get(d)?.dag;
-    if (!dag || dag.afname == null) continue;
+    if (!dag || dag.afname == null || (alleenEcht && !dag.uurAfname)) continue;
     const u = urenVanDag(dag, a.profielen);
     if (u.geschat) geschat = true;
     dagen++;
@@ -372,4 +372,55 @@ export function salderingReeks(a, van, tot, indeling = 'maand') {
   });
   totaalT.dagen = vakjes.reduce((s, v) => s + v.dagen, 0);
   return { vakjes, totaal: totaalT, na };
+}
+
+// ---------- Eigen verbruik: afname in de zonuren en wat er te verschuiven is ----------
+
+/** Een uur telt als "zonuur" als er in dat uur meer dan 0,05 kWh is teruggeleverd. */
+export const ZONUUR_KWH = 0.05;
+
+/**
+ * Per dag met echte uurgegevens: afname in en buiten de zonuren, en hoeveel kWh je had kunnen
+ * verschuiven naar de zonuren (het kleinste van: afname buiten de zonuren, teruglevering die dag).
+ * `waardeNa`: wat dat verschuiven per jaar oplevert na de saldering (afnametarief − vergoeding + terugleverkosten);
+ * `waardeNu`: met saldering (alleen het verschil tussen de tijdvaktarieven, meestal klein).
+ */
+export function zonurenDag(a, datum, na) {
+  const dag = a.perDag.get(datum)?.dag;
+  if (!dag?.uurAfname) return null;
+  const c = contractOp(a.contracten, datum);
+  const tarief = (h) => (c ? (c.stroomLevering?.[tijdvak(datum, h)] || 0) + (c.stroomEb || 0) : null);
+  let inZon = 0; let buiten = 0; let buitenEuro = 0; let terug = 0; let zonEuro = 0; let zonKwh = 0;
+  for (let h = 0; h < 24; h++) {
+    const af = dag.uurAfname[h] || 0; const te = dag.uurTerug?.[h] || 0;
+    terug += te;
+    if (te > ZONUUR_KWH) { inZon += af; zonEuro += te * (tarief(h) || 0); zonKwh += te; } else { buiten += af; buitenEuro += af * (tarief(h) || 0); }
+  }
+  const verschuifbaar = Math.min(buiten, terug);
+  const prijsBuiten = buiten > 0 ? buitenEuro / buiten : 0;
+  const prijsZon = zonKwh > 0 ? zonEuro / zonKwh : 0;
+  const nt = na?.terug || {};
+  return {
+    afname: dag.afname || 0, terug, inZon, buiten, verschuifbaar,
+    waardeNa: c ? verschuifbaar * (prijsBuiten - (nt.vergoeding || 0) + (nt.kostenPerKwh || 0)) : null,
+    waardeNu: c ? verschuifbaar * (prijsBuiten - prijsZon) : null,
+  };
+}
+
+export function zonurenReeks(a, van, tot, indeling = 'maand') {
+  const na = contractNaSaldering(a);
+  const velden = ['afname', 'terug', 'inZon', 'buiten', 'verschuifbaar', 'waardeNa', 'waardeNu'];
+  const leeg = () => Object.fromEntries([...velden.map((k) => [k, 0]), ['dagen', 0]]);
+  const totaalT = leeg();
+  const vakjes = tijdVakjes(indeling, van, tot).map((vk) => {
+    const t = leeg();
+    for (const d of eachDay(vk.van, vk.tot)) {
+      const r = zonurenDag(a, d, na);
+      if (!r) continue;
+      for (const k of velden) { t[k] += r[k] || 0; totaalT[k] += r[k] || 0; }
+      t.dagen++; totaalT.dagen++;
+    }
+    return { ...vk, ...t };
+  });
+  return { vakjes, totaal: totaalT, na, perUur: { afname: uurWaarden(a, 'afname', van, tot, 'uur', true), terug: uurWaarden(a, 'terug', van, tot, 'uur', true) } };
 }
