@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.30.0
+
+**Toegevoegd**
+- **Goedkopere uren** (Analyse → Kosten en tarieven): hoeveel stroom je per tijdvak afneemt, wat je er gemiddeld per kWh voor betaalt, en wat het oplevert als je 10–50% van je verbruik naar het goedkoopste tijdvak van die dag verschuift (bijv. wasmachine of auto met uitgestelde start). Met een besparing per maand.
+
 ## 1.29.0
 
 **Toegevoegd**
