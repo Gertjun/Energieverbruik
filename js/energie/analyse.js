@@ -2,7 +2,7 @@
 // ingedeeld per dag/week/maand/jaar, per uur van de dag of per tijdvak.
 // Geen DOM hier, zodat het los te testen is.
 
-import { totaal } from './model.js';
+import { totaal, zonPeriode } from './model.js';
 import { TIJDVAKKEN, tijdvak, urenVanDag, contractOp, kostenDag } from './tarief.js';
 import {
   addDays, eachDay, daysBetween, weekday, isoWeekKey, mondayOf, monthKey, sameDayLastYear,
@@ -28,7 +28,9 @@ export const MATEN = {
   temp: { groep: 'Weer', naam: 'Temperatuur (gemiddeld)', eenheid: '°C', d: 1, per: [...TIJD, ...WD], gem: true },
   graaddagen: { groep: 'Weer', naam: 'Graaddagen (gewogen)', eenheid: 'gd', d: 1, per: [...TIJD, ...WD] },
   gasPerGd: { groep: 'Weer', naam: 'Gas per graaddag', eenheid: 'm³/gd', d: 3, per: [...TIJD, ...WD], gem: true },
-  zon: { groep: 'Zonnepanelen', naam: 'Zonne-opbrengst', eenheid: 'kWh', d: 0, per: ['maand', 'jaar'] },
+  zon: { groep: 'Zonnepanelen', naam: 'Zonne-opbrengst', eenheid: 'kWh', d: 0, per: [...TIJD, ...WD] },
+  zonEigen: { groep: 'Zonnepanelen', naam: 'Zonnestroom zelf gebruikt', eenheid: 'kWh', d: 0, per: [...TIJD, ...WD] },
+  zelfvoorzienend: { groep: 'Zonnepanelen', naam: 'Zelfvoorzienendheid', eenheid: '%', d: 0, per: TIJD, gem: true },
 };
 
 export const INDELINGEN = [
@@ -109,13 +111,14 @@ export function basisDag(dag) {
 
 /** Waarde van een tijdgrootheid over de dagen van..tot. Geeft { v, geschat }. */
 function tijdWaarde(a, maat, van, tot, indeling) {
-  if (maat === 'zon') {
-    let som = 0; let gevonden = false; let n = 0;
-    for (const [mk, m] of a.maanden) {
-      if (m.zon == null || mk < monthKey(van) || mk > monthKey(tot)) continue;
-      som += m.zon; gevonden = true; n += dagenVanMaand(`${mk}-01`);
-    }
-    return { v: gevonden ? som : null, n };
+  if (maat === 'zon' || maat === 'zonEigen' || maat === 'zelfvoorzienend') {
+    // Per dag uit de SolarEdge-dagexport; per maand/jaar telt een maandwaarde voor de hele maand mee.
+    // Per dag of week zonder dagwaarden: leeg (een maandtotaal is niet over de dagen te verdelen).
+    const z = zonPeriode(a, van, tot, { heleMaanden: indeling === 'maand' || indeling === 'jaar' });
+    if (!z) return { v: null };
+    if (maat === 'zon') return { v: z.zon, n: z.n };
+    if (maat === 'zonEigen') return { v: z.eigen, n: z.n };
+    return { v: z.aandeel == null ? null : z.aandeel * 100 };
   }
   if (maat === 'temp' || maat === 'graaddagen') {
     let som = 0; let n = 0; let gd = 0;
@@ -661,14 +664,17 @@ export function zonderUitgesloten(a) {
   if (zonderCache.has(a)) return zonderCache.get(a);
   const perDag = new Map([...a.perDag].filter(([d]) => !isUitgesloten(a, d)));
   const weer = new Map([...a.weer].filter(([d]) => !isUitgesloten(a, d)));
+  const zonDag = new Map([...(a.zonDag || [])].filter(([d]) => !isUitgesloten(a, d)));
   const maanden = new Map([...a.maanden].map(([mk, m]) => {
     let uit = 0; const n = dagenVanMaand(`${mk}-01`);
     for (let i = 1; i <= n; i++) if (isUitgesloten(a, `${mk}-${String(i).padStart(2, '0')}`)) uit++;
-    // Alleen de zonne-opbrengst vervalt; termijnbedragen blijven staan.
-    return [mk, uit * 2 >= n && m.zon != null ? { ...m, zon: null } : m];
+    // Alleen de zonne-opbrengst vervalt; termijnbedragen blijven staan. Heeft de maand ook opbrengst per dag,
+    // dan vervalt de maandwaarde al bij één uitgesloten dag: de overige dagen tellen dan los.
+    const perDag = uit && [...(a.zonDag || []).keys()].some((d) => d.startsWith(mk));
+    return [mk, (uit * 2 >= n || perDag) && m.zon != null ? { ...m, zon: null } : m];
   }));
   let weg = 0; for (const d of a.perDag.keys()) if (!perDag.has(d)) weg++;
-  const uit = { ...a, perDag, weer, maanden, weggelaten: weg };
+  const uit = { ...a, perDag, weer, maanden, zonDag, weggelaten: weg };
   zonderCache.set(a, uit);
   return uit;
 }

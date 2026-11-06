@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.26.0
+
+**Toegevoegd**
+- **Zonne-opbrengst per dag**: de app leest nu ook de SolarEdge-export per dag ("energy-chart-data_….csv") in, via dezelfde knop op Invoer. De app herkent zelf of het een dag- of maandbestand is.
+- **Zelfvoorzienendheid per dag en per week**: kies op het Overzicht Dag of Week, dan toont de kaart Zonnepanelen per dag/week de opbrengst, wat je zelf gebruikt hebt en het percentage. Bij Maand en Jaar blijft de bekende vergelijking per kalendermaand.
+- In **Analyse** drie nieuwe keuzes bij Zonnepanelen: zonne-opbrengst (nu ook per dag en week), zonnestroom zelf gebruikt en zelfvoorzienendheid.
+- In **Historie** staat bij een dag de opbrengst, wat je zelf gebruikt hebt en de zelfvoorzienendheid. De CSV-export heeft een kolom zon_kwh.
+
+**Gewijzigd**
+- Is een maand helemaal per dag bekend, dan rekent de app met de dagen (preciezer: zelf gebruikt wordt per dag bepaald). Anders met de maandwaarde, zoals voorheen. Een maand die nog niet compleet per dag bekend is (zoals de lopende maand) telt met de dagen die er zijn, gemarkeerd met "niet elke dag".
+
+**Let op**
+- De gegevens hebben een nieuwe versie (5). Open na het bijwerken de app eenmaal op al je apparaten voordat je op een ander apparaat iets wijzigt.
+
 ## 1.25.0
 
 **Toegevoegd**

@@ -2,7 +2,7 @@
 // zonnepanelen en de vergelijking met de termijnbedragen.
 
 import { h } from '../core/dom.js';
-import { totaal, zonMaand, ontbrekendeDagen } from './model.js';
+import { totaal, zonPeriode, maandenMetZon, ontbrekendeDagen } from './model.js';
 import { staafGrafiek, zonGrafiek } from './grafiek.js';
 import {
   addDays, mondayOf, sameDayLastYear, monthKey, maandStart, maandEinde, maandPlus,
@@ -65,6 +65,7 @@ function huidigePeriode(soort, laatste) {
 // Minimaal aantal graaddagen in een periode om gas per graaddag te tonen.
 const GD_MINIMUM = { dag: 1, week: 3, maand: 5, jaar: 5 };
 const PER_TEKST = { dag: 'per dag', week: 'per week', maand: 'per maand', jaar: 'per jaar' };
+const PER_KOP = { dag: 'Dag', week: 'Week' };
 
 const TITEL = { dag: 'Laatste dag', week: 'Deze week', maand: 'Deze maand', jaar: 'Dit jaar' };
 
@@ -256,7 +257,8 @@ export function renderOverzicht(a, staat, opnieuw) {
 
   const kaarten = [...grafieken]; // komen in het raster (één of twee kolommen)
   // Een losse laatste kaart in twee kolommen loopt over de hele breedte (zie app.css); dan ook de grafiek.
-  const heeftZon = [...a.maanden.values()].some((m) => m.zon != null && !m.deleted);
+  const zonMaanden = maandenMetZon(a);
+  const heeftZon = zonMaanden.length > 0;
   const maat2 = (alleen) => (tweeKolommen && alleen ? { breedte: B.heel, hoogte: null } : { breedte: bKaart, hoogte: hKaart });
   // Keuze van de indeling: alleen op een breed scherm (daaronder is er maar één kolom).
   const breed = window.matchMedia?.(BREED_SCHERM).matches;
@@ -290,18 +292,42 @@ export function renderOverzicht(a, staat, opnieuw) {
     ], opnieuw, samen));
   }
 
-  // Zonnepanelen: per kalendermaand, gekozen jaren naast elkaar.
-  // Opbrengst is er vanaf de installatie; zelf gebruikt alleen voor maanden met stroomverbruik.
-  const zonJaren = [...new Set([...a.maanden.values()].filter((m) => m.zon != null && !m.deleted).map((m) => m.maand.slice(0, 4)))].sort();
-  if (zonJaren.length) {
+  // Zonnepanelen. Bij de keuze per dag of per week, en als de opbrengst per dag bekend is (SolarEdge-dagexport):
+  // per dag/week, net als de andere kaarten. Anders per kalendermaand, gekozen jaren naast elkaar.
+  // Opbrengst is er vanaf de installatie; zelf gebruikt alleen als het stroomverbruik bekend is.
+  const zonJaren = [...new Set(zonMaanden.map((m) => m.slice(0, 4)))].sort();
+  const zonPer = (van, tot) => {
+    const z = zonPeriode(a, van, tot);
+    return z ? { zon: z.zon, eigen: z.eigen, aandeel: z.aandeel, onvolledig: z.onvolledig } : null;
+  };
+  const zonLijst = ['dag', 'week'].includes(staat.periode) ? lijst.map((p) => (a.zonDag.size ? zonPer(p.van, p.tot) : null)) : [];
+  const zonUitleg = (soort, perMaand) => h('p', { class: 'hint' }, soort === 'lijst'
+    ? `Zelf gebruikt = opbrengst min teruglevering${perMaand ? '' : ', per dag'}. Zelfvoorzienend = zelf gebruikt gedeeld door je totale stroomverbruik.`
+    : `De hele kolom is de opbrengst, het fel gekleurde deel onderin wat je zelf gebruikt hebt (opbrengst min teruglevering). Het percentage erboven is je zelfvoorzienendheid (zelf gebruikt gedeeld door je totale stroomverbruik); dat staat er alleen als je stroomverbruik bekend is. Tik op een ${perMaand ? 'maand' : PER_TEKST[staat.periode].slice(4)} voor de getallen.`);
+  const zonKolommen = (rijen) => h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel' },
+    h('thead', {}, h('tr', {}, h('th', {}, PER_KOP[staat.periode] && zonLijst.some(Boolean) ? PER_KOP[staat.periode] : 'Maand'), h('th', { class: 'num' }, 'Opbrengst'), h('th', { class: 'num' }, 'Zelf gebruikt'), h('th', { class: 'num' }, 'Zelf\u00advoorzienend'))),
+    h('tbody', {}, rijen)));
+  const zonRij = (label, w, extra) => h('tr', {},
+    h('td', {}, label, extra ? h('small', { class: 'muted lopend' }, extra) : null), h('td', { class: 'num' }, fmtKwh(w.zon, w.zon < 100 ? 1 : 0)),
+    h('td', { class: 'num' }, w.eigen == null ? '–' : fmtKwh(w.eigen, w.zon < 100 ? 1 : 0)), h('td', { class: 'num' }, fmtPct(w.aandeel)));
+  if (zonLijst.some(Boolean)) {
+    const mZon = maat2(kaarten.length % 2 === 0);
+    kaarten.push(wisselKaart('zon', `Zonnepanelen · ${PER_TEKST[staat.periode]}`, (soort) => [
+      null,
+      grafiekOfLijst(soort,
+        () => zonGrafiek({
+          labels: lijst.map((p) => p.label), korteLabels: lijst.map((p) => p.kort),
+          reeksen: [{ naam: 'Opbrengst', kleur: 0, waarden: zonLijst }],
+          fmtKwh: (v) => fmtKwh(v, 1), fmtPct, fmtAs: (v) => fmtGetal(v, 0), ...mZon,
+        }),
+        () => zonKolommen(lijst.map((p, i) => [p, zonLijst[i], i]).reverse().filter(([, w]) => w)
+          .map(([p, w, i]) => zonRij(p.label, w, lopend[i] ? 'loopt nog' : w.onvolledig ? 'niet elke dag' : null)))),
+      zonUitleg(soort, false),
+    ], opnieuw, samen));
+  } else if (zonJaren.length) {
     const gekozen = gekozenZonJaren(zonJaren);
     const kleurVan = (jaar) => gekozen.length - 1 - gekozen.indexOf(jaar); // nieuwste = 0 (accentkleur)
-    const zonWaarde = (maand) => {
-      const m = a.maanden.get(maand);
-      if (!m || m.zon == null) return null;
-      const z = zonMaand(a, maand);
-      return { zon: m.zon, eigen: z ? z.eigen : null, aandeel: z ? z.aandeel : null };
-    };
+    const zonWaarde = (maand) => zonPer(`${maand}-01`, maandEinde(maand));
     const MND = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
     const jaarKeus = h('div', { class: 'jaar-keus', role: 'group', 'aria-label': 'Jaren tonen' },
       zonJaren.map((j) => {
@@ -316,15 +342,10 @@ export function renderOverzicht(a, staat, opnieuw) {
       for (const j of [...gekozen].reverse()) {
         for (const mm of [...MND].reverse()) {
           const w = zonWaarde(`${j}-${mm}`);
-          if (!w) continue;
-          rijen.push(h('tr', {},
-            h('td', {}, fmtMaandKort(`${j}-${mm}`), ' ', j), h('td', { class: 'num' }, fmtKwh(w.zon, 0)),
-            h('td', { class: 'num' }, w.eigen == null ? '–' : fmtKwh(w.eigen, 0)), h('td', { class: 'num' }, fmtPct(w.aandeel))));
+          if (w) rijen.push(zonRij(`${fmtMaandKort(`${j}-${mm}`)} ${j}`, w, w.onvolledig ? 'niet elke dag' : null));
         }
       }
-      return h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel' },
-        h('thead', {}, h('tr', {}, h('th', {}, 'Maand'), h('th', { class: 'num' }, 'Opbrengst'), h('th', { class: 'num' }, 'Zelf gebruikt'), h('th', { class: 'num' }, 'Zelf\u00advoorzienend'))),
-        h('tbody', {}, rijen)));
+      return zonKolommen(rijen);
     };
     const mZon = maat2(kaarten.length % 2 === 0);
     const zonGraf = () => zonGrafiek({
@@ -335,9 +356,7 @@ export function renderOverzicht(a, staat, opnieuw) {
     kaarten.push(wisselKaart('zon', 'Zonnepanelen', (soort) => [
       jaarKeus,
       grafiekOfLijst(soort, zonGraf, zonTabel),
-      h('p', { class: 'hint' }, soort === 'lijst'
-        ? 'Zelf gebruikt = opbrengst min teruglevering. Zelfvoorzienend = zelf gebruikt gedeeld door je totale stroomverbruik.'
-        : 'De hele kolom is de opbrengst, het fel gekleurde deel onderin wat je zelf gebruikt hebt (opbrengst min teruglevering). Het percentage erboven is je zelfvoorzienendheid (zelf gebruikt gedeeld door je totale stroomverbruik); dat staat er alleen als je stroomverbruik van die maand bekend is. Tik op een maand voor de getallen.'),
+      zonUitleg(soort, true),
     ], opnieuw, samen));
   }
 

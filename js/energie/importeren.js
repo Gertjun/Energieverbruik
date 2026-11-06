@@ -13,7 +13,8 @@
 // Ongedaan maken zet alleen groepen terug die sindsdien niet meer veranderd zijn.
 
 import { removeById } from '../core/records.js';
-import { upsert, dagId, weerId, maandId } from './model.js';
+import { upsert, dagId, weerId, maandId, zonId } from './model.js';
+import { maandStart, maandEinde, eachDay } from './tijd.js';
 
 export const GROEPEN = {
   s: ['afname', 'terug', 'uurAfname', 'uurTerug', 'bron'],
@@ -24,7 +25,7 @@ export const GROEPEN = {
 /** Hoeveel imports terug te draaien blijven (oudere herstelgegevens worden opgeruimd). */
 export const HERSTEL_MAX = 10;
 /** Verschil tussen twee bronnen dat als "afwijkend" telt. */
-const TOLERANTIE = { afname: [0.1, 0.02], terug: [0.1, 0.02], gas: [0.05, 0.02], zon: [1, 0.02] };
+const TOLERANTIE = { afname: [0.1, 0.02], terug: [0.1, 0.02], gas: [0.05, 0.02], zon: [1, 0.02], zonDag: [0.1, 0.02] };
 
 const BRON_NAAM = { vattenfall: 'Vattenfall', homewizard: 'HomeWizard', excel: 'Excel', handmatig: 'handmatig' };
 /** Hoe hoger, hoe betrouwbaarder. Een import overschrijft alleen waarden met een gelijke of lagere rang. */
@@ -60,7 +61,7 @@ function nieuweImport(soort, bestand) {
       overgeslagen: [], meldingen: [], totalen: {}, ontbrekend: {},
       overlap: { vergeleken: 0, afwijkend: [] },
     },
-    herstel: { dagen: {}, weer: [], maanden: {} },
+    herstel: { dagen: {}, weer: [], maanden: {}, zon: {} },
   };
 }
 
@@ -125,7 +126,7 @@ function afronden(data, imp) {
   o.afwijkend.sort((a, b) => Math.abs(b.nieuw - b.oud) - Math.abs(a.nieuw - a.oud));
   o.afwijkend = o.afwijkend.slice(0, 50);
   const r = imp.rapport;
-  imp.veranderd = r.nieuw + r.gewijzigd + (r.weer || 0) + (r.maanden || 0) + (r.pieken || 0) > 0;
+  imp.veranderd = r.nieuw + r.gewijzigd + (r.weer || 0) + (r.maanden || 0) + (r.pieken || 0) + (r.zonDagen || 0) > 0;
   data.importen ??= [];
   data.importen.push(imp);
   // Alleen de laatste imports blijven terug te draaien; zo blijft de kluis klein.
@@ -281,6 +282,7 @@ export function zetExcel(data, res, bestand) {
  * handmatig) wordt overschreven; verschillen staan in het rapport.
  */
 export function zetSolarEdge(data, res, bestand) {
+  if (res.soort === 'dag') return zetSolarEdgeDagen(data, res, bestand);
   const imp = nieuweImport('solaredge', bestand);
   const r = imp.rapport;
   r.maandenInBestand = res.maanden.length;
@@ -302,6 +304,50 @@ export function zetSolarEdge(data, res, bestand) {
     rec.imp = { ...(rec.imp || {}), zon: imp.id };
     r[oud?.zon != null ? 'gewijzigd' : 'nieuw']++;
     r.maanden++;
+  }
+  return afronden(data, imp);
+}
+
+/**
+ * SolarEdge-dagexport verwerken: zonne-opbrengst per dag (collectie `zon`). De opbrengst per dag gaat in
+ * de berekeningen voor de maandwaarde zodra de hele maand per dag bekend is (zie zonPeriode in model.js);
+ * de maandwaarde zelf blijft staan. Een volledige maand in het bestand wordt wel met de maandwaarde vergeleken.
+ */
+function zetSolarEdgeDagen(data, res, bestand) {
+  const imp = nieuweImport('solaredge-dag', bestand);
+  const r = imp.rapport;
+  data.zon ??= [];
+  r.dagenInBestand = res.dagen.length;
+  r.vanaf = res.vanaf; r.tot = res.tot; r.regels = res.regels; r.interval = res.interval;
+  r.overgeslagen.push(...res.overgeslagen);
+  r.meldingen.push(...res.meldingen);
+  if (res.ontbrekend?.length) r.ontbrekend = { 'zonne-opbrengst': res.ontbrekend };
+  r.zonPerJaar = {};
+  for (const d of res.dagen) {
+    const j = d.datum.slice(0, 4);
+    r.zonPerJaar[j] = r3((r.zonPerJaar[j] || 0) + d.zon);
+  }
+  r.zonDagen = 0;
+  for (const d of res.dagen) {
+    const oud = vind(data.zon, zonId(d.datum));
+    if (oud?.zon != null) vergelijk(imp, d.datum, 'zonDag', oud.zon, d.zon, null);
+    if (oud?.zon === d.zon) { r.gelijk++; continue; }
+    imp.herstel.zon[d.datum] = { zon: oud?.zon ?? null, imp: oud?.imp ?? null };
+    upsert(data.zon, zonId(d.datum), { datum: d.datum, zon: d.zon, imp: imp.id });
+    r[oud?.zon != null ? 'gewijzigd' : 'nieuw']++;
+    r.zonDagen++;
+  }
+  // Volledige maanden: het totaal van de dagen naast de maandwaarde leggen (alleen ter vergelijking).
+  const inBestand = new Set(res.dagen.map((d) => d.datum));
+  const maanden = [...new Set(res.dagen.map((d) => d.datum.slice(0, 7)))];
+  r.heleMaanden = [];
+  for (const mk of maanden) {
+    const dagen = [...eachDay(maandStart(mk), maandEinde(mk))];
+    if (!dagen.every((d) => inBestand.has(d))) continue;
+    const som = r3(res.dagen.filter((d) => d.datum.startsWith(mk)).reduce((s, d) => s + d.zon, 0));
+    r.heleMaanden.push(mk);
+    const m = vind(data.maanden, maandId(mk));
+    if (m?.zon != null) vergelijk(imp, mk, 'zon', m.zon, som, null);
   }
   return afronden(data, imp);
 }
@@ -355,6 +401,16 @@ export function maakImportOngedaan(data, importId) {
     m.updatedAt = now;
     if (veranderd && imp.soort === 'solaredge') teruggezet++; // bij SolarEdge telt per maand, niet per dag
     if (h.nieuw && m.termijn == null && m.zon == null) removeById(data.maanden, m.id);
+  }
+
+  for (const [datum, h] of Object.entries(imp.herstel.zon || {})) {
+    const z = vind(data.zon || [], zonId(datum));
+    if (!z) continue;
+    if (z.imp !== importId) { behouden++; continue; }
+    if (h.zon == null) removeById(data.zon, z.id);
+    else Object.assign(z, { zon: h.zon, imp: h.imp ?? undefined, updatedAt: now });
+    if (z.imp === undefined) delete z.imp;
+    teruggezet++;
   }
 
   Object.assign(imp, { herstel: null, ongedaan: now, ongedaanTelling: { teruggezet, behouden }, updatedAt: now });

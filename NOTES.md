@@ -156,7 +156,19 @@
 - Weergave Zwart (OLED) toegevoegd. Getest in Chrome op laptop- en iPhone-breedte met Geerts gegevens (Paars en
   Groenblauw): achtergrond en statusbalk rgb(0,0,0), geen fouten. Vier knoppen passen op iPhone-breedte.
 
+## Stand (6 november 2026) – versie 1.26.0
+- SolarEdge-export per dag in te lezen (zie DECISIONS.md). Getest met Geerts `energy-chart-data_11_06_2026_08_34_AM.csv`
+  (oktober 2026, 31 dagen, 311,0 kWh) samen met de Vattenfall-stroomexport: oktober 16% zelfvoorzienend (124 kWh zelf
+  gebruikt van 783 kWh verbruik). Opnieuw inlezen: alles gelijk; ongedaan maken zet alles terug.
+- Getest in Chrome op laptop- en iPhone-breedte: import via de knop, Overzicht per dag/week/maand (grafiek en lijst),
+  Historie (dagdetail), Analyse (zelfvoorzienendheid). Geen fouten.
+- Exacte menunaam van de dagexport in het SolarEdge-portaal is niet bekend; de uitleg zegt "de energiegrafiek per dag".
+
 ## Openstaande punten
+- [ ] Geert: na het bijwerken alle apparaten eenmaal openen (gegevensversie 5, opbrengst per dag).
+- [ ] Geert: SolarEdge-export per dag inlezen voor de periode die hij wil (bijv. vanaf november 2025, gelijk met de
+      HomeWizard-data); per maand of per jaar exporteren kan allebei. Precieze menunaam doorgeven voor de uitleg.
+- [ ] Geert: kaart Zonnepanelen bij Dag en Week bekijken op iPhone/iPad.
 - [ ] Geert: Zwart bekijken op de iPhone; kaarten genoeg te onderscheiden van de achtergrond?
 - [ ] Geert: thema's bekijken op iPhone/iPad/laptop; kleuren naar wens? Kleurt de statusbalk mee?
 - [ ] Geert: tegels voor Soort analyse bekijken op iPhone/iPad; prominent genoeg, niet te veel ruimte?
@@ -190,13 +202,13 @@
       tarieven uit Blad1 (linkerkolom) zijn niet ingevoerd; als die voor een eerdere periode gelden,
       een extra contract met de juiste data toevoegen.
 - [ ] Geert: SolarEdge-export inlezen (Invoer → Bestanden inlezen); maandelijks herhalen na de 1e.
-- [ ] Geert zoekt uit of het SolarEdge Monitoring platform per dag kan exporteren (zie WISHLIST). Daarna de
-      precieze menunaam van de grafiek in de uitleg zetten.
 - [ ] Saldering met tijdvakken is een aanname (zie DECISIONS.md); vergelijken met de volgende jaarafrekening.
 
 ## Bronbestanden in het Claude-project
 - Vattenfall-downloads `E-<EAN>-Kwartier.csv` (stroom) en `G-<EAN>-Uur.csv` (gas): `Datum;Tijd;Meterstand levering;
   Verbruik;(Stand teruglevering;Teruglevering)`, Nederlandse getallen, nieuwste regel bovenaan, gas in Windows-1252.
+- SolarEdge-dagexport `energy-chart-data_<datum>.csv`: `"Meettijd","Productie (kWh)","Verbruik (kWh)"`, één regel
+  per dag (`"1 okt. 2026 00:00","8.21","0"`); Verbruik is altijd 0 (geen verbruiksmeter).
 - SolarEdge-export `comparative-month-chart-data_<datum>.csv`: `"Meettijd","Energy (kWh)"`, één regel per maand
   (`"jan. 2020","0"`), UTF-8 met BOM, komma als scheiding, punt als decimaalteken, alle jaren t/m december van
   het huidige jaar (toekomstige maanden 0).

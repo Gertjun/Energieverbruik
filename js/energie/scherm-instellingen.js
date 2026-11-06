@@ -124,12 +124,12 @@ function contractBlok(c, staat, opnieuw, ctx) {
 
 function exportKaart(a, ctx) {
   const csv = () => {
-    const kop = ['datum', 'stroom_kwh', 'terug_kwh', 'gas_m3', 'temp_gem', 'graaddag', 'gas_per_graaddag', 'kosten_eur', 'kosten_geschat', 'bron', 'opmerking'];
+    const kop = ['datum', 'stroom_kwh', 'terug_kwh', 'gas_m3', 'zon_kwh', 'temp_gem', 'graaddag', 'gas_per_graaddag', 'kosten_eur', 'kosten_geschat', 'bron', 'opmerking'];
     const esc = (v) => (/[",;\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
     const rijen = [kop.join(';')];
     for (const [datum, x] of a.perDag) {
       rijen.push([
-        datum, fmtGetal(x.dag.afname, 3), fmtGetal(x.dag.terug, 3), fmtGetal(x.dag.gas, 3),
+        datum, fmtGetal(x.dag.afname, 3), fmtGetal(x.dag.terug, 3), fmtGetal(x.dag.gas, 3), x.zon != null ? fmtGetal(x.zon, 3) : '',
         x.weer ? fmtGetal(x.weer.tgem, 1) : '', x.graaddag != null ? fmtGetal(x.graaddag, 2) : '', x.gasPerGd != null ? fmtGetal(x.gasPerGd, 3) : '',
         x.kosten.contract ? fmtGetal(x.kosten.totaal, 2) : '', x.kosten.geschat ? 'ja' : 'nee', x.dag.bron || '', x.dag.opmerking || '',
       ].map((v) => esc(v === '–' ? '' : v)).join(';'));

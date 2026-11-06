@@ -36,7 +36,7 @@ async function verwerkBestanden(files, staat, opnieuw, ctx) {
     try {
       if (await isXlsx(f)) { resultaten.push({ res: await leesExcel(await f.arrayBuffer()), naam: f.name, bron: 'excel' }); continue; }
       const tekst = await f.text();
-      if (isSolarEdge(tekst)) resultaten.push({ res: leesSolarEdge(tekst, monthKey(today())), naam: f.name, bron: 'solaredge' });
+      if (isSolarEdge(tekst)) resultaten.push({ res: leesSolarEdge(tekst, today()), naam: f.name, bron: 'solaredge' });
       else if (isVattenfall(tekst)) resultaten.push({ res: leesVattenfall(tekst), naam: f.name, bron: 'vattenfall' });
       else resultaten.push({ res: leesHomeWizard(tekst), naam: f.name, bron: 'homewizard' });
     } catch (err) {
@@ -60,7 +60,7 @@ async function verwerkBestanden(files, staat, opnieuw, ctx) {
 
 const RAPPORT_TITEL = {
   'vattenfall-stroom': 'Vattenfall stroom', 'vattenfall-gas': 'Vattenfall gas',
-  'homewizard-stroom': 'HomeWizard stroom', 'homewizard-gas': 'HomeWizard gas', solaredge: 'SolarEdge opbrengst', excel: 'Excel',
+  'homewizard-stroom': 'HomeWizard stroom', 'homewizard-gas': 'HomeWizard gas', solaredge: 'SolarEdge opbrengst per maand', 'solaredge-dag': 'SolarEdge opbrengst per dag', excel: 'Excel',
 };
 
 /** Fouten en importrapporten van de laatst gekozen bestanden. */
@@ -70,12 +70,13 @@ function importMelding(a, staat, opnieuw, ctx) {
   return h('div', { class: 'import-melding' },
     (staat.importFouten || []).map((t) => h('p', { class: 'form-error' }, t)),
     importen.map((imp) => {
-      const n = imp.soort === 'solaredge' ? 0 : meldingenInPeriode(a, imp.rapport.vanaf, imp.rapport.tot);
+      const zon = imp.soort.startsWith('solaredge');
+      const n = zon ? 0 : meldingenInPeriode(a, imp.rapport.vanaf, imp.rapport.tot);
       return h('div', { class: 'rapport-blok' },
         h('h3', {}, `Importrapport ${RAPPORT_TITEL[imp.soort] || imp.soort}`),
-        imp.soort === 'solaredge' ? null
+        zon ? null
           : n ? h('p', { class: 'is-waarschuwing' }, `${n} controlemelding${n === 1 ? '' : 'en'} in deze periode.`) : h('p', { class: 'is-goed' }, 'Geen verdachte waarden in deze periode.'),
-        importRapport(imp, staat, opnieuw, ctx, { metLink: imp.soort !== 'solaredge' }));
+        importRapport(imp, staat, opnieuw, ctx, { metLink: !zon }));
     }));
 }
 
@@ -97,7 +98,7 @@ function bestandenKaart(a, staat, opnieuw, ctx) {
       h('summary', {}, 'Welke gegevens gaan voor bij verschillen?'),
       h('ul', {},
         h('li', {}, h('strong', {}, 'Stroom en gas: '), 'Vattenfall gaat voor (de meetgegevens waarop je rekening gebaseerd is), dan HomeWizard, dan Excel, dan wat je zelf invult. HomeWizard vult aan waar Vattenfall (nog) niets heeft, zoals gisteren en vandaag.'),
-        h('li', {}, h('strong', {}, 'Zonne-opbrengst: '), 'alleen SolarEdge levert die; dat gaat voor de Excel en wat je zelf invult.'),
+        h('li', {}, h('strong', {}, 'Zonne-opbrengst: '), 'alleen SolarEdge levert die; dat gaat voor de Excel en wat je zelf invult. Is een maand per dag bekend, dan rekent de app met de dagen (preciezer); anders met de maandwaarde.'),
         h('li', {}, 'Verschillen met wat er al stond, zie je in het importrapport. Elke import kun je ongedaan maken.'))),
     uitleg('Hoe download ik bij Vattenfall?', [
       'Log in op Mijn Vattenfall (website of app) en ga naar Verbruik.',
@@ -112,9 +113,9 @@ function bestandenKaart(a, staat, opnieuw, ctx) {
       'Bewaar de bestanden in Bestanden.']),
     uitleg('Hoe exporteer ik uit SolarEdge?', [
       'Log op de laptop in op het SolarEdge Monitoring platform (monitoring.solaredge.com).',
-      'Open de grafiek waarin je de energie per maand van verschillende jaren vergelijkt.',
-      'Kies exporteren als CSV. Het bestand heet ongeveer "comparative-month-chart-data_….csv".',
-      'De lopende maand wordt overgeslagen tot hij compleet is; exporteer dus na de 1e van de maand.']),
+      'Per dag (aanbevolen): open de energiegrafiek, kies de weergave per dag en een periode (bijvoorbeeld een maand) en exporteer als CSV. Het bestand heet ongeveer "energy-chart-data_….csv". Vandaag wordt overgeslagen tot de dag compleet is.',
+      'Per maand: open de grafiek waarin je de energie per maand van verschillende jaren vergelijkt en exporteer als CSV ("comparative-month-chart-data_….csv"). De lopende maand wordt overgeslagen tot hij compleet is.',
+      'Je kunt beide inlezen. Dagen en maanden die er al stonden, worden bijgewerkt; niets telt dubbel.']),
     uitleg('Oude Excel', [
       'Eenmalig je oude Excel-bestand (.xlsx): dagverbruik, opmerkingen, temperaturen (blad DATA), termijnbedragen en zonne-opbrengst (blad Kosten).',
       'Excel vult alleen aan; wat er al stond uit Vattenfall, HomeWizard of SolarEdge blijft staan. Vaker inlezen telt niets dubbel.']),

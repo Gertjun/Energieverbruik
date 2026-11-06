@@ -1,5 +1,33 @@
 # Beslissingen
 
+
+## 2026-11-06 – Zonne-opbrengst per dag (versie 1.26.0)
+- **Dagwaarden in een eigen collectie `zon`** (`{ id: 'z:yyyy-mm-dd', datum, zon, imp }`), niet als veld op `dagen`.
+  Een dag in `dagen` is een meetdag: hij krijgt vaste kosten, telt mee voor "ontbrekende dagen" en de eerste dag
+  bepaalt het begin van alle overzichten. Een dag met alleen zon (bijv. een SolarEdge-export vanaf 2020) zou dat
+  allemaal verstoren. **Schema 5**, MINOR (zoals 1.6.0 en 1.22.0): niets opnieuw koppelen, wel eerst andere
+  apparaten bijwerken voordat je daar iets wijzigt.
+- **Dag gaat voor maand** (keuze Geert): per maand rekent de app met de dagen als élke dag van die maand bekend is;
+  anders met de maandwaarde (SolarEdge-maandexport, Excel, handmatig); zonder maandwaarde met de dagen die er zijn
+  (gemarkeerd "niet elke dag"). De maandwaarde wordt niet overschreven, zodat ongedaan maken eenvoudig blijft en een
+  latere maandexport gewoon werkt. Alles zit in `zonPeriode()` in model.js; Overzicht, Analyse en Historie gebruiken die.
+- **Zelf gebruikt per dag**: max(0, opbrengst − teruglevering) per dag, dan opgeteld. Iets preciezer dan per maand
+  (een dag met meer teruglevering dan opbrengst kan niet negatief tellen). Bij Geert in oktober 2026: 124,4 kWh per dag
+  tegen 124,4 per maand, dus in de praktijk gelijk. Alleen dagen waarvan ook de stroom bekend is tellen voor zelf
+  gebruikt en het percentage.
+- **Per dag/week in Analyse alleen uit dagwaarden**: een maandtotaal is niet eerlijk over dagen te verdelen.
+  Per maand/jaar telt een maandwaarde voor de hele maand mee, ook als de maand maar deels in de periode valt (zoals
+  voorheen). Zelfvoorzienendheid in Analyse is alleen per dag/week/maand/jaar (een gemiddelde per weekdag van
+  percentages zou misleidend zijn).
+- **Herkennen**: kop met Meettijd/Time en een kolom Energy, Energie, Productie of Production. Dag- of maandbestand
+  aan de eerste tijdcel ("1 okt. 2026 00:00" tegenover "okt. 2026"). Datums ook Engels ("Oct 1, 2026"), ISO en
+  dd-mm-jjjj. Kleinere stappen (uur/kwartier) worden per dag opgeteld; de kolom Verbruik wordt genegeerd (0 zonder
+  verbruiksmeter bij de omvormer).
+- **Overslaan**: vandaag en later (onvolledig). Nullen aan het begin alleen bij minstens 7 dagen (vóór de
+  installatie); één sombere dag kan echt 0 zijn. Melding bij 3 of meer dagen 0 achter elkaar.
+- **Overzicht**: bij Dag/Week een kaart "Zonnepanelen · per dag/week" (zelfde kolomgrafiek met één reeks) zodra er
+  in die dagen/weken dagwaarden zijn; anders de vergelijking per kalendermaand.
+
 ## 2026-11-05 – Weergave Zwart voor OLED (versie 1.25.0)
 - **Vierde keuze naast Automatisch/Licht/Donker**, geen apart thema: zo werkt Zwart met elk kleurthema.
   `data-modus="zwart"` zet color-scheme op dark (alle donkere kleuren) en overschrijft daarna alleen de vlakken.

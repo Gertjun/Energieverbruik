@@ -9,9 +9,10 @@ import { monthKey, yearKey, isoWeekKey, eachDay, maandStart, maandEinde } from '
 // en op dagen `gecontroleerd` (afgevinkte controlemelding).
 // Schema 3 (versie 1.6.0): collectie `analyses` (bewaarde favorieten van het scherm Analyse).
 // Schema 4 (versie 1.22.0): collectie `uitgesloten` (perioden die Analyse buiten beschouwing laat).
-export const SCHEMA = 4;
+// Schema 5 (versie 1.26.0): collectie `zon` (zonne-opbrengst per dag uit een SolarEdge-dagexport).
+export const SCHEMA = 5;
 const TOMBSTONE_DAYS = 180;
-const COLLECTIES = ['dagen', 'weer', 'maanden', 'contracten', 'importen', 'analyses', 'uitgesloten'];
+const COLLECTIES = ['dagen', 'weer', 'maanden', 'contracten', 'importen', 'analyses', 'uitgesloten', 'zon'];
 
 export const STANDAARD_INSTELLINGEN = { plaats: 'Eindhoven', lat: 51.44, lon: 5.48, updatedAt: 0 };
 
@@ -19,7 +20,7 @@ export function initialData() {
   const now = Date.now();
   return {
     schema: SCHEMA,
-    dagen: [], weer: [], maanden: [], importen: [], analyses: [], uitgesloten: [],
+    dagen: [], weer: [], maanden: [], importen: [], analyses: [], uitgesloten: [], zon: [],
     contracten: standaardContracten().map((c) => ({ id: crypto.randomUUID(), createdAt: now, updatedAt: now, ...c })),
     instellingen: { ...STANDAARD_INSTELLINGEN },
   };
@@ -28,7 +29,7 @@ export function initialData() {
 export function migrate(data) {
   for (const k of COLLECTIES) data[k] = purgeTombstones(data[k] ?? [], TOMBSTONE_DAYS);
   data.instellingen ??= { ...STANDAARD_INSTELLINGEN };
-  // Schema 1 → 2, 2 → 3 en 3 → 4: alleen een lege collectie erbij; bestaande gegevens blijven gelijk.
+  // Schema 1 → 2 … 4 → 5: alleen een lege collectie erbij; bestaande gegevens blijven gelijk.
   data.schema = Math.max(data.schema ?? SCHEMA, SCHEMA);
   return data;
 }
@@ -45,6 +46,7 @@ export function merge(local, remote) {
 export const dagId = (datum) => `d:${datum}`;
 export const weerId = (datum) => `w:${datum}`;
 export const maandId = (maand) => `m:${maand}`;
+export const zonId = (datum) => `z:${datum}`;
 
 /** Record toevoegen of bijwerken (muteert de lijst). */
 export function upsert(list, id, velden) {
@@ -70,6 +72,9 @@ export function afgeleid(data) {
   const uitgesloten = alive(data.uitgesloten || []).filter((u) => u.van && u.tot).sort((x, y) => (x.van < y.van ? -1 : 1));
   const weer = new Map(alive(data.weer).map((w) => [w.datum, w]));
   const maanden = new Map(alive(data.maanden).map((m) => [m.maand, m]));
+  // Zonne-opbrengst per dag (SolarEdge-dagexport). Staat los van `dagen`, zodat een dag met alleen
+  // zon geen meetdag wordt (geen vaste kosten, geen "ontbrekende" stroom, geen verschoven begindatum).
+  const zonDag = new Map(alive(data.zon || []).filter((z) => z.zon != null).map((z) => [z.datum, z.zon]));
   const profielen = maakProfielen(dagen);
   const perDag = new Map();
   for (const d of dagen) {
@@ -77,10 +82,10 @@ export function afgeleid(data) {
     const gd = w ? graaddag(d.datum, w.tgem) : null;
     // m³ per graaddag zoals in de Excel: alleen als er gas én een graaddag boven 0 is.
     const gasPerGd = d.gas != null && gd > 0 ? d.gas / gd : null;
-    perDag.set(d.datum, { dag: d, weer: w, graaddag: gd, gasPerGd, kosten: kostenDag(d, contractOp(contracten, d.datum), profielen) });
+    perDag.set(d.datum, { dag: d, weer: w, graaddag: gd, gasPerGd, zon: zonDag.get(d.datum) ?? null, kosten: kostenDag(d, contractOp(contracten, d.datum), profielen) });
   }
   cache = {
-    data, dagen, contracten, weer, maanden, profielen, perDag, uitgesloten,
+    data, dagen, contracten, weer, maanden, zonDag, profielen, perDag, uitgesloten,
     eerste: dagen[0]?.datum || null, laatste: dagen[dagen.length - 1]?.datum || null,
   };
   return cache;
@@ -124,13 +129,72 @@ export function ontbrekendeDagen(a) {
   return out;
 }
 
-/** Zelfvoorzienendheid per maand (alleen als de zonopbrengst is ingevuld). */
-export function zonMaand(a, maand) {
-  const m = a.maanden.get(maand);
-  if (!m || m.zon == null) return null;
-  const t = totaal(a, maandStart(maand), maandEinde(maand));
-  if (!t.dagenAfname) return null;
-  const eigen = Math.max(0, m.zon - t.terug);
-  const verbruik = t.afname + eigen;
-  return { zon: m.zon, eigen, verbruik, aandeel: verbruik > 0 ? eigen / verbruik : 0 };
+/**
+ * Zonnecijfers over de dagen van `van` t/m `tot`: opbrengst, zelf gebruikt, totaal verbruik en aandeel.
+ *
+ * Per maand binnen de periode:
+ * - Heeft elke dag een opbrengst uit de SolarEdge-dagexport, dan tellen de dagen (die zijn preciezer):
+ *   zelf gebruikt = per dag max(0, opbrengst − teruglevering), opgeteld.
+ * - Anders de maandwaarde (SolarEdge-maandexport, Excel of handmatig), mits de hele maand in de periode
+ *   valt (of `heleMaanden`: dan telt een maand die gedeeltelijk in de periode valt helemaal mee, zoals
+ *   Analyse dat bij een indeling per maand/jaar doet). Zelf gebruikt = max(0, opbrengst − teruglevering).
+ * - Anders de dagen die er zijn (bijv. de lopende maand); dan is de maand onvolledig.
+ * Zelf gebruikt en het aandeel tellen alleen over dagen waarvan ook de stroom bekend is.
+ * Geeft null als er in de periode geen opbrengst bekend is.
+ */
+export function zonPeriode(a, van, tot, { heleMaanden = false } = {}) {
+  let zon = 0; let eigen = 0; let afname = 0; let n = 0;
+  let metZon = false; let metStroom = false; let onvolledig = false; let gemist = false; let perDag = false; let perMaand = false;
+  for (let mk = monthKey(van); mk <= monthKey(tot); mk = volgendeMaand(mk)) {
+    const ms = maandStart(mk); const me = maandEinde(mk);
+    const sv = ms < van ? van : ms; const st = me > tot ? tot : me;
+    const segDagen = [...eachDay(sv, st)];
+    const metDag = segDagen.filter((d) => a.zonDag.has(d));
+    const m = a.maanden.get(mk);
+    const heel = sv === ms && st === me;
+    const dagenCompleet = metDag.length === segDagen.length;
+    if (m?.zon != null && !(heel && dagenCompleet) && (heel || (heleMaanden && !metDag.length))) {
+      // Maandwaarde: zelf gebruikt over de hele maand.
+      const t = totaal(a, ms, me);
+      zon += m.zon; metZon = true; perMaand = true; n += dagenVanMaand(mk);
+      if (t.dagenAfname) { eigen += Math.max(0, m.zon - t.terug); afname += t.afname; metStroom = true; }
+      continue;
+    }
+    if (!metDag.length) { gemist = true; continue; }
+    perDag = true; metZon = true;
+    if (!dagenCompleet) onvolledig = true;
+    for (const d of metDag) {
+      const z = a.zonDag.get(d);
+      zon += z; n++;
+      const dag = a.perDag.get(d)?.dag;
+      if (dag?.afname != null) { eigen += Math.max(0, z - (dag.terug || 0)); afname += dag.afname; metStroom = true; }
+    }
+  }
+  if (!metZon) return null;
+  const verbruik = metStroom ? afname + eigen : null;
+  return {
+    zon, n, onvolledig: onvolledig || gemist, bron: perDag && perMaand ? 'beide' : perDag ? 'dag' : 'maand',
+    eigen: metStroom ? eigen : null, verbruik,
+    aandeel: metStroom && verbruik > 0 ? eigen / verbruik : metStroom ? 0 : null,
+  };
 }
+
+/** Zelfvoorzienendheid per maand (alleen als er een opbrengst is). */
+export function zonMaand(a, maand) {
+  const z = zonPeriode(a, maandStart(maand), maandEinde(maand));
+  if (!z || z.eigen == null) return null;
+  return { zon: z.zon, eigen: z.eigen, verbruik: z.verbruik, aandeel: z.aandeel, onvolledig: z.onvolledig, bron: z.bron };
+}
+
+/** Maanden ('yyyy-mm', oplopend) waarvoor een zonne-opbrengst bekend is (per maand of per dag). */
+export function maandenMetZon(a) {
+  const s = new Set([...a.maanden.values()].filter((m) => m.zon != null && !m.deleted).map((m) => m.maand));
+  for (const d of a.zonDag.keys()) s.add(d.slice(0, 7));
+  return [...s].sort();
+}
+
+function volgendeMaand(mk) {
+  const [y, m] = mk.split('-').map(Number);
+  return m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
+}
+const dagenVanMaand = (mk) => Number(maandEinde(mk).slice(8));

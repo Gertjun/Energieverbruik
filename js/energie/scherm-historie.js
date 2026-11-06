@@ -99,6 +99,11 @@ function bewerkDag(datum, x, ctx, staat, opnieuw, meldingen = []) {
   const info = [];
   if (x?.weer) info.push(`Temperatuur ${fmtGetal(x.weer.tgem, 1)} °C (min ${fmtGetal(x.weer.tmin, 1)}, max ${fmtGetal(x.weer.tmax, 1)}), graaddag ${fmtGetal(x.graaddag, 1)}${x.gasPerGd != null ? `, gas per graaddag ${fmtGetal(x.gasPerGd, 3)} m³` : ''}`);
   if (x?.kosten.contract) info.push(`Kosten: stroom ${euro(x.kosten.stroom)}, teruglevering ${euro(x.kosten.terug)}, gas ${euro(x.kosten.gas)}, vast ${euro(x.kosten.vast)}`);
+  if (x?.zon != null) {
+    const eigen = d.afname != null ? Math.max(0, x.zon - (d.terug || 0)) : null;
+    const tot = eigen != null ? d.afname + eigen : 0;
+    info.push(`Zonne-opbrengst ${fmtGetal(x.zon, 1)} kWh (SolarEdge)${eigen != null ? `, zelf gebruikt ${fmtGetal(eigen, 1)} kWh, zelfvoorzienend ${tot > 0 ? fmtGetal((eigen / tot) * 100, 0) : 0}%` : ''}`);
+  }
   if (d.piek) info.push(`Piekvermogen (hoogste kwartier): L1 ${fmtGetal(d.piek.f[0], 0)} W, L2 ${fmtGetal(d.piek.f[1], 0)} W, L3 ${fmtGetal(d.piek.f[2], 0)} W; hoogste fase om ${d.piek.t}`);
   const bronnen = [];
   if (d.afname != null) bronnen.push(`stroom ${bronNaam(d.bron)}${d.uurAfname ? ' (met uurverdeling)' : ''}`);

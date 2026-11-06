@@ -13,7 +13,7 @@ import { kaart, veld, fmtGetal, fmtKwh, fmtM3, fmtPct, leesGetal } from './ui.js
 const SOORT_NAAM = {
   'vattenfall-stroom': 'Vattenfall stroom', 'vattenfall-gas': 'Vattenfall gas',
   'homewizard-stroom': 'HomeWizard stroom', 'homewizard-gas': 'HomeWizard gas', excel: 'Excel',
-  solaredge: 'SolarEdge opbrengst',
+  solaredge: 'SolarEdge opbrengst per maand', 'solaredge-dag': 'SolarEdge opbrengst per dag',
 };
 const fmtMaat = (maat, v, d) => (maat === 'gas' ? fmtM3(v, d ?? 2) : fmtKwh(v, d ?? 1));
 /** Dag ('yyyy-mm-dd') of maand ('yyyy-mm') leesbaar, met jaartal. */
@@ -250,10 +250,11 @@ function importenKaart(importen, staat, opnieuw, ctx) {
 export function importRapport(imp, staat, opnieuw, ctx, { metLink = false } = {}) {
   const r = imp.rapport || {};
   const tal = (n, enkel, meer) => `${fmtGetal(n, 0)} ${n === 1 ? enkel : meer}`;
-  const zon = imp.soort === 'solaredge';
-  const eenh = zon ? ['maand', 'maanden'] : ['dag', 'dagen'];
+  const zon = imp.soort.startsWith('solaredge');
+  const zonMaand = imp.soort === 'solaredge';
+  const eenh = zonMaand ? ['maand', 'maanden'] : ['dag', 'dagen'];
   const getallen = [
-    ['In bestand', zon ? tal(r.maandenInBestand || 0, ...eenh) : r.dagenInBestand != null ? tal(r.dagenInBestand, 'dag', 'dagen') : '–'],
+    ['In bestand', zonMaand ? tal(r.maandenInBestand || 0, ...eenh) : r.dagenInBestand != null ? tal(r.dagenInBestand, 'dag', 'dagen') : '–'],
     ['Nieuw', tal(r.nieuw || 0, ...eenh)],
     ['Bijgewerkt', tal(r.gewijzigd || 0, ...eenh)],
     ['Al gelijk', tal(r.gelijk || 0, ...eenh)],
@@ -312,16 +313,17 @@ export function importRapport(imp, staat, opnieuw, ctx, { metLink = false } = {}
         `${tal(o.vergeleken, 'waarde', 'waarden')} vergeleken met wat er al stond: `,
         aantal ? `${aantal} wijk${aantal === 1 ? 't' : 'en'} af.` : 'alles komt overeen.'),
       aantal ? h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel' },
-        h('thead', {}, h('tr', {}, h('th', {}, zon ? 'Maand' : 'Dag'), zon ? null : h('th', {}, ''),
+        h('thead', {}, h('tr', {}, h('th', {}, zonMaand ? 'Maand' : zon ? 'Dag/maand' : 'Dag'), zon ? null : h('th', {}, ''),
           h('th', { class: 'num' }, zon ? 'Eerder (kWh)' : 'Eerder'), h('th', { class: 'num' }, zon ? 'SolarEdge' : 'Dit bestand'))),
         h('tbody', {}, o.afwijkend.slice(0, staat.alleAfwijkend === imp.id ? 50 : 8).map((x) => h('tr', {},
           h('td', {}, x.datum.length === 7 ? jaarErbij(x.datum) : dagKnop(staat, opnieuw, x.datum, fmtDatumKort(x.datum))),
           zon ? null : h('td', {}, MAAT_NAAM[x.maat].toLowerCase()),
-          h('td', { class: 'num' }, `${behouden(x) ? '✓ ' : ''}${fmtGetal(x.oud, zon ? 0 : 2)}${x.bron ? ` (${bronNaam(x.bron)})` : ''}`),
-          h('td', { class: 'num' }, `${behouden(x) ? '' : '✓ '}${fmtGetal(x.nieuw, zon ? 0 : 2)}`)))))) : null,
+          h('td', { class: 'num' }, `${behouden(x) ? '✓ ' : ''}${fmtGetal(x.oud, zonMaand ? 0 : zon ? 1 : 2)}${x.bron ? ` (${bronNaam(x.bron)})` : ''}`),
+          h('td', { class: 'num' }, `${behouden(x) ? '' : '✓ '}${fmtGetal(x.nieuw, zonMaand ? 0 : zon ? 1 : 2)}`)))))) : null,
       aantal > 8 && staat.alleAfwijkend !== imp.id
         ? h('button', { type: 'button', class: 'btn btn-ghost btn-small', onClick: () => { staat.alleAfwijkend = imp.id; staat.openImport = imp.id; opnieuw(); } }, `Toon ${Math.min(aantal, 50)} verschillen`) : null,
-      aantal && zon ? h('p', { class: 'hint' }, '✓ = de waarde die is aangehouden. SolarEdge gaat voor; eerder ingevulde waarden (Excel of handmatig) zijn vervangen.') : null,
+      aantal && zonMaand ? h('p', { class: 'hint' }, '✓ = de waarde die is aangehouden. SolarEdge gaat voor; eerder ingevulde waarden (Excel of handmatig) zijn vervangen.') : null,
+      aantal && zon && !zonMaand ? h('p', { class: 'hint' }, 'Bij een dag: ✓ = de nieuwe waarde uit dit bestand. Bij een maand: het totaal van de dagen naast de maandwaarde die er al stond. De maandwaarde blijft bewaard, maar de app rekent met de dagen zolang de hele maand per dag bekend is.') : null,
       aantal && !zon ? h('p', { class: 'hint' }, `✓ = de waarde die is aangehouden.${ietsBehouden ? ' Waar de eerdere waarde bleef staan, kwam die uit een betere bron (Vattenfall gaat voor HomeWizard, HomeWizard voor Excel). Klopt het bestand toch beter, pas de dag dan aan in Historie.' : ''}`) : null);
   }
 

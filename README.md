@@ -12,7 +12,8 @@ Vervangt het Excel-bestand *Gasverbruik.xlsx*. Gebouwd op de eigen PWA-template.
 - **Invoer** via de CSV-download van Mijn Vattenfall (stroom per kwartier, gas per uur, of per dag) of de
   CSV-export van de HomeWizard Energy-app (P1-meter, per kwartier). Vattenfall gaat voor.
   Handmatig een dag invullen of een opmerking toevoegen kan ook.
-- **Zonne-opbrengst** per maand uit de SolarEdge-export (monitoringportaal, CSV met alle maanden), of handmatig.
+- **Zonne-opbrengst** per dag of per maand uit een SolarEdge-export (monitoringportaal, CSV), of per maand handmatig.
+  Met dagwaarden ook zelfvoorzienendheid per dag en week.
 - **Eenmalige import** van het oude Excel-bestand (dagverbruik, opmerkingen, temperaturen, termijnbedragen, zonne-opbrengst).
 - **Kosten per dag** volgens het Vattenfall-contract met 6 tijdvakken, inclusief vaste kosten,
   energiebelasting, saldering tot 1-1-2027 en de terugleverregeling daarna. Tarieven zijn per contract
@@ -47,7 +48,7 @@ js/energie/model.js           Datamodel, samenvoegen, totalen per periode
 js/energie/tarief.js          Tijdvakken, contracten, kosten, graaddagen
 js/energie/import-homewizard.js  HomeWizard CSV → verbruik per uur en per dag
 js/energie/import-vattenfall.js  Vattenfall CSV (kwartier/uur/dag) → zelfde omrekening
-js/energie/import-solaredge.js SolarEdge CSV (opbrengst per maand)
+js/energie/import-solaredge.js SolarEdge CSV (opbrengst per dag of per maand)
 js/energie/import-excel.js    Oude Excel inlezen (via xlsx.js, zonder library)
 js/energie/importeren.js      Imports in de kluis zetten, importlogboek, ongedaan maken
 js/energie/controle.js        Controles: verdachte waarden, ontbrekende dagen, steekproef
