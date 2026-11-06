@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.29.0
+
+**Toegevoegd**
+- **Opvallende dagen** (Analyse → Verbruik en patronen): dagen die flink afwijken van wat je mocht verwachten, hoger én lager.
+  - *Stroom, zonder grote verbruikers* (standaard): uren met meer dan 2 kWh afname (zoals de auto laden) tellen niet mee, zodat je ziet of er iets anders aan stond of juist uit. Ook te kiezen: *Stroom, alles*.
+  - Stroom wordt vergeleken met dezelfde weekdag in de 8 weken ervoor; een vaste gewoonte valt dus niet op.
+  - *Gas*: vergeleken met wat je stooklijn bij de temperatuur van die dag voorspelt.
+  - Gevoeligheid laag/normaal/hoog, en alleen hoger, alleen lager of beide. Een opmerking die je in Historie bij een dag zet, staat in de lijst.
+
+**Gewijzigd**
+- De tegels van **Wat wil je analyseren?** staan nu in groepen (Verbruik en patronen, Kosten en tarieven, Gas en verwarming, Zonnepanelen, Wat als…, Vergelijken en CO₂).
+
 ## 1.28.2
 
 **Verbeterd**

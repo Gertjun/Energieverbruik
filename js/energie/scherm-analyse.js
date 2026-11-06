@@ -9,7 +9,7 @@ import { staafGrafiek } from './grafiek.js';
 import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, kanPerDag, zonderUitgesloten, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief, AANSLUITING, GRENS_FASE, verschilKleur } from './analyse.js';
 import { daysBetween, fmtDatumKort } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
-import { SOORTEN, SOORT_STANDAARD } from './analyse-soorten.js';
+import { SOORTEN, SOORT_STANDAARD, GROEPEN } from './analyse-soorten.js';
 
 const VERGELIJK = [
   ['geen', 'Niets'], ['vorigjaar', 'Dezelfde periode vorig jaar'], ['periode', 'Een andere periode'], ['maat', 'Een tweede grootheid'],
@@ -69,11 +69,17 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
   // Eerste keuze, daarom een eigen kaart met tegels bovenaan in plaats van een keuzelijst.
   const soortKaart = h('section', { class: 'card kaart soort-kaart' },
     h('h2', { class: 'kaart-titel' }, 'Wat wil je analyseren?'),
-    h('div', { class: 'soort-tegels', role: 'radiogroup', 'aria-label': 'Soort analyse' },
-      SOORTEN.map((x) => h('button', {
-        type: 'button', class: 'soort-tegel', role: 'radio', 'aria-checked': x.key === soort.key ? 'true' : 'false',
-        onClick: () => { if (x.key !== soort.key) wijzig({ soort: x.key }); },
-      }, h('strong', {}, x.kort || x.naam), h('span', {}, x.uitleg || '')))));
+    h('div', { class: 'soort-groepen', role: 'radiogroup', 'aria-label': 'Soort analyse' },
+      GROEPEN.map(([g, gNaam]) => {
+        const inGroep = SOORTEN.filter((x) => (x.groep || 'zelf') === g);
+        if (!inGroep.length) return null;
+        return h('div', { class: 'soort-groep' },
+          g === 'zelf' ? null : h('h3', { class: 'soort-groep-titel' }, gNaam),
+          h('div', { class: 'soort-tegels' }, inGroep.map((x) => h('button', {
+            type: 'button', class: 'soort-tegel', role: 'radio', 'aria-checked': x.key === soort.key ? 'true' : 'false',
+            onClick: () => { if (x.key !== soort.key) wijzig({ soort: x.key }); },
+          }, h('strong', {}, x.kort || x.naam), h('span', {}, x.uitleg || '')))));
+      })));
   const periodeKeus = soort.geenPeriode ? null : h('div', { class: 'field' }, h('span', {}, 'Periode'),
     h('div', { class: 'snelknoppen' }, SNEL.map(([k, t]) => h('button', {
       type: 'button', class: 'btn btn-small', 'aria-pressed': c.preset === k ? 'true' : 'false',

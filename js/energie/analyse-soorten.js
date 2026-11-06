@@ -8,9 +8,10 @@ import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks, stooklijn,
 import { fmtDatumKort, addDays, fmtMaand, fmtMaandKort, daysBetween } from './tijd.js';
 import { totaal } from './model.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
+import { WATALS_SOORTEN, WATALS_STANDAARD } from './analyse-watals-soorten.js';
 
 /** Standaardwaarden van de keuzes van alle soorten (worden onderdeel van een favoriet). */
-export const SOORT_STANDAARD = { hmMaat: 'afname', wgRef: 'vorigjaar', wgVan: '', wgTot: '', cuMaat: 'gas', cuJaren: '2', topMaat: 'afname', topIndeling: 'dag' };
+export const SOORT_STANDAARD = { hmMaat: 'afname', wgRef: 'vorigjaar', wgVan: '', wgTot: '', cuMaat: 'gas', cuJaren: '2', topMaat: 'afname', topIndeling: 'dag', ...WATALS_STANDAARD };
 
 const periodeTekst = (van, tot) => `${fmtDatumKort(van)} ${van.slice(0, 4)} – ${fmtDatumKort(tot)} ${tot.slice(0, 4)}`;
 const keuze = (waarde, opties, onChange) => h('select', { onChange: (e) => onChange(e.target.value) },
@@ -21,7 +22,7 @@ const keuze = (waarde, opties, onChange) => h('select', { onChange: (e) => onCha
 const HM_MATEN = [['afname', 'Stroom afgenomen'], ['terug', 'Stroom teruggeleverd'], ['netto', 'Stroom netto (afname − terug)'], ['gas', 'Gas']];
 
 const heatmapSoort = {
-  key: 'heatmap',
+  key: 'heatmap', groep: 'patronen',
   kort: 'Heatmap',
   uitleg: 'Wanneer op de dag je stroom of gas gebruikt',
   naam: 'Heatmap: uur van de dag × datum',
@@ -57,7 +58,7 @@ const plus = (v) => (v == null ? '–' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${e
 const tarief = (v) => `€ ${fmtGetal(v, 3)}`;
 
 const salderingSoort = {
-  key: 'saldering',
+  key: 'saldering', groep: 'watals',
   kort: 'Einde saldering',
   uitleg: 'Wat 2027 je gaat kosten',
   naam: 'Wat als de saldering stopt (2027)',
@@ -106,7 +107,7 @@ const salderingSoort = {
 // ---------- Eigen verbruik: zonuren ----------
 
 const zonurenSoort = {
-  key: 'zonuren',
+  key: 'zonuren', groep: 'zon',
   kort: 'Eigen verbruik',
   uitleg: 'Verbruik naar de zonuren verschuiven',
   naam: 'Eigen verbruik: afname in de zonuren',
@@ -158,7 +159,7 @@ const m3 = (v, d = 2) => `${fmtGetal(v, d)} m³`;
 const graden = (v) => `${fmtGetal(v, 1)} °C`;
 
 const stooklijnSoort = {
-  key: 'stooklijn',
+  key: 'stooklijn', groep: 'gas',
   kort: 'Stooklijn',
   uitleg: 'Gas tegen de buitentemperatuur',
   naam: 'Stooklijn: gas tegen buitentemperatuur',
@@ -193,7 +194,7 @@ const stooklijnSoort = {
 // ---------- Weer-gecorrigeerd vergelijken ----------
 
 const weerSoort = {
-  key: 'weergas',
+  key: 'weergas', groep: 'gas',
   kort: 'Gas weer-gecorrigeerd',
   uitleg: 'Zuiniger gestookt, los van het weer?',
   naam: 'Gas weer-gecorrigeerd vergelijken',
@@ -264,7 +265,7 @@ const CU_MATEN = [
 ];
 
 const cumulatiefSoort = {
-  key: 'cumulatief',
+  key: 'cumulatief', groep: 'patronen',
   kort: 'Opgeteld per jaar',
   uitleg: 'Dit jaar naast vorig jaar',
   naam: 'Opgeteld verloop door het jaar',
@@ -326,7 +327,7 @@ const cumulatiefSoort = {
 // ---------- Jaarprognose ----------
 
 const prognoseSoort = {
-  key: 'prognose',
+  key: 'prognose', groep: 'kosten',
   kort: 'Jaarprognose',
   uitleg: 'Verwachte kosten en eindafrekening',
   naam: 'Jaarprognose tot 31 december',
@@ -397,7 +398,7 @@ function balk(pct) {
 }
 
 const topSoort = {
-  key: 'top',
+  key: 'top', groep: 'patronen',
   kort: 'Top-10',
   uitleg: 'Hoogste en laagste dagen of maanden',
   naam: 'Top-10: hoogste en laagste',
@@ -433,15 +434,22 @@ const topSoort = {
   },
 };
 
-/** Alle soorten, in de volgorde van de keuzelijst. "Zelf samenstellen" wordt in scherm-analyse.js getekend. */
+/** Groepen waarin de tegels op het scherm staan, in deze volgorde. */
+export const GROEPEN = [
+  ['zelf', 'Zelf samenstellen'], ['patronen', 'Verbruik en patronen'], ['kosten', 'Kosten en tarieven'],
+  ['gas', 'Gas en verwarming'], ['zon', 'Zonnepanelen'], ['watals', 'Wat als…'], ['vergelijken', 'Vergelijken en CO₂'],
+];
+
+/** Alle soorten. "Zelf samenstellen" wordt in scherm-analyse.js getekend. Volgorde binnen een groep = volgorde hier. */
 export const SOORTEN = [
-  { key: 'samenstellen', naam: 'Zelf samenstellen', kort: 'Zelf samenstellen', uitleg: 'Eigen grafiek en tabel, vrij te kiezen' },
+  { key: 'samenstellen', groep: 'zelf', naam: 'Zelf samenstellen', kort: 'Zelf samenstellen', uitleg: 'Eigen grafiek en tabel, vrij te kiezen' },
   heatmapSoort,
-  salderingSoort,
-  zonurenSoort,
-  stooklijnSoort,
-  weerSoort,
+  topSoort,
   cumulatiefSoort,
   prognoseSoort,
-  topSoort,
+  stooklijnSoort,
+  weerSoort,
+  zonurenSoort,
+  salderingSoort,
+  ...WATALS_SOORTEN,
 ];

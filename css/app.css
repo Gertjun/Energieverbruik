@@ -365,6 +365,9 @@ input[type="month"] {
 .top-balk { height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
 .top-balk i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
 .top-waarde { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.balk-lijst li { grid-template-columns: minmax(0, 11em) 1fr auto; }
+.balk-lijst li::before { content: none; }
+.balk-lijst .top-waarde small { color: var(--muted); margin-left: 6px; }
 /* Uitgesloten perioden (Analyse) */
 .uitsluiten { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 4px; }
 .check-regel { display: flex; align-items: center; gap: 8px; min-height: var(--tap); font-size: 0.9rem; }
@@ -385,6 +388,10 @@ input[type="month"] {
 .soort-tegel[aria-checked="true"] { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border-color: var(--accent); }
 .soort-tegel[aria-checked="true"] strong { color: var(--accent); }
 .soort-tegel:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.soort-groepen { display: grid; gap: 14px; }
+.soort-groep-titel { margin: 0 0 6px; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--muted); }
+/* Resultaat dat nog wordt opgehaald (instraling, beursprijzen): de kaarten erin gedragen zich als losse kaarten. */
+.analyse-laad { display: contents; }
 
 /* ---------- Kleurthema's (Instellingen → App en sync → Weergave) ----------
    Het thema staat als data-thema op <html> (js/thema.js). Elk thema zet de accentkleur (licht, donker) en
