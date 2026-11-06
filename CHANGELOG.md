@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.35.0
+
+**Toegevoegd**
+- **Warmtepomp** (Analyse → Wat als…): wat een hybride of volledig elektrische warmtepomp met jouw gasverbruik had gedaan: minder gas, extra stroom, besparing per jaar en terugverdientijd. Rekent per dag met de buitentemperatuur; keuze tussen gewone radiatoren en vloerverwarming, vermogen en aanschafprijs zijn in te vullen.
+
 ## 1.34.0
 
 **Toegevoegd**
