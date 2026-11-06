@@ -18,7 +18,7 @@ Vervangt het Excel-bestand *Gasverbruik.xlsx*. Gebouwd op de eigen PWA-template.
 - **Kosten per dag** volgens het Vattenfall-contract met 6 tijdvakken, inclusief vaste kosten,
   energiebelasting, saldering tot 1-1-2027 en de terugleverregeling daarna. Tarieven zijn per contract
   met geldigheidsperiode in te stellen.
-- **Overzicht**: kerncijfers en grafieken per dag, week, maand en jaar, steeds vergeleken met vorig jaar;
+- **Overzicht**: kerncijfers en grafieken per dag, week, maand en jaar, steeds vergeleken met vorig jaar, met pijltjes om terug in de tijd te bladeren;
   gas per graaddag; zelfvoorzienendheid van de zonnepanelen; termijnbedragen tegenover de werkelijke kosten.
   Op de laptop kies je rechtsboven de indeling: één kolom, naast elkaar, grafiek en lijst, of alles tegelijk.
 - **Historie**: tabel per dag, per maand te bladeren, met ontbrekende dagen gemarkeerd.

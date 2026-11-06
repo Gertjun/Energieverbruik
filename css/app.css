@@ -194,6 +194,9 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .maand-nav .icon-btn { font-size: 1.6rem; color: var(--accent); }
 .maand-nav .icon-btn:disabled { color: var(--border); }
 .maand-nav .kaart-titel { text-transform: capitalize; }
+/* Overzicht: zelfde pijltjes, titel in het midden met eventueel "Naar nu" eronder */
+.tijd-nav .kaart-titel { text-transform: none; }
+.tijd-midden { display: grid; justify-items: center; gap: 2px; text-align: center; min-width: 0; }
 .maand-som { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.85rem; color: var(--muted); }
 
 /* ---------- Formulieren ---------- */

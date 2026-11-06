@@ -6,7 +6,7 @@ import { totaal, zonPeriode, maandenMetZon, ontbrekendeDagen } from './model.js'
 import { staafGrafiek, zonGrafiek } from './grafiek.js';
 import {
   addDays, mondayOf, sameDayLastYear, monthKey, maandStart, maandEinde, maandPlus,
-  fmtDatumKort, fmtMaand, fmtMaandKort, isoWeekKey, daysBetween,
+  fmtDatumKort, fmtMaand, fmtMaandKort, isoWeekKey, daysBetween, fmtDag,
 } from './tijd.js';
 import { kpi, kaart, segmented, fmtKwh, fmtM3, euro, fmtGetal, fmtPct } from './ui.js';
 
@@ -52,14 +52,67 @@ function perioden(soort, eind) {
   return out;
 }
 
-/** Huidige periode t/m de laatste dag met gegevens, en dezelfde dagen een jaar eerder. */
-function huidigePeriode(soort, laatste) {
-  let van;
-  if (soort === 'dag') van = laatste;
-  else if (soort === 'week') van = mondayOf(laatste);
-  else if (soort === 'maand') van = maandStart(monthKey(laatste));
-  else van = `${laatste.slice(0, 4)}-01-01`;
-  return { van, tot: laatste, vorigVan: sameDayLastYear(van), vorigTot: sameDayLastYear(laatste) };
+/** Gekozen periode (met de pijltjes), t/m de laatste dag met gegevens, en dezelfde dagen een jaar eerder. */
+function huidigePeriode(soort, eind, laatste) {
+  const { van, tot } = periodeVan(soort, eind);
+  const t = tot < laatste ? tot : laatste;
+  return { van, tot: t, vorigVan: sameDayLastYear(van), vorigTot: sameDayLastYear(t) };
+}
+
+/** Eerste en laatste dag van de dag/week/maand/jaar waar `iso` in valt. */
+function periodeVan(soort, iso) {
+  if (soort === 'dag') return { van: iso, tot: iso };
+  if (soort === 'week') { const van = mondayOf(iso); return { van, tot: addDays(van, 6) }; }
+  if (soort === 'maand') return { van: maandStart(monthKey(iso)), tot: maandEinde(monthKey(iso)) };
+  return { van: `${iso.slice(0, 4)}-01-01`, tot: `${iso.slice(0, 4)}-12-31` };
+}
+
+/** Eén dag/week/maand/jaar verder (stap +1) of terug (stap -1); geeft de laatste dag van die periode. */
+function verschuif(soort, iso, stap) {
+  if (soort === 'dag') return addDays(iso, stap);
+  if (soort === 'week') return addDays(periodeVan('week', iso).tot, 7 * stap);
+  if (soort === 'maand') return maandEinde(maandPlus(monthKey(iso), stap));
+  return `${Number(iso.slice(0, 4)) + stap}-12-31`;
+}
+
+/** Eindpunt van het Overzicht: de met de pijltjes gekozen dag, of anders de laatste dag met gegevens. */
+function eindDatum(a, staat) {
+  const e = staat.eind;
+  // Valt de gekozen dag in de lopende periode, dan gewoon de laatste dag (zoals zonder pijltjes).
+  if (!e || periodeVan(staat.periode, e).tot >= a.laatste) return a.laatste;
+  return e < a.eerste ? a.eerste : e;
+}
+
+const hoofdletter = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+
+/** Titel van de gekozen periode als die niet de lopende is (bijv. "Week 44 · 27 okt t/m 2 nov 2025"). */
+function periodeTitel(soort, van, tot) {
+  const jaar = tot.slice(0, 4);
+  if (soort === 'dag') return `${hoofdletter(fmtDag(van))} ${jaar}`;
+  if (soort === 'week') return `Week ${Number(isoWeekKey(van).slice(6))} · ${fmtDatumKort(van)} t/m ${fmtDatumKort(tot)} ${jaar}`;
+  if (soort === 'maand') return hoofdletter(fmtMaand(monthKey(van)));
+  return jaar;
+}
+
+/** Kop met pijltjes om terug en vooruit in de tijd te gaan (zoals de maandkeuze in Historie),
+ *  en "Naar nu" om terug te springen naar de laatste gegevens. */
+function tijdNavigatie(a, staat, eind, titel, opnieuw) {
+  const soort = staat.periode;
+  const kanTerug = periodeVan(soort, eind).van > a.eerste;
+  const kanVooruit = eind < a.laatste;
+  const ga = (stap) => {
+    const nieuw = verschuif(soort, eind, stap);
+    staat.eind = nieuw >= a.laatste ? null : nieuw;
+    opnieuw();
+  };
+  const vorige = soort === 'jaar' ? 'Vorig jaar' : `Vorige ${soort}`;
+  const volgende = soort === 'jaar' ? 'Volgend jaar' : `Volgende ${soort}`;
+  return h('div', { class: 'maand-nav tijd-nav' },
+    h('button', { class: 'icon-btn', type: 'button', 'aria-label': vorige, title: vorige, disabled: !kanTerug, onClick: () => ga(-1) }, '‹'),
+    h('div', { class: 'tijd-midden' },
+      h('h2', { class: 'kaart-titel' }, titel),
+      kanVooruit ? h('button', { class: 'link-knop', type: 'button', onClick: () => { staat.eind = null; opnieuw(); } }, 'Naar nu') : null),
+    h('button', { class: 'icon-btn', type: 'button', 'aria-label': volgende, title: volgende, disabled: !kanVooruit, onClick: () => ga(1) }, '›'));
 }
 
 // Minimaal aantal graaddagen in een periode om gas per graaddag te tonen.
@@ -215,12 +268,17 @@ export function renderOverzicht(a, staat, opnieuw) {
   const maatKeus = indeling === 'alles' ? null : segmented(MATEN, staat.maat, (v) => { staat.maat = v; opnieuw(); }, 'Wat tonen');
 
   // Kerncijfers
-  const hp = huidigePeriode(staat.periode, a.laatste);
+  const eind = eindDatum(a, staat);
+  const terugInTijd = eind < a.laatste;
+  const hp = huidigePeriode(staat.periode, eind, a.laatste);
   const nu = totaal(a, hp.van, hp.tot);
   const toen = totaal(a, hp.vorigVan, hp.vorigTot);
   const of = (t, k, maat) => (MAAT[maat].geldig(t) ? t[k] : null);
   const periodeTekst = hp.van === hp.tot ? fmtDatumKort(hp.van) : `${fmtDatumKort(hp.van)} t/m ${fmtDatumKort(hp.tot)}`;
-  const kpis = kaart(`${TITEL[staat.periode]} · ${periodeTekst}`,
+  const lopendePeriode = hp.tot === a.laatste && !terugInTijd;
+  const kpiTitel = lopendePeriode ? `${TITEL[staat.periode]} · ${periodeTekst}` : periodeTitel(staat.periode, hp.van, periodeVan(staat.periode, hp.van).tot);
+  const kpis = kaart(null,
+    tijdNavigatie(a, staat, eind, kpiTitel, opnieuw),
     h('div', { class: 'kpi-raster' },
       kpi('Stroom afgenomen', of(nu, 'afname', 'afname'), fmtKwh, of(toen, 'afname', 'afname')),
       kpi('Teruggeleverd', of(nu, 'terug', 'terug'), fmtKwh, of(toen, 'terug', 'terug'), 'hoger'),
@@ -229,7 +287,7 @@ export function renderOverzicht(a, staat, opnieuw) {
     nu.geschat ? h('p', { class: 'hint' }, 'Kosten deels geschat: voor sommige dagen is geen uurverdeling bekend.') : null);
 
   // Grafiek(en) per soort: één (gekozen met Stroom/Terug/Gas/Kosten) of alle vier bij de indeling 'alles'.
-  const lijst = perioden(staat.periode, a.laatste);
+  const lijst = perioden(staat.periode, eind);
   const labels = lijst.map((p) => p.label);
   // De laatste periode loopt meestal nog; dan is een verschil met de hele periode vorig jaar misleidend.
   const lopend = lijst.map((p) => p.tot > a.laatste);

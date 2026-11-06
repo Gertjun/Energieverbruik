@@ -261,6 +261,20 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - **Zijbalk 216 → 256 px**: anders werd "Energieverbruik" afgekapt.
 - **PATCH**: kleine verbetering, geen nieuwe functie.
 
+## 2026-11-06 – Terug in de tijd op het Overzicht (versie 1.27.0)
+- **Eén stap = één dag/week/maand/jaar** (de gekozen periode), niet een heel scherm (31 dagen, 13 weken …): zo
+  horen de kerncijfers bij één duidelijke periode en is die altijd de laatste staaf in de grafieken.
+- **Gekozen datum blijft bij wisselen van periode**: van september naar Week toont de week waarin die datum valt.
+  Valt de datum in de lopende periode, dan gedraagt het Overzicht zich als zonder pijltjes ("Deze week" t/m de
+  laatste dag met gegevens).
+- **Kerncijfers van een afgelopen periode = de hele periode**, vergeleken met dezelfde dagen vorig jaar.
+- **Grenzen**: niet verder terug dan de periode met de eerste gegevens, niet verder vooruit dan de laatste.
+- **Niet verschoven**: de kaart Termijnen (gaat over de verwachte eindafrekening, dus altijd de laatste 12 maanden)
+  en de zonnepanelen per kalendermaand (heeft eigen jaarkeuze).
+- **Niet bewaard**: na herladen staat het Overzicht weer op nu.
+- **Zelfde vormgeving als de maandkeuze in Historie** (‹ titel ›), met "Naar nu" onder de titel.
+- **MINOR**: nieuwe functie, geen schemawijziging.
+
 ## 2026-11-05 – Gas per graaddag volgt de periode (versie 1.3.1)
 - **Zelfde perioden als de hoofdgrafiek** (31 dagen, 13 weken, 12 maanden, 5 jaar), met vorig jaar ter vergelijking.
 - **Minimum graaddagen per periode**: dag 1, week 3, maand en jaar 5. In de grafiek zouden zachte dagen met een

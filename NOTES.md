@@ -164,7 +164,13 @@
   Historie (dagdetail), Analyse (zelfvoorzienendheid). Geen fouten.
 - Exacte menunaam van de dagexport in het SolarEdge-portaal is niet bekend; de uitleg zegt "de energiegrafiek per dag".
 
+## Stand (6 november 2026) – versie 1.27.0
+- Pijltjes op het Overzicht om door de tijd te bladeren (zie DECISIONS.md). Getest in Chrome op laptop- en
+  iPhone-breedte met Geerts Excel en Vattenfall-bestanden: maand/week/dag/jaar terug en vooruit, wisselen van
+  periode na terugbladeren, "Naar nu". Geen fouten.
+
 ## Openstaande punten
+- [ ] Geert: pijltjes op het Overzicht bekijken op iPhone/iPad; stap van één periode prettig, of liever een heel scherm tegelijk?
 - [ ] Geert: na het bijwerken alle apparaten eenmaal openen (gegevensversie 5, opbrengst per dag).
 - [ ] Geert: SolarEdge-export per dag inlezen voor de periode die hij wil (bijv. vanaf november 2025, gelijk met de
       HomeWizard-data); per maand of per jaar exporteren kan allebei. Precieze menunaam doorgeven voor de uitleg.

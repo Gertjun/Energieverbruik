@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.27.0
+
+**Toegevoegd**
+- **Terug in de tijd op het Overzicht**: met de pijltjes ‹ en › bovenaan de kerncijfers ga je een dag, week, maand of jaar terug of vooruit (afhankelijk van wat je kiest bij Dag/Week/Maand/Jaar). De kerncijfers tonen dan die hele periode, vergeleken met dezelfde periode vorig jaar, en alle grafieken eindigen bij die periode. Met **Naar nu** spring je terug naar je laatste gegevens.
+
 ## 1.26.0
 
 **Toegevoegd**
