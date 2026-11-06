@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.32.0
+
+**Toegevoegd**
+- **Zon tegen weer** (Analyse → Zonnepanelen): je zonne-opbrengst gedeeld door de hoeveelheid zonlicht die er in Eindhoven viel (zoninstraling, Open-Meteo). Elke maand wordt vergeleken met dezelfde maand in andere jaren: 100% = normaal. Maanden onder 85% worden gemarkeerd (vuile panelen, schaduw, een omvormer die uit stond). Met tabellen per jaar en per maand.
+- De zoninstraling wordt bij het openen opgehaald en op dit apparaat bewaard (internet nodig de eerste keer).
+
 ## 1.31.0
 
 **Toegevoegd**
