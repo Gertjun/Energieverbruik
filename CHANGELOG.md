@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.28.2
+
+**Verbeterd**
+- **Verschillen in kleur in alle tabellen**: groen = gunstig, rood = ongunstig.
+  - **Overzicht**, tabellen naast de grafieken (Stroom, Terug, Gas, Kosten, Gas per graaddag): de kolom Verschil met vorig jaar. Bij teruglevering is méér groen.
+  - **Analyse → eigen vergelijking**: de kolommen Verschil en %. Lager is groen bij verbruik, piekvermogen, sluipverbruik, kosten en gas per graaddag; hoger is groen bij teruglevering, zonne-opbrengst, zonnestroom zelf gebruikt en zelfvoorzienendheid. Temperatuur en graaddagen blijven wit (het weer is niet goed of slecht).
+  - **Analyse → Einde saldering**: een maand die goedkoper uitvalt is nu groen (duurder was al rood).
+
 ## 1.28.1
 
 **Verbeterd**

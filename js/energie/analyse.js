@@ -14,23 +14,23 @@ const TIJD = ['dag', 'week', 'maand', 'jaar'];
 const UUR = ['uur', 'tijdvak'];
 const WD = ['weekdag'];
 export const MATEN = {
-  afname: { groep: 'Verbruik', naam: 'Stroom afgenomen', eenheid: 'kWh', d: 1, per: [...TIJD, ...WD, ...UUR] },
-  terug: { groep: 'Verbruik', naam: 'Stroom teruggeleverd', eenheid: 'kWh', d: 1, per: [...TIJD, ...WD, ...UUR] },
-  netto: { groep: 'Verbruik', naam: 'Stroom netto (afname − terug)', eenheid: 'kWh', d: 1, per: [...TIJD, ...WD, ...UUR] },
-  gas: { groep: 'Verbruik', naam: 'Gas', eenheid: 'm³', d: 2, per: [...TIJD, ...WD] },
-  piek: { groep: 'Verbruik', naam: 'Piekvermogen (hoogste fase)', eenheid: 'W', d: 0, per: [...TIJD, ...WD], agg: 'max' },
-  piekSom: { groep: 'Verbruik', naam: 'Piekvermogen (3 fasen samen)', eenheid: 'W', d: 0, per: [...TIJD, ...WD], agg: 'max' },
-  basis: { groep: 'Verbruik', naam: 'Sluipverbruik (laagste uur ʼs nachts)', eenheid: 'W', d: 0, per: [...TIJD, ...WD], gem: true },
-  kosten: { groep: 'Kosten', naam: 'Kosten totaal', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
-  kostenStroom: { groep: 'Kosten', naam: 'Kosten stroom (variabel)', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
-  kostenGas: { groep: 'Kosten', naam: 'Kosten gas (variabel)', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
-  kostenVast: { groep: 'Kosten', naam: 'Vaste kosten', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
+  afname: { beter: 'lager', groep: 'Verbruik', naam: 'Stroom afgenomen', eenheid: 'kWh', d: 1, per: [...TIJD, ...WD, ...UUR] },
+  terug: { beter: 'hoger', groep: 'Verbruik', naam: 'Stroom teruggeleverd', eenheid: 'kWh', d: 1, per: [...TIJD, ...WD, ...UUR] },
+  netto: { beter: 'lager', groep: 'Verbruik', naam: 'Stroom netto (afname − terug)', eenheid: 'kWh', d: 1, per: [...TIJD, ...WD, ...UUR] },
+  gas: { beter: 'lager', groep: 'Verbruik', naam: 'Gas', eenheid: 'm³', d: 2, per: [...TIJD, ...WD] },
+  piek: { beter: 'lager', groep: 'Verbruik', naam: 'Piekvermogen (hoogste fase)', eenheid: 'W', d: 0, per: [...TIJD, ...WD], agg: 'max' },
+  piekSom: { beter: 'lager', groep: 'Verbruik', naam: 'Piekvermogen (3 fasen samen)', eenheid: 'W', d: 0, per: [...TIJD, ...WD], agg: 'max' },
+  basis: { beter: 'lager', groep: 'Verbruik', naam: 'Sluipverbruik (laagste uur ʼs nachts)', eenheid: 'W', d: 0, per: [...TIJD, ...WD], gem: true },
+  kosten: { beter: 'lager', groep: 'Kosten', naam: 'Kosten totaal', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
+  kostenStroom: { beter: 'lager', groep: 'Kosten', naam: 'Kosten stroom (variabel)', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
+  kostenGas: { beter: 'lager', groep: 'Kosten', naam: 'Kosten gas (variabel)', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
+  kostenVast: { beter: 'lager', groep: 'Kosten', naam: 'Vaste kosten', eenheid: '€', d: 2, per: [...TIJD, ...WD] },
   temp: { groep: 'Weer', naam: 'Temperatuur (gemiddeld)', eenheid: '°C', d: 1, per: [...TIJD, ...WD], gem: true },
   graaddagen: { groep: 'Weer', naam: 'Graaddagen (gewogen)', eenheid: 'gd', d: 1, per: [...TIJD, ...WD] },
-  gasPerGd: { groep: 'Weer', naam: 'Gas per graaddag', eenheid: 'm³/gd', d: 3, per: [...TIJD, ...WD], gem: true },
-  zon: { groep: 'Zonnepanelen', naam: 'Zonne-opbrengst', eenheid: 'kWh', d: 0, per: [...TIJD, ...WD] },
-  zonEigen: { groep: 'Zonnepanelen', naam: 'Zonnestroom zelf gebruikt', eenheid: 'kWh', d: 0, per: [...TIJD, ...WD] },
-  zelfvoorzienend: { groep: 'Zonnepanelen', naam: 'Zelfvoorzienendheid', eenheid: '%', d: 0, per: TIJD, gem: true },
+  gasPerGd: { beter: 'lager', groep: 'Weer', naam: 'Gas per graaddag', eenheid: 'm³/gd', d: 3, per: [...TIJD, ...WD], gem: true },
+  zon: { beter: 'hoger', groep: 'Zonnepanelen', naam: 'Zonne-opbrengst', eenheid: 'kWh', d: 0, per: [...TIJD, ...WD] },
+  zonEigen: { beter: 'hoger', groep: 'Zonnepanelen', naam: 'Zonnestroom zelf gebruikt', eenheid: 'kWh', d: 0, per: [...TIJD, ...WD] },
+  zelfvoorzienend: { beter: 'hoger', groep: 'Zonnepanelen', naam: 'Zelfvoorzienendheid', eenheid: '%', d: 0, per: TIJD, gem: true },
 };
 
 export const INDELINGEN = [
@@ -47,6 +47,12 @@ const KORT_TIJDVAK = {
 
 // Minimaal aantal graaddagen om gas per graaddag te tonen (zoals in het Overzicht).
 const GD_MINIMUM = { dag: 1, week: 3, maand: 5, jaar: 5 };
+
+/** CSS-class voor een verschil: groen als gunstig, rood als ongunstig, niets bij weer of geen verschil. */
+export function verschilKleur(beter, verschil) {
+  if (!beter || verschil == null || Math.abs(verschil) < 1e-9) return '';
+  return (beter === 'lager' ? verschil < 0 : verschil > 0) ? ' is-goed' : ' is-slecht';
+}
 
 export const past = (maat, indeling) => !!MATEN[maat]?.per.includes(indeling);
 

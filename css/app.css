@@ -293,6 +293,9 @@ input[type="month"] {
 .tabel-analyse tr.extra-rij th, .tabel-analyse tr.extra-rij td { font-weight: 500; color: var(--muted); }
 .tabel-analyse td.plus { color: var(--danger); }
 .tabel-analyse td.min { color: var(--ok); }
+/* Verschilkolommen: groen = gunstig, rood = ongunstig (ook in de vette totaalregel). */
+.tabel td.is-goed, .tabel-analyse .jaar-rij td.is-goed { color: var(--ok); }
+.tabel td.is-slecht, .tabel-analyse .jaar-rij td.is-slecht { color: var(--danger); }
 
 /* ---------- Brede indeling van het Overzicht (laptop, zie Instellingen → App en sync) ---------- */
 @media (min-width: 1200px) {

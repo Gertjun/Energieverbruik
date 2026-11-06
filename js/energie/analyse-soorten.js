@@ -81,7 +81,7 @@ const salderingSoort = {
       h('td', { class: 'num verberg-smal' }, `${fmtGetal(x.afname, 0)} / ${fmtGetal(x.terug, 0)}`),
       h('td', { class: `num${x.geschat ? ' is-geschat' : ''}` }, x.dagen ? euro(x.met) : '–'),
       h('td', { class: `num${x.geschat ? ' is-geschat' : ''}` }, x.dagen ? euro(x.na) : '–'),
-      h('td', { class: `num${x.dagen && x.na - x.met > 0 ? ' plus' : ''}` }, x.dagen ? plus(x.na - x.met) : '–'));
+      h('td', { class: `num${x.dagen && x.na - x.met > 0 ? ' plus' : x.dagen && x.na - x.met < 0 ? ' min' : ''}` }, x.dagen ? plus(x.na - x.met) : '–'));
     const tabel = h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel tabel-analyse' },
       h('thead', {}, h('tr', {}, h('th', {}, 'Maand'), h('th', { class: 'num verberg-smal' }, 'Afname / terug (kWh)'),
         h('th', { class: 'num' }, 'Met saldering'), h('th', { class: 'num' }, 'Na einde'), h('th', { class: 'num' }, 'Verschil'))),

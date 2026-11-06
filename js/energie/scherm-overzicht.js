@@ -9,15 +9,16 @@ import {
   fmtDatumKort, fmtMaand, fmtMaandKort, isoWeekKey, daysBetween, fmtDag,
 } from './tijd.js';
 import { kpi, kaart, segmented, fmtKwh, fmtM3, euro, fmtGetal, fmtPct } from './ui.js';
+import { verschilKleur } from './analyse.js';
 
 const PERIODES = [['dag', 'Dag'], ['week', 'Week'], ['maand', 'Maand'], ['jaar', 'Jaar']];
 const MATEN = [['afname', 'Stroom'], ['terug', 'Terug'], ['gas', 'Gas'], ['kosten', 'Kosten']];
 
 const MAAT = {
-  afname: { naam: 'Stroom afgenomen', kop: 'Stroom (kWh)', cel: (v) => fmtGetal(v, 1), fmt: (v, as) => (as ? fmtGetal(v, 0) : fmtKwh(v)), geldig: (t) => t.dagenAfname > 0 },
-  terug: { naam: 'Teruggeleverd', kop: 'Terug (kWh)', cel: (v) => fmtGetal(v, 1), fmt: (v, as) => (as ? fmtGetal(v, 0) : fmtKwh(v)), geldig: (t) => t.dagenAfname > 0 },
-  gas: { naam: 'Gas', kop: 'Gas (m³)', cel: (v) => fmtGetal(v, 2), fmt: (v, as) => (as ? fmtGetal(v, v < 10 ? 1 : 0) : fmtM3(v)), geldig: (t) => t.dagenGas > 0 },
-  kosten: { naam: 'Kosten', kop: 'Kosten', cel: euro, fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), geldig: (t) => t.dagen > 0 && !t.zonderContract },
+  afname: { beter: 'lager', naam: 'Stroom afgenomen', kop: 'Stroom (kWh)', cel: (v) => fmtGetal(v, 1), fmt: (v, as) => (as ? fmtGetal(v, 0) : fmtKwh(v)), geldig: (t) => t.dagenAfname > 0 },
+  terug: { beter: 'hoger', naam: 'Teruggeleverd', kop: 'Terug (kWh)', cel: (v) => fmtGetal(v, 1), fmt: (v, as) => (as ? fmtGetal(v, 0) : fmtKwh(v)), geldig: (t) => t.dagenAfname > 0 },
+  gas: { beter: 'lager', naam: 'Gas', kop: 'Gas (m³)', cel: (v) => fmtGetal(v, 2), fmt: (v, as) => (as ? fmtGetal(v, v < 10 ? 1 : 0) : fmtM3(v)), geldig: (t) => t.dagenGas > 0 },
+  kosten: { beter: 'lager', naam: 'Kosten', kop: 'Kosten', cel: euro, fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), geldig: (t) => t.dagen > 0 && !t.zonderContract },
 };
 
 /** Lijst van perioden (van/tot/label) die eindigt bij `eind`. */
@@ -223,7 +224,7 @@ function grafiekOfLijst(soort, grafiek, lijst) {
 }
 
 /** Tabel bij een grafiek: nieuwste periode bovenaan, met vorig jaar en verschil als die er is. */
-function lijstTabel({ kop, labels, waarden, vergelijk, fmt, markeer = [], lopend = [] }) {
+function lijstTabel({ kop, labels, waarden, vergelijk, fmt, markeer = [], lopend = [], beter }) {
   const metVorig = Array.isArray(vergelijk);
   const verschil = (nu, toen) => {
     if (nu == null || toen == null || toen === 0) return '–';
@@ -237,7 +238,7 @@ function lijstTabel({ kop, labels, waarden, vergelijk, fmt, markeer = [], lopend
       h('td', {}, labels[i], lopend[i] ? h('small', { class: 'muted lopend' }, 'loopt nog') : null),
       h('td', { class: 'num' }, waarden[i] == null ? '–' : `${markeer[i] ? '≈ ' : ''}${fmt(waarden[i])}`),
       metVorig ? h('td', { class: 'num muted' }, vergelijk[i] == null ? '–' : fmt(vergelijk[i])) : null,
-      metVorig ? h('td', { class: 'num' }, lopend[i] ? '–' : verschil(waarden[i], vergelijk[i])) : null));
+      metVorig ? h('td', { class: `num${lopend[i] || waarden[i] == null || vergelijk[i] == null || vergelijk[i] === 0 ? '' : verschilKleur(beter, waarden[i] - vergelijk[i])}` }, lopend[i] ? '–' : verschil(waarden[i], vergelijk[i])) : null));
   }
   return h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel tabel-lijst' },
     h('thead', {}, h('tr', {},
@@ -305,7 +306,7 @@ export function renderOverzicht(a, staat, opnieuw) {
           labels, korteLabels: lijst.map((p) => p.kort), waarden,
           vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.fmt, markeer, breedte: bKaart, hoogte: hKaart,
         }),
-        () => lijstTabel({ kop: maat.kop, labels, waarden, vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.cel, markeer, lopend })),
+        () => lijstTabel({ kop: maat.kop, labels, waarden, vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.cel, markeer, lopend, beter: maat.beter })),
       maatKey === 'kosten' ? h('p', { class: 'hint' }, `Inclusief vaste kosten en verrekening van teruglevering. ${soort === 'lijst' ? 'Bedragen met ≈ zijn' : soort === 'samen' ? 'Lichtere staven en bedragen met ≈ zijn' : 'Lichtere staven zijn'} (deels) geschat.`) : null,
     ], opnieuw, samen);
   };
@@ -345,7 +346,7 @@ export function renderOverzicht(a, staat, opnieuw) {
           vergelijk: heeftGdVorig ? gdVorig : null, ...mGd,
           fmt: (v, as) => (as ? fmtGetal(v, 2) : `${fmtGetal(v, 3)} m³ per graaddag`),
         }),
-        () => lijstTabel({ kop: 'm³/graaddag', labels: lijst.map((p) => p.label), waarden: gd, lopend, vergelijk: heeftGdVorig ? gdVorig : null, fmt: (v) => fmtGetal(v, 3) })),
+        () => lijstTabel({ kop: 'm³/graaddag', labels: lijst.map((p) => p.label), waarden: gd, lopend, vergelijk: heeftGdVorig ? gdVorig : null, fmt: (v) => fmtGetal(v, 3), beter: 'lager' })),
       h('p', { class: 'hint' }, `Hoe lager, hoe zuiniger je stookt, los van het weer. Graaddag: 18 °C min de gemiddelde buitentemperatuur, gewogen per seizoen. Niet getoond bij minder dan ${fmtGetal(minGd, 0)} graaddag${minGd === 1 ? '' : 'en'} in de periode: dan is er te weinig gestookt en geeft de deling grote uitschieters.`),
     ], opnieuw, samen));
   }

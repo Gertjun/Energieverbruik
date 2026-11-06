@@ -6,7 +6,7 @@
 import { h, saveFile, today } from '../core/dom.js';
 import { alive, newRecord, removeById } from '../core/records.js';
 import { staafGrafiek } from './grafiek.js';
-import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, kanPerDag, zonderUitgesloten, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief, AANSLUITING, GRENS_FASE } from './analyse.js';
+import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, kanPerDag, zonderUitgesloten, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief, AANSLUITING, GRENS_FASE, verschilKleur } from './analyse.js';
 import { daysBetween, fmtDatumKort } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 import { SOORTEN, SOORT_STANDAARD } from './analyse-soorten.js';
@@ -203,9 +203,10 @@ function resultaat(a, c, van, tot) {
     if (r2 && !lijnMaat) {
       const versch = v != null && v2 != null ? v - v2 : null;
       const pct = versch != null && v2 ? versch / Math.abs(v2) : null;
+      const kleur = verschilKleur(MATEN[c.maat].beter, versch);
       out.push(h('td', { class: 'num' }, fmtCel(c.maat, v2)),
-        h('td', { class: 'num' }, versch == null ? '–' : `${versch > 0 ? '+' : ''}${fmtCel(c.maat, versch)}`),
-        h('td', { class: 'num verberg-smal' }, pct == null ? '–' : `${pct > 0 ? '+' : ''}${fmtGetal(pct * 100, 0)}%`));
+        h('td', { class: `num${kleur}` }, versch == null ? '–' : `${versch > 0 ? '+' : ''}${fmtCel(c.maat, versch)}`),
+        h('td', { class: `num verberg-smal${kleur}` }, pct == null ? '–' : `${pct > 0 ? '+' : ''}${fmtGetal(pct * 100, 0)}%`));
     }
     if (lijnMaat) out.push(h('td', { class: 'num' }, fmtCel(c.maat2, v2)));
     return out;

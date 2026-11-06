@@ -394,3 +394,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 
 ## Kleur verschilkolom gasanalyse (1.28.1)
 - Besparing groen, meerverbruik rood, ook in de totaalregel, zodat de tabel dezelfde betekenis heeft als de kerncijfer 'Zuiniger/Minder zuinig' erboven. Gebruikt de bestaande class `min` (var(--ok)).
+
+## Kleur van verschillen in tabellen (1.28.2)
+- Elke maat heeft een richting (`beter: 'lager'` of `'hoger'`); de verschilkolom kleurt groen als het gunstig is, rood als het ongunstig is. Temperatuur en graaddagen hebben geen richting en blijven wit: aan het weer kun je niets doen.
+- Niet gekleurd: het scherm Controle (daar betekent de kleur klopt/klopt niet) en de lopende tekst bij Cumulatief verloop (kleur in een zin leest onrustig).

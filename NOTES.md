@@ -243,3 +243,7 @@
 
 ## Stand (6 november 2026) – versie 1.28.1
 - Analyse → Gas weer-gecorrigeerd: negatieve verschillen (besparing) in de tabel groen, positieve rood (bestond al). De totaalregel kleurt mee.
+
+## Stand (6 november 2026) – versie 1.28.2
+- Groen/rood in de verschilkolommen van het Overzicht (lijsttabellen), de eigen Analyse-vergelijking en Einde saldering. Richting per maat staat als `beter: 'lager'|'hoger'` in MATEN (analyse.js) en MAAT (scherm-overzicht.js); hulpfunctie `verschilKleur`.
+- Niet visueel getest in een browser; Geert vragen of de kleuren goed overkomen (ook de totaalregel in Analyse).
