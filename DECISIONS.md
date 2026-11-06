@@ -391,3 +391,6 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   tussen 23 en 05 uur > 0,1 kWh. Reeksen nullen: gas ≥3 dagen in okt–mrt, teruglevering ≥3 dagen in apr–sep.
 - **Afvinken met vingerafdruk** (`afname|terug|gas`): verandert een waarde, dan komt de melding vanzelf terug.
 - **Vergelijking met de jaarafrekening wordt niet bewaard**: alleen voor dat moment.
+
+## Kleur verschilkolom gasanalyse (1.28.1)
+- Besparing groen, meerverbruik rood, ook in de totaalregel, zodat de tabel dezelfde betekenis heeft als de kerncijfer 'Zuiniger/Minder zuinig' erboven. Gebruikt de bestaande class `min` (var(--ok)).

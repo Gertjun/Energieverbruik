@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.28.1
+
+**Verbeterd**
+- **Gas weer-gecorrigeerd** (Analyse): in de tabel kleurt een besparing in de kolom Verschil nu groen, net zoals een hoger verbruik rood kleurt. Ook de totaalregel krijgt die kleur.
+
 ## 1.28.0
 
 **Toegevoegd**

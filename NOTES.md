@@ -240,3 +240,6 @@
 - Let op: bij teruglevering zijn alle nachturen rood (0 = ongewenst volgens de regel "groen = gewenst"). Als dat
   storend is: nul-uren neutraal (grijs) maken; nog niet gedaan.
 
+
+## Stand (6 november 2026) – versie 1.28.1
+- Analyse → Gas weer-gecorrigeerd: negatieve verschillen (besparing) in de tabel groen, positieve rood (bestond al). De totaalregel kleurt mee.

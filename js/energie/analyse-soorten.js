@@ -231,7 +231,7 @@ const weerSoort = {
         h('td', { class: 'num verberg-smal' }, fmtGetal(m.gd, 0)),
         h('td', { class: 'num' }, fmtGetal(m.gas, 0)),
         h('td', { class: 'num' }, m.verwacht == null ? '–' : fmtGetal(m.verwacht, 0)),
-        h('td', { class: `num${vv > 0 ? ' plus' : ''}` }, vv == null ? '–' : pctTekst(m.verwacht ? vv / m.verwacht : null)),
+        h('td', { class: `num${vv > 0 ? ' plus' : vv < 0 ? ' min' : ''}` }, vv == null ? '–' : pctTekst(m.verwacht ? vv / m.verwacht : null)),
         h('td', { class: 'num verberg-smal' }, m.vorigJaar == null ? '–' : fmtGetal(m.vorigJaar, 0)));
     };
     const tabel = h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel tabel-analyse' },
