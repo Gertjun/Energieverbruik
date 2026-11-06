@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.33.0
+
+**Toegevoegd**
+- **Thuisbatterij** (Analyse → Wat als…): speelt uur voor uur na wat een batterij van 2,5 tot 15 kWh met jouw verbruik had gedaan. Toont de besparing met saldering (nu) en vanaf 2027, hoeveel stroom uit de batterij kwam en de terugverdientijd bij een prijs per kWh die je zelf invult (standaard € 500).
+
 ## 1.32.0
 
 **Toegevoegd**
