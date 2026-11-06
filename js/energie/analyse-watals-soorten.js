@@ -535,4 +535,4 @@ const opvallendSoort = {
 };
 
 /** De nieuwe soorten, in de volgorde waarin ze bij hun groep staan. */
-export const WATALS_SOORTEN = [opvallendSoort, tijdvakSoort];
+export const WATALS_SOORTEN = [opvallendSoort, tijdvakSoort, schaalSoort];

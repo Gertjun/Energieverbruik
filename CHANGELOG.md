@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.31.0
+
+**Toegevoegd**
+- **Terugleverschaal** (Analyse → Kosten en tarieven): je teruglevering opgeteld door het jaar, de verwachte teruglevering voor het hele jaar (jaarprognose) en of je binnen de grenzen van je schaal blijft. Met de vaste terugleverkosten van nu naast de terugleverkosten per kWh vanaf 2027. De grenzen van je schaal vul je zelf in (standaard schaal 14: 3.500–4.000 kWh).
+
 ## 1.30.0
 
 **Toegevoegd**
