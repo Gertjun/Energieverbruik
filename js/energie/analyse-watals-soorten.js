@@ -535,4 +535,4 @@ const opvallendSoort = {
 };
 
 /** De nieuwe soorten, in de volgorde waarin ze bij hun groep staan. */
-export const WATALS_SOORTEN = [opvallendSoort, tijdvakSoort, schaalSoort, zonStralingSoort, batterijSoort, dynamischSoort, warmtepompSoort, co2Soort];
+export const WATALS_SOORTEN = [opvallendSoort, tijdvakSoort, schaalSoort, zonStralingSoort, batterijSoort, dynamischSoort, warmtepompSoort, co2Soort, huishoudenSoort];

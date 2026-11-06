@@ -28,7 +28,9 @@ Vervangt het Excel-bestand *Gasverbruik.xlsx*. Gebouwd op de eigen PWA-template.
   dag/week/maand/jaar, per dag van de week, per uur of tijdvak; totaal of gemiddeld per dag), vergelijken met vorig
   jaar, een andere periode of een tweede grootheid. Daarnaast kant-en-klare analyses: heatmap (uur × datum), wat als
   de saldering stopt, eigen verbruik in de zonuren, stooklijn, gas weer-gecorrigeerd, opgeteld verloop door het jaar,
-  jaarprognose en top-10. Niet-representatieve perioden zijn uit te sluiten. Als favoriet bewaren, CSV downloaden.
+  jaarprognose, top-10, opvallende dagen, goedkopere uren, terugleverschaal, zon tegen instraling, thuisbatterij,
+  dynamisch contract, warmtepomp, CO₂-uitstoot en vergelijken met een gemiddeld huishouden (in groepen).
+  Niet-representatieve perioden zijn uit te sluiten. Als favoriet bewaren, CSV downloaden.
 - **Instellingen** op één plek: Tarieven, Gegevens (export, temperatuurlocatie, back-up) en App en sync
   (met kleurthema en licht/donker per apparaat).
 - **Importcontrole**: na elke import een rapport; elke import (de laatste 10) is ongedaan te maken.
@@ -56,7 +58,10 @@ js/energie/scherm-controle.js Historie → Maanden en Controle, importrapport
 js/energie/weer.js            Temperaturen bij Open-Meteo
 js/energie/grafiek.js         Grafieken in SVG: staven (optioneel lijn/grenslijn), heatmap, puntenwolk, jaarlijnen
 js/energie/analyse.js         Rekenwerk voor Analyse (indelingen, vergelijkingen, stooklijn, prognose, uitsluiten)
-js/energie/analyse-soorten.js De kant-en-klare soorten analyse (keuzes en resultaat per soort)
+js/energie/analyse-soorten.js De kant-en-klare soorten analyse (keuzes en resultaat per soort), groepen voor de tegels
+js/energie/analyse-watals.js  Rekenwerk voor de soorten van 1.29–1.37 (batterij, dynamisch, warmtepomp, CO₂, …)
+js/energie/analyse-watals-soorten.js  Keuzes en resultaat van die soorten
+js/energie/extern.js          Zoninstraling (Open-Meteo) en beursprijzen (EnergyZero), bewaard op het apparaat
 js/energie/scherm-*.js        De vijf schermen
 js/core/                      Template-kern (kluis, sync, Face ID) — niet aanpassen, behalve:
                               shell.js toont de instellingen als paneel (#settings-panel) i.p.v. venster (1.6.0)

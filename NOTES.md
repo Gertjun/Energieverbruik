@@ -247,3 +247,21 @@
 ## Stand (6 november 2026) – versie 1.28.2
 - Groen/rood in de verschilkolommen van het Overzicht (lijsttabellen), de eigen Analyse-vergelijking en Einde saldering. Richting per maat staat als `beter: 'lager'|'hoger'` in MATEN (analyse.js) en MAAT (scherm-overzicht.js); hulpfunctie `verschilKleur`.
 - Niet visueel getest in een browser; Geert vragen of de kleuren goed overkomen (ook de totaalregel in Analyse).
+
+## Stand (6 november 2026) – versies 1.29.0 t/m 1.37.0: negen nieuwe analyses
+- Opvallende dagen, Goedkopere uren, Terugleverschaal, Zon tegen weer, Thuisbatterij, Dynamisch contract, Warmtepomp,
+  CO₂-uitstoot en Tegenover gemiddeld; tegels nu in groepen. Zie DECISIONS.md voor de aannames.
+- Getest met een testpagina (buiten de repo) met Geerts Vattenfall-, HomeWizard- en Excel-bestanden en dezelfde
+  Content-Security-Policy, in Chrome op laptop- (licht) en iPhone-breedte (donker): alle negen zonder fouten, visueel
+  bekeken. Open-Meteo en EnergyZero zijn in de testomgeving geblokkeerd; daar zijn nagemaakte antwoorden gebruikt
+  (en nagemaakte SolarEdge-maanden 2022–2025 voor Zon tegen weer).
+- Uitkomsten met Geerts data (1-12-2025 t/m 4-11-2026, ter controle): 20% verschuiven ≈ € 105; teruglevering 2026
+  verwacht ~2.860 kWh (onder schaal 14); batterij 5 kWh nu −€ 20, vanaf 2027 ~€ 370/jaar, terugverdientijd ~6,7 jaar
+  bij € 2.500; hybride warmtepomp ~€ 490/jaar (temperaturen na juli ontbraken in de test); CO₂ netto ~2,0 ton;
+  stroom ~7.100 kWh totaal tegenover 2.480 gemiddeld voor 2 personen (auto laden).
+- [ ] Geert: Dynamisch contract openen op de iPhone. Haalt hij beursprijzen op? Zo niet: melding "Ophalen lukte niet"
+      doorgeven (dan blokkeert EnergyZero de browser en is een andere bron nodig).
+- [ ] Geert: Zon tegen weer openen; laadt de instraling, en kloppen de gemarkeerde maanden (aug/sep 2025 uitsluiten)?
+- [ ] Geert: grenzen van zijn terugleverschaal nakijken (staat 14 = 3.500–4.000 kWh nog op het contract?).
+- [ ] Geert: aantal personen en soort woning kiezen bij Tegenover gemiddeld (standaard 2 personen, twee-onder-een-kap).
+- [ ] Geert: tegels in groepen bekijken op iPhone/iPad; overzichtelijk genoeg?

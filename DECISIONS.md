@@ -1,5 +1,44 @@
 # Beslissingen
 
+## 2026-11-06 – Negen nieuwe analyses (versies 1.29.0 t/m 1.37.0)
+Geert vroeg om alle voorgestelde extra analyses. Zeven van de zestien voorstellen bestonden al (sluipverbruik, einde
+saldering, heatmap, stooklijn/weer-gecorrigeerd, eigen verbruik, piekvermogen, controle op afwijkende dagen); de negen
+nieuwe zijn elk een eigen soort met een eigen MINOR-versie. Rekenwerk in `analyse-watals.js` (geen DOM, met Node te
+testen), schermdeel in `analyse-watals-soorten.js`. Keuzes per soort staan in `WATALS_STANDAARD` en gaan mee in
+favorieten (getallen als tekst met komma, zoals in een invoerveld).
+- **Tegels in groepen** (`GROEPEN` in analyse-soorten.js, `groep` per soort): met 18 soorten werd één raster te lang.
+- **Opgehaalde gegevens alleen op het apparaat** (`extern.js`, localStorage `energieverbruik:straling` en
+  `energieverbruik:beursprijzen`): openbare gegevens die altijd opnieuw op te halen zijn, dus niet in de kluis en
+  niet gesynchroniseerd (scheelt honderden kB per sync). Pas ophalen bij het openen van de analyse; per sessie één
+  keer per maand/dag om een ophaal-lus te voorkomen. Resultaat wordt getekend zodra de gegevens binnen zijn
+  (`.analyse-laad` met `display: contents`).
+- **EnergyZero voor beursprijzen** (gratis, geen sleutel; ENTSO-E vraagt een sleutel). `connect-src` uitgebreid met
+  `https://api.energyzero.nl`. Kwartierprijzen en het dubbele uur bij wintertijd worden gemiddeld tot één uurprijs,
+  omdat de app per uur rekent. Niet getest tegen de echte dienst (geblokkeerd in de testomgeving): of EnergyZero
+  vanuit de browser (CORS) werkt, moet op de iPhone blijken.
+- **Opvallende dagen**: verwacht = mediaan van dezelfde weekdag in de 8 weken ervoor; drempel = max(minimum,
+  k × spreiding (MAD), percentage). Standaard "zonder grote verbruikers": uren met > 2 kWh afname tellen niet mee,
+  anders bestond de lijst vrijwel alleen uit laaddagen van de auto (77 van 321 dagen bij Geert).
+- **Goedkopere uren**: verschuiven binnen dezelfde dag naar het goedkoopste tijdvak; met en zonder saldering gelijk.
+- **Terugleverschaal**: grenzen als invoer (standaard 3.500–4.000, schaal 14) omdat de volledige tabel niet bekend is;
+  verwacht jaartotaal uit `jaarPrognose`. Bij Geerts data: verwacht ~2.860 kWh in 2026, dus onder schaal 14.
+- **Zon tegen weer**: instraling = shortwave_radiation_sum (horizontaal, MJ/m²). De verhouding opbrengst/instraling
+  verschilt per seizoen (hellende panelen), dus alleen vergelijken met dezelfde kalendermaand in andere jaren
+  (mediaan, minstens 2 jaren); onder 85% = gemarkeerd. Excel-november 2025 (35 kWh) komt er in de test meteen uit.
+- **Thuisbatterij**: per uur, laadt alleen met teruglevering, ontlaadt bij afname, vermogen min(5 kW, helft van de
+  capaciteit), 90% rendement heen en terug, leeg na een gat. Kosten via `kostenDag` met de uurwaarden, zonder vaste
+  kosten, met saldering en met het contract na saldering. Bij Geert (5 kWh): nu −€ 20, vanaf 2027 ~€ 370 per jaar.
+- **Dynamisch contract**: afname (beurs + inkoop) × 1,21 + energiebelasting; teruglevering beurs − opslag, zonder btw.
+  Vergeleken met het eigen contract na saldering; vaste kosten tellen niet mee (bij beide ongeveer gelijk).
+- **Warmtepomp**: vaste deel van de stooklijn = warm water/koken; 8,8 kWh warmte per m³; COP = 3,3 + 0,08 × T
+  (−0,6 bij gewone radiatoren, tussen 1,8 en 5); hybride tot vermogen × 20 uur per dag; volledig: ook warm water
+  (COP 2,5) en de vaste gaskosten vervallen. Stroom tegen het daggemiddelde van het tarief, zonder saldering.
+- **CO₂**: 0,20 kg/kWh (CBS 2024, integrale methode) en 1,78 kg/m³ aardgas, beide aan te passen; teruglevering telt als
+  vermeden.
+- **Gemiddeld huishouden**: CBS 2025 (voorlopig) per aantal personen en per woningtype, woningen met gasaansluiting;
+  vast in de code (`CBS_PERSONEN`, `CBS_WONING`). Bij Geert zowel afname van het net als totaal verbruik (met eigen
+  zonnestroom), omdat het CBS naar levering via het net kijkt.
+
 ## 2026-11-06 – Heatmap stoplichtkleuren en gas (versie 1.28.0)
 - **Stoplichtkleuren** (keuze Geert): vaste schaal groen → lichtgroen → geel → oranje → rood (ColorBrewer RdYlGn),
   in grafiek.js berekend, los van het kleurthema. Richting per grootheid: afname en gas laag = groen; teruglevering

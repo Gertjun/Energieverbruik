@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.37.0
+
+**Toegevoegd**
+- **Tegenover gemiddeld** (Analyse → Vergelijken en CO₂): je stroom (totaal verbruik én afname van het net) en gas over de laatste 365 dagen naast het gemiddelde van huishoudens met hetzelfde aantal personen en hetzelfde soort woning (CBS 2025).
+
 ## 1.36.0
 
 **Toegevoegd**
