@@ -317,7 +317,10 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   Excel (KNMI) blijven staan. Graaddag: (18 − Tgem) × weging 1,1 (nov–feb) / 1,0 (mrt, okt) / 0,8 (apr–sep).
 - **Excel-import zonder library**: eigen .xlsx-lezer (zip via DecompressionStream), conform de template-regel
   "geen externe scripts".
-- **Termijnen vs kosten**: over de laatste 12 maanden met een ingevuld termijnbedrag; schatting.
+- **Termijnen vs kosten**: over de laatste 12 maanden; schatting. Sinds 1.27.1 krijgt een maand zonder bedrag
+  het laatst bekende bedrag (een termijn geldt tot hij verandert; bij een tussentijdse aanpassing hoeft Geert
+  alleen de maand van de wijziging in te vullen). Maanden vóór het eerste bekende bedrag tellen niet mee.
+  Zo rekenen Overzicht en jaarprognose op dezelfde manier.
 - **Zelfvoorzienendheid**: zelf gebruikt = zonne-opbrengst − teruglevering; aandeel = zelf gebruikt /
   (afname + zelf gebruikt).
 - **Ingeklapte zijbalk** wordt als weergavevoorkeur in localStorage bewaard (geen gegevens).

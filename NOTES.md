@@ -224,3 +224,8 @@
 - HomeWizard-exports `P1e-…csv` (stroom) en `P1g-…csv` (gas): kolommen `time, Import T1 kWh, Import T2 kWh,
   Export T1 kWh, Export T2 kWh, L1/L2/L3 max W` en `time, Total gas used`; meterstanden per kwartier,
   lokale tijd (bij wintertijd komt 02:00–02:45 twee keer voor).
+
+## Stand (6 november 2026) – versie 1.27.1
+- Kaart Termijnen op het Overzicht neemt het laatst bekende termijnbedrag over voor maanden zonder bedrag
+  (gelijk aan de jaarprognose). Invoeren blijft via Invoer → Maandgegevens; bij een wijziging alleen de
+  maand van ingang invullen.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.27.1
+
+**Verbeterd**
+- **Termijnen op het Overzicht**: een maand zonder ingevuld termijnbedrag telt nu mee met het laatst bekende bedrag, net als in de jaarprognose. Verandert je termijnbedrag, dan vul je alleen het nieuwe bedrag in bij de maand waarin het ingaat (Invoer → Maandgegevens).
+
 ## 1.27.0
 
 **Toegevoegd**

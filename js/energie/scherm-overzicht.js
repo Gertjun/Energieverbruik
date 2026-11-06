@@ -420,13 +420,24 @@ export function renderOverzicht(a, staat, opnieuw) {
 
   // Termijnbedragen
   let termijnKaart = null;
-  const termijnMaanden = mnd.filter((p) => a.maanden.get(p.van.slice(0, 7))?.termijn != null);
+  // Een maand zonder ingevuld bedrag krijgt het laatst bekende bedrag van een eerdere maand
+  // (een termijnbedrag geldt tot het verandert). Maanden vóór het eerste bekende bedrag tellen niet mee.
+  const termijnVan = (mk) => {
+    let laatste = null;
+    for (const k of [...a.maanden.keys()].sort()) {
+      if (k > mk) break;
+      const tm = a.maanden.get(k).termijn;
+      if (tm != null) laatste = tm;
+    }
+    return laatste;
+  };
+  const termijnMaanden = mnd.filter((p) => termijnVan(p.van.slice(0, 7)) != null);
   if (termijnMaanden.length) {
     let betaald = 0; let kosten = 0; let geschat = false; let volledig = 0;
     for (const p of termijnMaanden) {
       const t = totaal(a, p.van, p.tot);
       if (!t.dagen) continue;
-      betaald += a.maanden.get(p.van.slice(0, 7)).termijn / 100;
+      betaald += termijnVan(p.van.slice(0, 7)) / 100;
       kosten += t.kosten;
       if (t.geschat) geschat = true;
       if (t.dagen < daysBetween(p.van, p.tot) + 1) geschat = true;
@@ -441,7 +452,7 @@ export function renderOverzicht(a, staat, opnieuw) {
           h('div', { class: 'kpi' }, h('span', { class: 'kpi-titel' }, 'Berekende kosten'), h('strong', { class: 'kpi-waarde' }, euro(kosten))),
           h('div', { class: 'kpi' }, h('span', { class: 'kpi-titel' }, saldo >= 0 ? 'Verwacht terug' : 'Verwacht bijbetalen'),
             h('strong', { class: `kpi-waarde ${saldo >= 0 ? 'is-goed' : 'is-slecht'}` }, euro(Math.abs(saldo))))),
-        h('p', { class: 'hint' }, `Over de laatste 12 maanden met een ingevuld termijnbedrag. Dit is een schatting${geschat ? ' (niet alle dagen zijn compleet)' : ''}; de jaarafrekening van je leverancier is leidend.`));
+        h('p', { class: 'hint' }, `Over de laatste 12 maanden. Een maand zonder ingevuld bedrag telt met het laatst bekende termijnbedrag. Dit is een schatting${geschat ? ' (niet alle dagen zijn compleet)' : ''}; de jaarafrekening van je leverancier is leidend.`));
     }
   }
 
