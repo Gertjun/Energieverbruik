@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.34.0
+
+**Toegevoegd**
+- **Dynamisch contract** (Analyse → Wat als…): je verbruik per uur doorgerekend met de uurprijzen van de stroombeurs (via EnergyZero), naast je eigen contract, beide met de regels vanaf 2027. Inkoopvergoeding en opslag op teruglevering zijn in te vullen. Laat ook zien hoeveel je teruglevert terwijl de beursprijs negatief is.
+- De beursprijzen worden bij het openen opgehaald en op dit apparaat bewaard.
+
 ## 1.33.0
 
 **Toegevoegd**
