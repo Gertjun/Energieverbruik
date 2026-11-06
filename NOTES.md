@@ -229,3 +229,14 @@
 - Kaart Termijnen op het Overzicht neemt het laatst bekende termijnbedrag over voor maanden zonder bedrag
   (gelijk aan de jaarprognose). Invoeren blijft via Invoer → Maandgegevens; bij een wijziging alleen de
   maand van ingang invullen.
+
+## Stand (6 november 2026) – versie 1.28.0
+- Heatmap in stoplichtkleuren (groen = gewenst, rood = ongewenst) en gas als keuze.
+- Gas per uur (`uurGas`) wordt nu bewaard bij de Vattenfall- en HomeWizard-import. Getest met Geerts bestanden:
+  348 HomeWizard-dagen en 184 Vattenfall-dagen, uursom = dagtotaal bij alle dagen; Vattenfall-dag zonder eigen
+  uurverdeling krijgt die van HomeWizard (geschaald). Heatmaps visueel gecontroleerd met echte data (sep–nov 2026).
+- [ ] Geert: Vattenfall-gasdownload (`G-…-Uur.csv`) en HomeWizard `P1g-…csv` één keer opnieuw inlezen, anders is de
+      gas-heatmap leeg voor bestaande dagen.
+- Let op: bij teruglevering zijn alle nachturen rood (0 = ongewenst volgens de regel "groen = gewenst"). Als dat
+  storend is: nul-uren neutraal (grijs) maken; nog niet gedaan.
+

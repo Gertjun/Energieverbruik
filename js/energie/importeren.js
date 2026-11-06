@@ -6,7 +6,7 @@
 // waarde uit een bron die hoger staat; die wordt alleen vergeleken. Opmerkingen blijven staan.
 //
 // Per dag zijn er drie groepen velden die een import kan zetten:
-//   s = stroom (afname, terug, uurverdeling, bron), g = gas, o = opmerking,
+//   s = stroom (afname, terug, uurverdeling, bron), g = gas (met uurverdeling), o = opmerking,
 //   p = piekvermogen per fase (alleen uit HomeWizard; staat los van de voorrang bij stroom).
 // Op de dag staat in `imp` welke import elke groep het laatst heeft gezet. In het
 // importrecord staat in `herstel` hoe die groep er vóór de import uitzag.
@@ -18,7 +18,7 @@ import { maandStart, maandEinde, eachDay } from './tijd.js';
 
 export const GROEPEN = {
   s: ['afname', 'terug', 'uurAfname', 'uurTerug', 'bron'],
-  g: ['gas', 'bronGas'],
+  g: ['gas', 'bronGas', 'uurGas'],
   o: ['opmerking'],
   p: ['piek'],
 };
@@ -195,8 +195,20 @@ export function zetMeterbestand(data, res, bestand, bron) {
       const oudBron = oud?.bronGas || oud?.bron;
       const hoger = oud?.gas != null && rang(oudBron) > rang(bron);
       vergelijk(imp, d.datum, 'gas', oud?.gas, d.gas, oudBron, hoger);
-      if (hoger) { r.voorrang++; continue; }
-      telUitkomst(imp, zetGroep(data, imp, d.datum, 'g', { gas: d.gas, bronGas: bron }));
+      if (hoger) {
+        r.voorrang++;
+        // De betere bron heeft alleen een dagtotaal: neem de uurverdeling over, geschaald naar dat totaal.
+        const ug = !oud.uurGas && geschaald(d.uurGas, oud.gas);
+        if (ug) {
+          zetGroep(data, imp, d.datum, 'g', { gas: oud.gas, bronGas: oudBron, uurGas: ug });
+          r.uurverdeling = (r.uurverdeling || 0) + 1;
+        }
+        continue;
+      }
+      const velden = { gas: d.gas, bronGas: bron };
+      const ug = d.uurGas || geschaald(oud?.uurGas, d.gas);
+      if (ug) velden.uurGas = ug;
+      telUitkomst(imp, zetGroep(data, imp, d.datum, 'g', velden));
     }
   }
   return afronden(data, imp);

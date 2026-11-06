@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.28.0
+
+**Toegevoegd**
+- **Gas in de heatmap** (Analyse → Heatmap → Wat: Gas): zie per uur van de dag wanneer de verwarming gas gebruikt. Hiervoor bewaart de app voortaan het gasverbruik per uur uit de Vattenfall-gasdownload (per uur) en de HomeWizard-gasexport. **Lees die bestanden één keer opnieuw in** (Invoer → Bestanden inlezen), dan is het gas per uur ook voor je bestaande dagen bekend.
+
+**Gewijzigd**
+- **Heatmap in stoplichtkleuren**: groen = gewenst, via geel en oranje naar rood = ongewenst. Bij afname en gas is weinig groen; bij teruglevering is veel groen; bij netto is veel teruglevering groen, gelijk geel en veel afname rood.
+- De kleurschaal loopt tot de hoogste 5% van de waarden, zodat een paar uitschieters (zoals de auto laden) niet alle andere vakjes groen maken.
+
 ## 1.27.1
 
 **Verbeterd**

@@ -1,5 +1,16 @@
 # Beslissingen
 
+## 2026-11-06 – Heatmap stoplichtkleuren en gas (versie 1.28.0)
+- **Stoplichtkleuren** (keuze Geert): vaste schaal groen → lichtgroen → geel → oranje → rood (ColorBrewer RdYlGn),
+  in grafiek.js berekend, los van het kleurthema. Richting per grootheid: afname en gas laag = groen; teruglevering
+  hoog = groen; netto loopt symmetrisch van teruglevering (groen) via 0 (geel) naar afname (rood). De legenda loopt
+  altijd van groen (links) naar rood (rechts).
+- **Schaal tot het 95e percentiel** in plaats van het maximum: één uur auto laden zou anders alles groen maken.
+  Lineair in plaats van de wortelschaal van eerst; met het percentiel is die niet meer nodig.
+- **`uurGas` op de dag** (24 waarden, m³), in groep `g`. Zelfde aanpak als `uurAfname`: hogere bron met alleen een
+  dagtotaal krijgt de uurverdeling van de lagere bron geschaald; handmatig gas wijzigen wist `uurGas`. Excel zet
+  geen `uurGas` (zetGroep wist het bij overschrijven). Geen schemawijziging: oudere versies laten het veld staan
+  (zoals `piek`), dus MINOR.
 
 ## 2026-11-06 – Zonne-opbrengst per dag (versie 1.26.0)
 - **Dagwaarden in een eigen collectie `zon`** (`{ id: 'z:yyyy-mm-dd', datum, zon, imp }`), niet als veld op `dagen`.

@@ -121,7 +121,7 @@ function bewerkDag(datum, x, ctx, staat, opnieuw, meldingen = []) {
         const stroomAnders = w.afname !== (d.afname ?? null) || w.terug !== (d.terug ?? null);
         if (stroomAnders) Object.assign(velden, { afname: w.afname ?? undefined, terug: w.terug ?? undefined, uurAfname: undefined, uurTerug: undefined, bron: 'handmatig' });
         const gasAnders = w.gas !== (d.gas ?? null);
-        if (gasAnders) Object.assign(velden, { gas: w.gas ?? undefined, bronGas: 'handmatig' });
+        if (gasAnders) Object.assign(velden, { gas: w.gas ?? undefined, uurGas: undefined, bronGas: 'handmatig' });
         const rec = upsert(data.dagen, dagId(datum), velden);
         if (rec.bron == null && rec.afname != null) rec.bron = 'handmatig';
         // Handmatig gewijzigd: een import ongedaan maken laat deze waarden voortaan staan.

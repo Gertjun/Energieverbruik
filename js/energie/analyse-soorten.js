@@ -18,28 +18,35 @@ const keuze = (waarde, opties, onChange) => h('select', { onChange: (e) => onCha
 
 // ---------- Heatmap ----------
 
-const HM_MATEN = [['afname', 'Stroom afgenomen'], ['terug', 'Stroom teruggeleverd'], ['netto', 'Stroom netto (afname − terug)']];
+const HM_MATEN = [['afname', 'Stroom afgenomen'], ['terug', 'Stroom teruggeleverd'], ['netto', 'Stroom netto (afname − terug)'], ['gas', 'Gas']];
 
 const heatmapSoort = {
   key: 'heatmap',
   kort: 'Heatmap',
-  uitleg: 'Wanneer op de dag je stroom gebruikt',
+  uitleg: 'Wanneer op de dag je stroom of gas gebruikt',
   naam: 'Heatmap: uur van de dag × datum',
   velden: (c, wijzig) => [veld('Wat', keuze(c.hmMaat, HM_MATEN, (v) => wijzig({ hmMaat: v })))],
   resultaat(a, c, van, tot) {
-    const rijen = heatmapRijen(a, c.hmMaat, van, tot);
+    const maat = HM_MATEN.some(([k]) => k === c.hmMaat) ? c.hmMaat : 'afname';
+    const gas = maat === 'gas';
+    const rijen = heatmapRijen(a, maat, van, tot);
     const indeling = heatmapIndeling(van, tot);
-    const fmt = (v) => `${fmtGetal(v, Math.abs(v) < 1 ? 2 : 1)} kWh`;
+    const fmt = (v) => `${fmtGetal(v, Math.abs(v) < 1 ? 2 : 1)} ${gas ? 'm³' : 'kWh'}`;
     const metData = rijen.filter((r) => r.waarden).length;
-    const naam = HM_MATEN.find(([k]) => k === c.hmMaat)[1];
+    const naam = HM_MATEN.find(([k]) => k === maat)[1];
+    const kleuren = maat === 'netto' ? ' Groen = je leverde meer terug dan je afnam, geel = ongeveer gelijk, rood = je nam meer af.'
+      : maat === 'terug' ? ' Groen = veel teruggeleverd, rood = weinig of niets.'
+        : ' Groen = weinig verbruik, via geel en oranje naar rood = veel verbruik.';
     return kaart(naam,
       h('p', { class: 'hint' }, `${periodeTekst(van, tot)} · per ${indeling} · kolommen zijn de uren 0–24`),
-      metData ? heatmap({ rijen, fmt, deelbaar: c.hmMaat === 'netto' }) : h('p', { class: 'muted' }, 'Geen uurgegevens in deze periode.'),
+      metData ? heatmap({ rijen, fmt, deelbaar: maat === 'netto', hoogIsGoed: maat === 'terug' })
+        : h('p', { class: 'muted' }, gas ? 'Geen gasgegevens per uur in deze periode. Lees de Vattenfall-gasdownload (per uur) of de HomeWizard-gasexport opnieuw in via Invoer → Bestanden inlezen.' : 'Geen uurgegevens in deze periode.'),
       h('p', { class: 'hint' }, [
-        `Elk vakje is het gemiddelde verbruik in dat uur van de dag, over de dagen van die ${indeling}.`,
+        `Elk vakje is het gemiddelde ${gas ? 'gasverbruik' : 'verbruik'} in dat uur van de dag, over de dagen van die ${indeling}.`,
         indeling === 'dag' ? '' : ' Kies een periode van hoogstens 2 maanden voor een rij per dag.',
-        c.hmMaat === 'netto' ? ' Warm = je nam meer af dan je terugleverde, koel = je leverde meer terug.' : ' Hoe donkerder, hoe meer.',
-        ' Alleen dagen met uurgegevens (Vattenfall of HomeWizard) tellen mee; een gestippelde rij heeft geen uurgegevens. Tik op een vakje voor de waarde.',
+        kleuren,
+        ' De kleuren lopen tot de hoogste 5% van de waarden; nog hogere waarden zijn ook rood (of groen bij teruglevering).',
+        ` Alleen dagen met uurgegevens (Vattenfall of HomeWizard) tellen mee; een gestippelde rij heeft geen uurgegevens. Tik op een vakje voor de waarde.`,
       ].join('')));
   },
 };

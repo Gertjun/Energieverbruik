@@ -157,7 +157,7 @@ function dagKaart(a, ctx) {
             Object.assign(velden, { afname: w.afname ?? undefined, terug: w.terug ?? (w.afname != null ? 0 : undefined), uurAfname: undefined, uurTerug: undefined, bron: 'handmatig' });
           }
           const gasAnders = w.gas !== (oud?.gas ?? null);
-          if (gasAnders) Object.assign(velden, { gas: w.gas ?? undefined, bronGas: 'handmatig' });
+          if (gasAnders) Object.assign(velden, { gas: w.gas ?? undefined, uurGas: undefined, bronGas: 'handmatig' });
           const rec = upsert(data.dagen, dagId(dag), velden);
           if (rec.afname != null) rec.bron ??= 'handmatig';
           if (velden.bron) losVanImport(rec, 's');

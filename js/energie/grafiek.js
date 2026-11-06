@@ -222,34 +222,47 @@ export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs
   return h('div', { class: 'grafiek' }, info, svg);
 }
 
+/** Klassieke stoplichtkleuren voor de heatmap: groen (gewenst) → geel → oranje → rood (ongewenst). */
+const HM_KLEUREN = ['#1a9850', '#91cf60', '#fee08b', '#fc8d59', '#d73027'];
+function stoplicht(f) {
+  const x = Math.max(0, Math.min(1, f)) * (HM_KLEUREN.length - 1);
+  const i = Math.min(HM_KLEUREN.length - 2, Math.floor(x)); const t = x - i;
+  const rgb = (hex) => [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16));
+  const [p, q] = [rgb(HM_KLEUREN[i]), rgb(HM_KLEUREN[i + 1])];
+  return `rgb(${p.map((v, k) => Math.round(v + (q[k] - v) * t)).join(',')})`;
+}
+/** Waarde bij het gegeven percentiel (0–1); zo bepalen een paar uitschieters niet de hele kleurschaal. */
+function percentiel(waarden, p) {
+  const w = [...waarden].sort((x, y) => x - y);
+  return w.length ? w[Math.min(w.length - 1, Math.floor(p * (w.length - 1)))] : 0;
+}
+
 /**
- * Heatmap: rijen (datum) × 24 kolommen (uur van de dag).
- * heatmap({ rijen: [{ label, kort, waarden: [24] | null }], fmt, deelbaar: bool })
- * Eén kleur van licht naar donker voor één grootheid; bij `deelbaar` (netto) twee kleuren met
- * een neutraal midden: afname (positief) warm, teruglevering (negatief) koel.
+ * Heatmap: rijen (datum) × 24 kolommen (uur van de dag), in stoplichtkleuren.
+ * heatmap({ rijen: [{ label, kort, waarden: [24] | null }], fmt, deelbaar, hoogIsGoed })
+ * Groen = gewenst, rood = ongewenst. Standaard is weinig gewenst (afname, gas); met `hoogIsGoed`
+ * is veel gewenst (teruglevering). Bij `deelbaar` (netto) loopt de schaal van veel teruglevering
+ * (groen) via nul (geel) naar veel afname (rood). De schaal loopt tot het 95e percentiel, zodat
+ * een paar uitschieters (bijv. de auto laden) niet alles groen maken; hogere waarden zijn gewoon rood.
  */
-export function heatmap({ rijen, fmt, deelbaar = false, breedte = null }) {
+export function heatmap({ rijen, fmt, deelbaar = false, hoogIsGoed = false, breedte = null }) {
   const W = grafiekBreedte(breedte);
   const L = W < 500 ? 46 : 64; const R = 4; const T = 4; const B = 20;
   const cel = (W - L - R) / 24;
   const rh = Math.max(4, Math.min(18, Math.floor(560 / Math.max(1, rijen.length))));
   const H = T + rh * rijen.length + B;
   const alle = rijen.flatMap((r) => r.waarden || []);
-  const maxAbs = Math.max(1e-9, ...alle.map(Math.abs));
-  const maxPos = Math.max(1e-9, ...alle);
+  const maxAbs = Math.max(1e-9, percentiel(alle.map(Math.abs), 0.95));
+  const maxPos = Math.max(1e-9, percentiel(alle, 0.95));
   const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, class: 'grafiek-svg', role: 'img', 'aria-label': 'Heatmap per uur' });
 
   const kleur = (v) => {
-    if (deelbaar) {
-      const f = Math.min(1, Math.abs(v) / maxAbs);
-      const pct = Math.round(Math.sqrt(f) * 100);
-      return `color-mix(in oklab, ${v >= 0 ? 'var(--hm-plus)' : 'var(--hm-min)'} ${pct}%, var(--hm-nul))`;
-    }
-    const f = Math.max(0, Math.min(1, v / maxPos));
-    return `color-mix(in oklab, var(--hm-hoog) ${Math.round(Math.sqrt(f) * 100)}%, var(--hm-laag))`;
+    if (deelbaar) return stoplicht(0.5 + v / maxAbs / 2);
+    const f = v / maxPos;
+    return stoplicht(hoogIsGoed ? 1 - f : f);
   };
 
-  const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, ' ');
+  const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, ' ');
   const labelStap = Math.max(1, Math.ceil(14 / rh));
   rijen.forEach((r, i) => {
     const y = T + i * rh;
@@ -276,11 +289,13 @@ export function heatmap({ rijen, fmt, deelbaar = false, breedte = null }) {
     svg.append(s('text', { x: L + uur * cel, y: H - 6, class: 'g-as', 'text-anchor': uur === 0 ? 'start' : uur === 24 ? 'end' : 'middle' }, `${uur}`));
   }
 
+  // De legenda loopt altijd van groen (links) naar rood (rechts).
   const legenda = deelbaar
     ? h('div', { class: 'hm-legenda' },
-      h('span', {}, `${fmt(-maxAbs)} terug`), h('i', { class: 'hm-balk hm-balk-deel' }), h('span', {}, `${fmt(maxAbs)} afname`))
-    : h('div', { class: 'hm-legenda' },
-      h('span', {}, fmt(0)), h('i', { class: 'hm-balk' }), h('span', {}, fmt(maxPos)));
+      h('span', {}, `${fmt(maxAbs)} terug`), h('i', { class: 'hm-balk' }), h('span', {}, `${fmt(maxAbs)} afname`))
+    : hoogIsGoed
+      ? h('div', { class: 'hm-legenda' }, h('span', {}, fmt(maxPos)), h('i', { class: 'hm-balk' }), h('span', {}, fmt(0)))
+      : h('div', { class: 'hm-legenda' }, h('span', {}, fmt(0)), h('i', { class: 'hm-balk' }), h('span', {}, fmt(maxPos)));
   return h('div', { class: 'grafiek' }, info, svg, legenda);
 }
 

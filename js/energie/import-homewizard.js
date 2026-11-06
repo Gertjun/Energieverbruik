@@ -102,7 +102,7 @@ export function leesHomeWizard(tekst) {
 }
 
 /**
- * Zet meterstanden per uur om in verbruik per dag (met 24 uurwaarden voor stroom).
+ * Zet meterstanden per uur om in verbruik per dag (met 24 uurwaarden, voor stroom en gas).
  * `standen`: Map "yyyy-mm-dd hh" → [stand afname, stand teruglevering] (stroom)
  * of [stand gas] (gas), met de stand aan het begin van dat uur.
  * Gedeeld door de HomeWizard- en de Vattenfall-import.
@@ -159,7 +159,7 @@ export function standenNaarDagen(standen, soort) {
         uurAfname, uurTerug, gat,
       });
     } else {
-      dagen.push({ datum, gas: round3(uren.reduce((s, u) => s + u[0], 0)), gat });
+      dagen.push({ datum, gas: round3(uren.reduce((s, u) => s + u[0], 0)), uurGas: uren.map((u) => round3(u[0])), gat });
     }
   }
   if (!dagen.length) throw new Error('Er staat geen enkele volledige dag in dit bestand.');

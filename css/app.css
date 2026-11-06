@@ -334,14 +334,12 @@ input[type="month"] {
 .indeling-keus .segmented { padding: 3px; }
 .indeling-keus .segmented button { min-height: 30px; padding: 0 12px; font-size: 0.8rem; }
 
-/* Heatmap (Analyse): één kleur licht→donker, of bij netto twee kleuren met een neutraal midden. */
-:root { --hm-laag: var(--surface-2); --hm-hoog: var(--accent); --hm-nul: var(--surface-2); --hm-plus: var(--jaar-1); --hm-min: var(--accent); }
+/* Heatmap (Analyse): stoplichtkleuren, groen = gewenst, rood = ongewenst (kleuren staan in grafiek.js). */
 .hm-cel { cursor: pointer; }
 .hm-cel.is-actief { stroke: var(--text); stroke-width: 1.5; }
 .hm-leeg { fill: none; stroke: var(--border); stroke-dasharray: 2 3; }
 .hm-legenda { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
-.hm-balk { flex: 0 1 180px; height: 10px; border-radius: 3px; background: linear-gradient(to right, var(--hm-laag), var(--hm-hoog)); }
-.hm-balk-deel { background: linear-gradient(to right, var(--hm-min), var(--hm-nul), var(--hm-plus)); }
+.hm-balk { flex: 0 1 180px; height: 10px; border-radius: 3px; background: linear-gradient(to right, #1a9850, #91cf60, #fee08b, #fc8d59, #d73027); }
 .analyse-kpi { margin-bottom: 12px; }
 @media (min-width: 900px) { .analyse-kpi { grid-template-columns: repeat(3, 1fr); } }
 .g-wolk { fill: color-mix(in srgb, var(--accent) 55%, transparent); stroke: var(--surface); stroke-width: 1; cursor: pointer; }
