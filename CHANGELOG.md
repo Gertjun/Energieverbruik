@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.36.0
+
+**Toegevoegd**
+- **CO₂-uitstoot** (Analyse → Vergelijken en CO₂): uitstoot door gas en door stroom van het net, en hoeveel je zonnepanelen vermijden door terug te leveren. Per maand en in totaal. De omrekenfactoren (standaard 0,20 kg per kWh en 1,78 kg per m³) zijn aan te passen.
+
 ## 1.35.0
 
 **Toegevoegd**
