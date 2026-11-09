@@ -30,6 +30,35 @@ function grafiekBreedte(breedte) {
   return Math.round(Math.min(960, Math.max(300, (window.innerWidth || 640) - (window.innerWidth >= 900 ? 300 : 66))));
 }
 
+/**
+ * Kleur per soort gegeven (zie app.css, --kleur-…): stroom geel, teruglevering en zon groen, gas rood,
+ * kosten paars, temperatuur blauw. Zonder soort de accentkleur van het thema.
+ */
+export function soortVanMaat(k) {
+  if (!k) return null;
+  if (['afname', 'netto', 'piek', 'piekSom', 'basis'].includes(k)) return 'stroom';
+  if (k === 'terug') return 'terug';
+  if (k === 'gas' || k === 'gasPerGd') return 'gas';
+  if (k.startsWith('kosten')) return 'kosten';
+  if (k === 'temp' || k === 'graaddagen') return 'temp';
+  if (k === 'zon' || k === 'zonEigen' || k === 'zelfvoorzienend') return 'zon';
+  return null;
+}
+
+/**
+ * Klassen voor de kleuren van één grafiek (staaf, vergelijking, lijn); de kleuren zelf staan in app.css.
+ * Klassen en geen style-attribuut: de beveiligingsregels (CSP) staan geen inline stijlen toe.
+ */
+function kleurKlassen(soort, vergelijkSoort, lijnSoort) {
+  const k = ['grafiek'];
+  if (soort) k.push(`kl-${soort}`);
+  // Vergelijking: eigen soort (bijv. afname tegen teruglevering) of een lichtere tint van dezelfde kleur.
+  if (vergelijkSoort) k.push(`vgl-${vergelijkSoort}`);
+  else if (soort) k.push('vgl-licht');
+  if (lijnSoort) k.push(lijnSoort === soort ? 'lijn-tekst' : `lijn-${lijnSoort}`);
+  return k.join(' ');
+}
+
 function niceMax(v) {
   if (v <= 0) return 1;
   const p = 10 ** Math.floor(Math.log10(v));
@@ -38,10 +67,11 @@ function niceMax(v) {
 }
 
 /**
- * staafGrafiek({ labels, korteLabels, waarden, vergelijk, fmt, naam, vergelijkNaam, markeer })
+ * staafGrafiek({ labels, korteLabels, waarden, vergelijk, fmt, naam, vergelijkNaam, markeer, soort, vergelijkSoort })
+ * soort: stroom | terug | gas | kosten | temp | zon (kleur, zie soortVanMaat); lijn.soort idem voor de lijn.
  * waarden/vergelijk: getallen of null (geen gegevens).
  */
-export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], markeerVergelijk = [], plafond = null, toelichting = null, lijn = null, grens = null, breedte = null, hoogte = null }) {
+export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], markeerVergelijk = [], plafond = null, toelichting = null, lijn = null, grens = null, breedte = null, hoogte = null, soort = null, vergelijkSoort = null }) {
   // Breedte volgt het scherm, zodat de tekst op elk apparaat even groot blijft.
   const W = grafiekBreedte(breedte);
   const H = hoogte || (W < 500 ? 200 : 240); const L = 44; const R = lijn ? 44 : 8; const T = 10; const B = 26;
@@ -155,7 +185,7 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
       metVergelijk ? h('span', {}, h('i', { class: 'leg-vergelijk' }), vergelijkNaam) : null,
       lijn ? h('span', {}, h('i', { class: 'leg-lijn' }), `${lijn.naam} (as rechts)`) : null)
     : null;
-  return h('div', { class: 'grafiek' }, info, svg, legenda);
+  return h('div', { class: kleurKlassen(soort, vergelijkSoort, lijn?.soort) }, info, svg, legenda);
 }
 
 /** Kolom met afgeronde bovenkant (alleen positieve waarden). */
@@ -317,7 +347,7 @@ export function heatmap({ rijen, fmt, deelbaar = false, hoogIsGoed = false, bree
  * Puntenwolk met een lijn erdoor (bijv. gas per dag tegen temperatuur).
  * puntenGrafiek({ punten: [{ x, y, label }], lijn: (x) => y | null, fmtX, fmtY, naamX, naamY, naamLijn })
  */
-export function puntenGrafiek({ punten, lijn = null, fmtX, fmtY, naamX, naamY, naamPunt = 'Dag', naamLijn = 'Lijn', breedte = null }) {
+export function puntenGrafiek({ punten, lijn = null, fmtX, fmtY, naamX, naamY, naamPunt = 'Dag', naamLijn = 'Lijn', breedte = null, soort = null }) {
   const W = grafiekBreedte(breedte);
   const H = W < 500 ? 240 : 300; const L = 44; const R = 10; const T = 10; const B = 36;
   const xs = punten.map((p) => p.x); const ys = punten.map((p) => p.y);
@@ -358,7 +388,7 @@ export function puntenGrafiek({ punten, lijn = null, fmtX, fmtY, naamX, naamY, n
   const legenda = h('div', { class: 'grafiek-legenda' },
     h('span', {}, h('i', { class: 'leg-staaf leg-punt' }), naamPunt),
     lijn ? h('span', {}, h('i', { class: 'leg-lijn' }), naamLijn) : null);
-  return h('div', { class: 'grafiek' }, info, svg, legenda);
+  return h('div', { class: kleurKlassen(soort) }, info, svg, legenda);
 }
 
 /**

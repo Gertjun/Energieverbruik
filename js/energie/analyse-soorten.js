@@ -77,7 +77,7 @@ const salderingSoort = {
       vergelijk: vakjes.map((v) => (v.dagen ? v.met : null)),
       markeer: vakjes.map((v) => v.geschat),
       fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)),
-      naam: 'Na einde saldering', vergelijkNaam: 'Met saldering (nu)',
+      naam: 'Na einde saldering', vergelijkNaam: 'Met saldering (nu)', soort: 'kosten',
     });
     const rij = (label, x, cls) => h('tr', { class: cls }, h(cls ? 'th' : 'td', cls ? { scope: 'row' } : {}, label),
       h('td', { class: 'num verberg-smal' }, `${fmtGetal(x.afname, 0)} / ${fmtGetal(x.terug, 0)}`),
@@ -122,7 +122,7 @@ const zonurenSoort = {
       labels: uA.map((v) => v.label), korteLabels: uA.map((v) => v.kort),
       waarden: uA.map((v) => v.v), vergelijk: uT.map((v) => v.v),
       fmt: (v, as) => (as ? fmtGetal(v, Number.isInteger(v) || Math.abs(v) >= 10 ? 0 : 1) : kwh(v, 2)),
-      naam: 'Afname (gemiddeld per dag)', vergelijkNaam: 'Teruglevering (gemiddeld per dag)',
+      naam: 'Afname (gemiddeld per dag)', vergelijkNaam: 'Teruglevering (gemiddeld per dag)', soort: 'stroom', vergelijkSoort: 'terug',
     });
     const rij = (label, x, cls) => h('tr', { class: cls }, h(cls ? 'th' : 'td', cls ? { scope: 'row' } : {}, label),
       h('td', { class: 'num verberg-smal' }, x.dagen ? fmtGetal(x.afname, 0) : '–'),
@@ -173,7 +173,7 @@ const stooklijnSoort = {
       punten: punten.map((p) => ({ x: p.t, y: p.gas, label: `${fmtDatumKort(p.datum)} ${p.datum.slice(0, 4)}` })),
       lijn: fit ? fit.voorspel : null,
       fmtX: (v, as) => (as ? `${fmtGetal(v, 0)}°` : graden(v)), fmtY: (v, as) => (as ? fmtGetal(v, 0) : m3(v)),
-      naamX: 'Gemiddelde buitentemperatuur van de dag (°C)', naamY: 'Gas per dag (m³)', naamPunt: 'Gas op één dag', naamLijn: 'Stooklijn',
+      naamX: 'Gemiddelde buitentemperatuur van de dag (°C)', naamY: 'Gas per dag (m³)', naamPunt: 'Gas op één dag', naamLijn: 'Stooklijn', soort: 'gas',
     });
     const kpi = (titel, waarde, uitleg) => h('div', { class: 'kpi' }, h('span', { class: 'kpi-titel' }, titel), h('strong', { class: 'kpi-waarde' }, waarde), h('span', { class: 'kpi-verschil muted' }, uitleg));
     return kaart('Stooklijn: gas tegen buitentemperatuur',
@@ -224,7 +224,7 @@ const weerSoort = {
       labels: rijen.map((m) => m.label), korteLabels: rijen.map((m) => m.kort),
       waarden: rijen.map((m) => m.gas), vergelijk: rijen.map((m) => m.verwacht),
       fmt: (v, as) => (as ? fmtGetal(v, 0) : m3(v, 1)),
-      naam: 'Werkelijk', vergelijkNaam: 'Verwacht met stookgedrag vergelijkingsperiode',
+      naam: 'Werkelijk', vergelijkNaam: 'Verwacht met stookgedrag vergelijkingsperiode', soort: 'gas',
     });
     const pctTekst = (v) => (v == null ? '–' : `${v > 0 ? '+' : ''}${fmtGetal(v * 100, 0)}%`);
     const rij = (label, m, cls) => {
@@ -356,7 +356,7 @@ const prognoseSoort = {
       labels: p.maanden.map((m) => fmtMaand(m.maand)), korteLabels: p.maanden.map((m) => fmtMaandKort(m.maand)),
       waarden: p.maanden.map((m) => m.echt.kosten + m.geschat.kosten),
       markeer: p.maanden.map((m) => m.geschat.dagenGeschat > 0),
-      fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), naam: 'Kosten per maand',
+      fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), naam: 'Kosten per maand', soort: 'kosten',
     });
     const rij = (label, x, cls) => h('tr', { class: cls }, h(cls ? 'th' : 'td', cls ? { scope: 'row' } : {}, label),
       h('td', { class: `num${x.geschat ? ' is-geschat' : ''}` }, fmtGetal(x.afname, 0)),

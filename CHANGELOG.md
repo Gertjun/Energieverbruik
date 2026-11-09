@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.41.0 – 2026-11-09
+- Grafieken hebben nu een vaste kleur per soort: **geel** voor stroom, **groen** voor teruglevering en zonnepanelen,
+  **rood** voor gas, **paars** voor kosten en **blauw** voor temperatuur. Geldt in het Overzicht en in alle analyses,
+  in licht en donker, los van het gekozen kleurthema.
+- Vorig jaar staat ernaast in een lichtere tint van dezelfde kleur. Vergelijkt een grafiek twee verschillende dingen
+  (bijv. afname tegen teruglevering, of minder gas tegen extra stroom), dan krijgen ze elk hun eigen kleur.
+- Geschatte staven hebben nu een stippelrand, zodat ze niet te verwarren zijn met de lichtere staven van vorig jaar.
+- De temperatuurlijn in de Gasprognose is blauw; de stooklijn-puntenwolk rood.
+- Bugfix Analyse (laptop): het aantal rijen van het tegelraster werd door de beveiligingsregels van de app genegeerd;
+  nu goed doorgegeven.
+
 ## 1.40.0 – 2026-11-09
 - Nieuwe analyse **Gasprognose** (groep Gas en verwarming): hoeveel gas je de rest van deze maand nog gaat
   gebruiken, op basis van de weersverwachting voor Eindhoven en je stooklijn. Ook te kiezen: komende 7 of 14 dagen.

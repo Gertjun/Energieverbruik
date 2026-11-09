@@ -3,7 +3,7 @@
 
 import { h } from '../core/dom.js';
 import { totaal, zonPeriode, maandenMetZon, ontbrekendeDagen } from './model.js';
-import { staafGrafiek, zonGrafiek } from './grafiek.js';
+import { staafGrafiek, zonGrafiek, soortVanMaat } from './grafiek.js';
 import {
   addDays, mondayOf, sameDayLastYear, monthKey, maandStart, maandEinde, maandPlus,
   fmtDatumKort, fmtMaand, fmtMaandKort, isoWeekKey, daysBetween, fmtDag,
@@ -304,10 +304,10 @@ export function renderOverzicht(a, staat, opnieuw) {
       grafiekOfLijst(soort,
         () => staafGrafiek({
           labels, korteLabels: lijst.map((p) => p.kort), waarden,
-          vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.fmt, markeer, breedte: bKaart, hoogte: hKaart,
+          vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.fmt, markeer, breedte: bKaart, hoogte: hKaart, soort: soortVanMaat(maatKey),
         }),
         () => lijstTabel({ kop: maat.kop, labels, waarden, vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.cel, markeer, lopend, beter: maat.beter })),
-      maatKey === 'kosten' ? h('p', { class: 'hint' }, `Inclusief vaste kosten en verrekening van teruglevering. ${soort === 'lijst' ? 'Bedragen met ≈ zijn' : soort === 'samen' ? 'Lichtere staven en bedragen met ≈ zijn' : 'Lichtere staven zijn'} (deels) geschat.`) : null,
+      maatKey === 'kosten' ? h('p', { class: 'hint' }, `Inclusief vaste kosten en verrekening van teruglevering. ${soort === 'lijst' ? 'Bedragen met ≈ zijn' : soort === 'samen' ? 'Staven met een stippelrand en bedragen met ≈ zijn' : 'Staven met een stippelrand zijn'} (deels) geschat.`) : null,
     ], opnieuw, samen);
   };
   const grafieken = indeling === 'alles'
@@ -362,13 +362,13 @@ export function renderOverzicht(a, staat, opnieuw) {
       grafiekOfLijst(soort,
         () => staafGrafiek({
           labels: lijst.map((p) => p.label), korteLabels: lijst.map((p) => p.kort), waarden: gd,
-          vergelijk: heeftGdVorig ? gdVorig : null, ...mGd,
+          vergelijk: heeftGdVorig ? gdVorig : null, ...mGd, soort: 'gas',
           markeer: weinigNu, markeerVergelijk: weinigToen, plafond,
           toelichting: (i, vorig) => weinigTekst(vorig ? gdToen[i] : gdNu[i]),
           fmt: (v, as) => (as ? fmtGetal(v, 2) : `${fmtGetal(v, 3)} m³ per graaddag`),
         }),
         () => lijstTabel({ kop: 'm³/graaddag', labels: lijst.map((p) => p.label), waarden: gd, lopend, vergelijk: heeftGdVorig ? gdVorig : null, markeer: weinigNu, markeerVergelijk: weinigToen, ster: true, fmt: (v) => fmtGetal(v, 3), beter: 'lager' })),
-      h('p', { class: 'hint' }, `Hoe lager, hoe zuiniger je stookt, los van het weer. Graaddag: 18 °C min de gemiddelde buitentemperatuur, gewogen per seizoen.${heeftWeinig ? ` Lichte staven (en * in de lijst): minder dan ${fmtGetal(minGd, 0)} graaddag${minGd === 1 ? '' : 'en'} in de periode. Dan is er nauwelijks gestookt (vooral warm water en koken) en zegt de deling weinig; zulke staven tellen niet mee voor de schaal en een ↑ betekent dat de staaf is afgekapt. Tik erop voor de echte waarde.` : ''}`),
+      h('p', { class: 'hint' }, `Hoe lager, hoe zuiniger je stookt, los van het weer. Graaddag: 18 °C min de gemiddelde buitentemperatuur, gewogen per seizoen.${heeftWeinig ? ` Lichte staven met een stippelrand (en * in de lijst): minder dan ${fmtGetal(minGd, 0)} graaddag${minGd === 1 ? '' : 'en'} in de periode. Dan is er nauwelijks gestookt (vooral warm water en koken) en zegt de deling weinig; zulke staven tellen niet mee voor de schaal en een ↑ betekent dat de staaf is afgekapt. Tik erop voor de echte waarde.` : ''}`),
     ], opnieuw, samen));
   }
 

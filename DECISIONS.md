@@ -533,3 +533,14 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - Container query op de kaart: smaller dan 1250 px vier kolommen in twee banden, omdat zeven kolommen dan te smal
   zijn en tekst over de volgende kolom liep.
 
+## Kleur per soort in grafieken (1.41.0)
+- Vaste kleuren per soort gegeven in app.css (`--kleur-stroom/terug/zon/gas/kosten/temp`), los van het kleurthema,
+  zodat stroom altijd geel en gas altijd rood is. Teruglevering en zon delen groen (beide 'eigen opwek').
+- `staafGrafiek` en `puntenGrafiek` krijgen `soort` (en optioneel `vergelijkSoort`, `lijn.soort`); `soortVanMaat()` in
+  grafiek.js vertaalt een maat (afname, gas, kostenGas, …) naar een soort. Zonder soort blijft het oude gedrag
+  (accentkleur, vorig jaar oranje).
+- Kleuren via klassen (`kl-*`, `vgl-*`, `lijn-*`) en niet via een style-attribuut: de CSP (`style-src 'self'`) blokkeert
+  inline stijlen. Om dezelfde reden zet scherm-analyse.js `--rijen` nu met `style.setProperty` (CSSOM mag wel).
+- Vorig jaar = lichtere tint van dezelfde kleur. Geschat kreeg daardoor een stippelrand (anders gelijk aan vorig jaar).
+- Grafieken met jaren als lijnen (Analyse) houden de jaarkleuren; in de zonnegrafiek is het nieuwste jaar nu groen.
+

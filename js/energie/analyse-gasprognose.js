@@ -216,8 +216,8 @@ function kaarten(a, horizon, nu, fout) {
     waarden: p.dagen.map((x) => x.gas),
     markeer: p.dagen.map((x) => x.soort !== 'echt'),
     fmt: (w, as) => (as ? fmtGetal(w, Number.isInteger(w) ? 0 : 1) : m3(w, 1)),
-    naam: 'Gas per dag',
-    lijn: { naam: 'Temperatuur', waarden: p.dagen.map((x) => x.t), fmt: (w, as) => `${fmtGetal(w, as && Number.isInteger(w) ? 0 : 1)} °C` },
+    naam: 'Gas per dag', soort: 'gas',
+    lijn: { naam: 'Temperatuur', waarden: p.dagen.map((x) => x.t), fmt: (w, as) => `${fmtGetal(w, as && Number.isInteger(w) ? 0 : 1)} °C`, soort: 'temp' },
     toelichting: (i) => ({ gemeten: 'temperatuur gemeten', voorspelling: 'weersvoorspelling', normaal: 'normale temperatuur' })[p.dagen[i].bron] || null,
   });
 

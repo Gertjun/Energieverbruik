@@ -334,3 +334,10 @@
 - In de test (gas bekend t/m 4-11) gaf de app: november ~114 m³ (99–149 m³). Getallen zeggen niets, temperaturen nep.
 - [ ] Geert: Gasprognose openen op iPhone en laptop. Haalt hij de voorspelling op, en lijkt het totaal redelijk?
 - [ ] Geert: eind november vergelijken: werkelijk verbruik tegenover de prognose van begin/half november.
+
+## Stand (9 november 2026) – versie 1.41.0
+- Kleur per soort in alle grafieken (zie DECISIONS.md). Visueel gecontroleerd met een testpagina (licht en donker):
+  stroom, teruglevering, gas met temperatuurlijn, kosten, afname tegen teruglevering.
+- Niet in de echte app met Geerts gegevens bekeken; nalopen of iedere analyse de juiste kleur heeft.
+- Gevonden en opgelost: `--rijen` op de Analyse-tegels werd door de CSP geblokkeerd (gold sinds 1.39.1).
+

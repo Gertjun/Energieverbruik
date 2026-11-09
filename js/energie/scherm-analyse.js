@@ -5,7 +5,7 @@
 
 import { h, saveFile, today } from '../core/dom.js';
 import { alive, newRecord, removeById } from '../core/records.js';
-import { staafGrafiek } from './grafiek.js';
+import { staafGrafiek, soortVanMaat } from './grafiek.js';
 import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, kanPerDag, zonderUitgesloten, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief, AANSLUITING, GRENS_FASE, verschilKleur } from './analyse.js';
 import { daysBetween, fmtDatumKort } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
@@ -71,7 +71,6 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
     h('h2', { class: 'kaart-titel' }, 'Wat wil je analyseren?'),
     h('div', {
       class: 'soort-groepen', role: 'radiogroup', 'aria-label': 'Soort analyse',
-      style: `--rijen: ${Math.max(...GROEPEN.map(([g]) => SOORTEN.filter((x) => (x.groep || 'zelf') === g).length))}`,
     },
       GROEPEN.map(([g, gNaam]) => {
         const inGroep = SOORTEN.filter((x) => (x.groep || 'zelf') === g);
@@ -83,6 +82,9 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
             onClick: () => { if (x.key !== soort.key) wijzig({ soort: x.key }); },
           }, h('strong', {}, x.kort || x.naam), h('span', {}, x.uitleg || '')))));
       })));
+  // Aantal rijen voor het tegelraster (zie app.css). Via style.setProperty: een style-attribuut blokkeert de CSP.
+  soortKaart.querySelector('.soort-groepen').style.setProperty('--rijen',
+    String(Math.max(...GROEPEN.map(([g]) => SOORTEN.filter((x) => (x.groep || 'zelf') === g).length))));
   const periodeKeus = soort.geenPeriode ? null : h('div', { class: 'field' }, h('span', {}, 'Periode'),
     h('div', { class: 'snelknoppen' }, SNEL.map(([k, t]) => h('button', {
       type: 'button', class: 'btn btn-small', 'aria-pressed': c.preset === k ? 'true' : 'false',
@@ -193,7 +195,8 @@ function resultaat(a, c, van, tot) {
     waarden: r.vakjes.map((v) => v.v),
     markeer: r.vakjes.map((v) => !!v.geschat),
     vergelijk: r2 && !lijnMaat ? r.vakjes.map((_, i) => w2(i)) : null,
-    lijn: lijnMaat ? { waarden: r.vakjes.map((_, i) => w2(i)), fmt: (v, as) => (as ? fmtAs(c.maat2)(v) : fmtWaarde(c.maat2, r2.perDag)(v)), naam: MATEN[c.maat2].naam } : null,
+    lijn: lijnMaat ? { waarden: r.vakjes.map((_, i) => w2(i)), fmt: (v, as) => (as ? fmtAs(c.maat2)(v) : fmtWaarde(c.maat2, r2.perDag)(v)), naam: MATEN[c.maat2].naam, soort: soortVanMaat(c.maat2) } : null,
+    soort: soortVanMaat(c.maat),
     fmt: (v, as) => (as ? fmtAs(c.maat)(v) : fmtWaarde(c.maat, r.perDag)(v)),
     grens: c.maat === 'piek' ? { waarde: GRENS_FASE, naam: `${AANSLUITING.ampere} A per fase` }
       : c.maat === 'piekSom' ? { waarde: GRENS_FASE * AANSLUITING.fasen, naam: `${AANSLUITING.fasen}×${AANSLUITING.ampere} A` } : null,

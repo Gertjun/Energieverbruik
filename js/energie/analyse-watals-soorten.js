@@ -202,12 +202,12 @@ function zonStralingKaarten(a, nu) {
       labels: metIndex.map((r) => fmtMaand(r.maand)), korteLabels: metIndex.map(kort),
       waarden: metIndex.map((r) => r.index * 100), markeer: metIndex.map((r) => r.index < 0.85 || r.onvolledig),
       grens: { waarde: 100, naam: '' },
-      fmt: (v, as) => (as ? fmtGetal(v, 0) : `${fmtGetal(v, 0)}%`), naam: 'Prestatie tegenover dezelfde maand in andere jaren',
+      fmt: (v, as) => (as ? fmtGetal(v, 0) : `${fmtGetal(v, 0)}%`), naam: 'Prestatie tegenover dezelfde maand in andere jaren', soort: 'zon',
     })
     : staafGrafiek({
       labels: metRatio.map((r) => fmtMaand(r.maand)), korteLabels: metRatio.map(kort),
       waarden: metRatio.map((r) => r.ratio), markeer: metRatio.map((r) => r.onvolledig),
-      fmt: (v, as) => fmtGetal(v, as ? 1 : 2), naam: 'Opbrengst per kWh/m² instraling',
+      fmt: (v, as) => fmtGetal(v, as ? 1 : 2), naam: 'Opbrengst per kWh/m² instraling', soort: 'zon',
     });
   const uitlegGrafiek = metIndex.length
     ? h('p', { class: 'hint' }, 'De grafiek toont per maand de prestatie; de stippellijn is 100% (normaal). Gemarkeerd = duidelijk lager, of de maand is nog niet compleet.')
@@ -256,7 +256,7 @@ const batterijSoort = {
     const grafiek = staafGrafiek({
       labels: maanden.map((m) => m.label), korteLabels: maanden.map((m) => m.kort),
       waarden: maanden.map((m) => m.naVoor - m.naNa), vergelijk: maanden.map((m) => m.metVoor - m.metNa),
-      fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), naam: 'Besparing vanaf 2027', vergelijkNaam: 'Besparing met saldering (nu)',
+      fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), naam: 'Besparing vanaf 2027', vergelijkNaam: 'Besparing met saldering (nu)', soort: 'kosten',
     });
     const rij = (label, x, cls) => h('tr', { class: cls }, h(cls ? 'th' : 'td', cls ? { scope: 'row' } : {}, label),
       cel(fmtGetal(x.ontladen, 0)), cel(euro(x.metVoor - x.metNa), `num verberg-smal${besparingKleur(x.metVoor - x.metNa)}`), cel(euro(x.naVoor - x.naNa), `num${besparingKleur(x.naVoor - x.naNa)}`));
@@ -308,7 +308,7 @@ function dynamischKaart(a, c, van, tot) {
   const grafiek = staafGrafiek({
     labels: maanden.map((m) => m.label), korteLabels: maanden.map((m) => m.kort),
     waarden: maanden.map((m) => m.dyn), vergelijk: maanden.map((m) => m.vast),
-    fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), naam: 'Dynamisch', vergelijkNaam: 'Je eigen contract',
+    fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), naam: 'Dynamisch', vergelijkNaam: 'Je eigen contract', soort: 'kosten',
   });
   const rij = (label, x, cls) => h('tr', { class: cls }, h(cls ? 'th' : 'td', cls ? { scope: 'row' } : {}, label),
     cel(euro(x.vast)), cel(euro(x.dyn)), cel(plusMin(x.dyn - x.vast), `num${besparingKleur(x.vast - x.dyn)}`),
@@ -356,7 +356,7 @@ const warmtepompSoort = {
     const grafiek = staafGrafiek({
       labels: maanden.map((m) => m.label), korteLabels: maanden.map((m) => m.kort),
       waarden: maanden.map((m) => m.gasEuro + m.vastGas), vergelijk: maanden.map((m) => m.stroomEuro),
-      fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), naam: 'Minder gas', vergelijkNaam: 'Extra stroom',
+      fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), naam: 'Minder gas', vergelijkNaam: 'Extra stroom', soort: 'gas', vergelijkSoort: 'stroom',
     });
     const rij = (label, x, cls) => h('tr', { class: cls }, h(cls ? 'th' : 'td', cls ? { scope: 'row' } : {}, label),
       cel(fmtGetal(x.gas, 0), 'num verberg-smal'), cel(fmtGetal(x.gasWeg, 0)), cel(fmtGetal(x.kwh, 0)), cel(euro(x.besparing), `num${besparingKleur(x.besparing)}`));
@@ -402,7 +402,7 @@ const co2Soort = {
     const grafiek = staafGrafiek({
       labels: maanden.map((m) => m.label), korteLabels: maanden.map((m) => m.kort),
       waarden: maanden.map((m) => m.gas + m.afname), vergelijk: maanden.map((m) => m.terug),
-      fmt: (v, as) => (as ? fmtGetal(v, 0) : kg(v)), naam: 'Uitstoot (gas + stroom van het net)', vergelijkNaam: 'Vermeden door teruglevering',
+      fmt: (v, as) => (as ? fmtGetal(v, 0) : kg(v)), naam: 'Uitstoot (gas + stroom van het net)', vergelijkNaam: 'Vermeden door teruglevering', vergelijkSoort: 'terug',
     });
     const rij = (label, x, cls) => h('tr', { class: cls }, h(cls ? 'th' : 'td', cls ? { scope: 'row' } : {}, label),
       cel(fmtGetal(x.gas, 0)), cel(fmtGetal(x.afname, 0)), cel(fmtGetal(x.terug, 0), 'num verberg-smal'), cel(fmtGetal(x.netto, 0)));
@@ -462,12 +462,12 @@ const huishoudenSoort = {
       labels: ['Jij: totaal verbruik', 'Jij: afname van het net', `Gemiddeld ${pNaam}`, `Gemiddeld ${wNaam.toLowerCase()}`],
       korteLabels: ['Jij totaal', 'Jij net', pKort, wKort],
       waarden: [totaalVerbruik, afname, pS, wS], markeer: [false, false, true, true],
-      fmt: (v, as) => (as ? fmtGetal(v, 0) : kwh(v)), naam: 'Stroom per jaar',
+      fmt: (v, as) => (as ? fmtGetal(v, 0) : kwh(v)), naam: 'Stroom per jaar', soort: 'stroom',
     });
     const grafiekGas = staafGrafiek({
       labels: ['Jij', `Gemiddeld ${pNaam}`, `Gemiddeld ${wNaam.toLowerCase()}`], korteLabels: ['Jij', pKort, wKort],
       waarden: [gas, pG, wG], markeer: [false, true, true],
-      fmt: (v, as) => (as ? fmtGetal(v, 0) : m3(v)), naam: 'Gas per jaar',
+      fmt: (v, as) => (as ? fmtGetal(v, 0) : m3(v)), naam: 'Gas per jaar', soort: 'gas',
     });
     return kaart('Tegenover een gemiddeld huishouden',
       h('p', { class: 'hint' }, `Jouw laatste 365 dagen (${periodeTekst(van, tot)}), naar een heel jaar omgerekend als er dagen ontbreken`),
