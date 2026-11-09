@@ -570,7 +570,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 
 
 ## Ruimte bovenin op de iPad en uitlijning knoppen (1.42.2)
-- **Extra marge alleen als er een veilige zone is**: `--boven-veilig` = veilige zone + 24 px, maar 0 als de zone 0 is
+- **Extra marge alleen als er een veilige zone is**: `--boven-veilig` = veilige zone + 40 px (1.42.2: 24 px, voor de zijbalk te weinig verschil), maar 0 als de zone 0 is
   (laptop). De vervaging van iPadOS reikt verder dan de veilige zone (die alleen de statusbalk dekt). Zijbalk en
   inhoud krijgen dezelfde bovenmarge, zodat logo en schermtitel op één hoogte beginnen. Ook het meeschuivende paneel
   in Historie en het springen naar een sectie in Instellingen houden die marge aan.

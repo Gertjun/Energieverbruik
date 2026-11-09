@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.42.3 – 2026-11-09
+- iPad: zijbalk (logo en titel) en schermtitel staan duidelijk lager: 40 px onder de statusbalk in plaats van 24 px.
+  In 1.42.2 zakte de zijbalk maar 12 px, omdat die al een kleine marge onder de statusbalk had.
+
 ## 1.42.2 – 2026-11-09
 - iPad (liggend, met zijbalk): zijbalk én schermtitel beginnen nu onder de vervaging bovenin het scherm, met wat
   extra ruimte. Op de laptop verandert niets.

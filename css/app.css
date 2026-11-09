@@ -60,10 +60,10 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 
 @media (min-width: 900px) {
   /* Zonder kopbalk (laptop-indeling) beginnen zijbalk en inhoud direct bovenin. Op de iPad ligt daar de
-     statusbalk met de vervaging van iPadOS, die verder reikt dan de veilige zone: daarom 24 px extra onder die
+     statusbalk met de vervaging van iPadOS, die verder reikt dan de veilige zone: daarom 40 px extra onder die
      zone. Op de laptop is de veilige zone 0: dan is --boven-veilig 0 en blijft de gewone marge staan (max).
-     min(24px, zone × 100) is 0 als de zone 0 is, en anders 24px. */
-  :root { --boven-veilig: calc(var(--safe-top) + min(24px, var(--safe-top) * 100)); }
+     min(40px, zone × 100) is 0 als de zone 0 is, en anders 40px. */
+  :root { --boven-veilig: calc(var(--safe-top) + min(40px, var(--safe-top) * 100)); }
   .app-nav {
     top: 0; right: auto; bottom: 0;
     width: var(--zij-b);

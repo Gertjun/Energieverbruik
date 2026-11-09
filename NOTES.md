@@ -369,3 +369,8 @@
   op 1376 px met een nagebootste veilige zone van 24 px (iPad), 1300 px en 1866 px (Naast elkaar en Eén kolom):
   alles lijnt uit, laptop bovenin ongewijzigd. Niet op een echte iPad getest.
 - [ ] Geert: op de iPad kijken of logo en titel nu vrij van de vervaging staan, en of 24 px extra genoeg (of te veel) is.
+
+## Stand (9 november 2026) – versie 1.42.3
+- Geert zag in 1.42.2 de zijbalk niet zakken: die had al 12 px onder de veilige zone, dus ging maar 12 px omlaag.
+  Extra marge nu 40 px (zijbalk ~28 px lager dan in 1.42.1). Zijbalk en titel blijven op dezelfde hoogte.
+- [ ] Geert: op de iPad kijken (v1.42.3 onder het logo); is de ruimte nu goed?
