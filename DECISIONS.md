@@ -484,3 +484,10 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   `#btn-sync`/`#btn-lock`. app.js houdt een vaste verwijzing bij, omdat het oude scherm bij opnieuw tekenen wordt
   weggegooid. Onder 900 px gaat het terug in de kopbalk.
 - Bewust geaccepteerd: de knoppen scrollen op de laptop mee weg.
+
+## Indeling-keuze op de keuzeregel (1.38.4)
+- Drie groepen van elk vier knoppen in een flex-rij: elke groep `flex: 1 1 500px; max-width: 520px`, zodat ze
+  even breed zijn en dus alle knoppen even groot. De indeling krijgt `margin-left: auto` (rechts uitgelijnd) en
+  schuift bij te weinig ruimte naar de volgende regel. Geen vaste drie kolommen: dan werden knopteksten afgekapt
+  of stond bij 'Alles tegelijk' de indeling midden in de rij.
+- Het label "Indeling" vervalt (zou de groepen ongelijk maken); de uitleg per knop staat als tooltip.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.38.4 – 2026-11-09
+- Overzicht op de laptop: de keuze voor de indeling staat nu rechts op dezelfde regel als Dag/Week/Maand/Jaar
+  (en Stroom/Terug/Gas/Kosten). Alle knoppen zijn even groot. Is het venster te smal, dan schuift de indeling
+  naar de regel eronder, rechts uitgelijnd. Met de muis boven een indelingsknop zie je wat die doet.
+
 ## 1.38.3 – 2026-11-09
 - Laptop: de lege bovenbalk is weg. Synchroniseren (wolkje) en vergrendelen (slotje) staan nu rechts op de
   titelregel van elk scherm, met de keuze voor de indeling ervoor. iPhone/iPad ongewijzigd.

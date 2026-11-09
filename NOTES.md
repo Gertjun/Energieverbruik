@@ -302,3 +302,9 @@
 - Laptop (vanaf 900 px breed): geen aparte kopbalk meer; wolkje en slotje rechts op de titelregel.
   Getest in een testbrowser op 1866, 1000 en 390 px breed (donker thema), inclusief vergrendelen.
 - Gevolg: op de laptop scrollen wolkje en slotje mee omhoog; ze staan niet meer vast bovenin beeld.
+
+## Stand (9 november 2026) – versie 1.38.4
+- Indeling-keuze naar de regel met Dag/Week/Maand/Jaar; alle knoppen 128 px breed op een volledig laptopscherm.
+  Getest op 1866 px (Eén kolom en Alles tegelijk) en 1240 px (wrapt netjes).
+- Bij Eén kolom is de inhoud smaller (1040 px): dan staan Periode en Stroom/Terug/Gas/Kosten op regel 1 en de
+  indeling rechts op regel 2. Het woord "Indeling" is weg (staat als tooltip).

@@ -319,15 +319,21 @@ export function renderOverzicht(a, staat, opnieuw) {
   const zonMaanden = maandenMetZon(a);
   const heeftZon = zonMaanden.length > 0;
   const maat2 = (alleen) => (tweeKolommen && alleen ? { breedte: B.heel, hoogte: null } : { breedte: bKaart, hoogte: hKaart });
-  // Keuze van de indeling: alleen op een breed scherm (daaronder is er maar één kolom).
+  // Keuze van de indeling: alleen op een breed scherm (daaronder is er maar één kolom). Staat dan op dezelfde
+  // regel als Dag/Week/Maand/Jaar; alle groepen even breed, dus alle knoppen even groot (zie app.css).
   const breed = window.matchMedia?.(BREED_SCHERM).matches;
   const indelingKeus = breed
-    ? h('div', { class: 'indeling-keus' },
-      h('span', { class: 'muted' }, 'Indeling'),
-      segmented(INDELINGEN.map(([k, naam]) => [k, naam]), indeling, (v) => { bewaarIndeling(v); opnieuw(); }, 'Indeling Overzicht'))
+    ? segmented(INDELINGEN.map(([k, naam]) => [k, naam]), indeling, (v) => { bewaarIndeling(v); opnieuw(); }, 'Indeling Overzicht')
     : null;
-  staat.titelExtra = indelingKeus; // app.js zet dit rechts naast de titel
-  const delen = [h('div', { class: `keuzes${maatKeus ? '' : ' keuzes-een'}` }, periodeKeus, maatKeus), kpis];
+  if (indelingKeus) {
+    indelingKeus.classList.add('indeling-keus');
+    indelingKeus.title = 'Indeling van het Overzicht';
+    indelingKeus.querySelectorAll('button').forEach((knop, i) => { knop.title = INDELINGEN[i][2]; });
+  }
+  const keuzeRij = breed
+    ? h('div', { class: 'keuzes keuzes-breed' }, periodeKeus, maatKeus, indelingKeus)
+    : h('div', { class: `keuzes${maatKeus ? '' : ' keuzes-een'}` }, periodeKeus, maatKeus);
+  const delen = [keuzeRij, kpis];
 
   // Gas per graaddag (volgt de gekozen periode)
   const mnd = perioden('maand', a.laatste);

@@ -317,6 +317,12 @@ input[type="month"] {
   .overzicht-raster > :last-child:nth-child(odd) { grid-column: 1 / -1; }
   /* Alleen Dag/Week/Maand/Jaar: niet uitrekken over de hele breedte */
   .keuzes.keuzes-een { grid-template-columns: minmax(0, 520px); }
+  /* Periode, Stroom/Terug/Gas/Kosten en Indeling op één regel. Elke groep heeft vier knoppen en dezelfde breedte,
+     dus alle knoppen zijn even groot. Indeling staat rechts; past het niet, dan schuift die naar de volgende regel. */
+  .keuzes.keuzes-breed { display: flex; flex-wrap: wrap; gap: 8px; }
+  .keuzes-breed > .segmented { flex: 1 1 500px; max-width: 520px; }
+  .keuzes-breed > .indeling-keus { margin-left: auto; }
+  .keuzes-breed .segmented button { padding: 0 6px; white-space: nowrap; }
   /* Grafiek met de lijst ernaast; breedte lijst gelijk aan LIJST_BREEDTE in scherm-overzicht.js */
   .samen { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
   .samen-lijst { max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
@@ -333,15 +339,11 @@ input[type="month"] {
 .kaart-leeg { display: none; }
 .overzicht-raster .kaart-leeg { display: block; }
 
-/* Keuze indeling bovenin het Overzicht (alleen op een breed scherm) */
+/* Titelregel van een scherm (titel links, knoppen synchroniseren/vergrendelen rechts op de laptop) */
 .scherm-kop { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.scherm-kop-rechts { display: flex; align-items: center; gap: 16px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+.scherm-kop-rechts { display: flex; align-items: center; gap: 16px; margin-left: auto; }
 .scherm-kop-rechts:empty { display: none; }
 .scherm-kop-rechts .header-actions { margin-top: 4px; }
-.indeling-keus { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-.indeling-keus > span { font-size: 0.85rem; }
-.indeling-keus .segmented { padding: 3px; }
-.indeling-keus .segmented button { min-height: 30px; padding: 0 12px; font-size: 0.8rem; }
 
 /* Heatmap (Analyse): stoplichtkleuren, groen = gewenst, rood = ongewenst (kleuren staan in grafiek.js). */
 .hm-cel { cursor: pointer; }
