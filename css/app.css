@@ -180,15 +180,14 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .tabel-lijst td:first-child { white-space: normal; }
 .tabel-lijst .lopend { display: block; font-size: 0.75rem; }
 .tabel-lijst th.num { white-space: normal; }
-.tabel-dagen tbody tr:not(.bewerk-rij) { cursor: pointer; }
-.tabel-dagen tbody tr:not(.bewerk-rij):hover { background: var(--surface-2); }
+.tabel-dagen tbody tr { cursor: pointer; }
+.tabel-dagen tbody tr:hover { background: var(--surface-2); }
 .tabel-dagen tr.is-open { background: var(--surface-2); }
 .tabel-dagen tr.is-leeg td { color: var(--warn); }
 .tabel-dagen tr.is-leeg td.muted { font-style: italic; }
 .tabel-dagen td.is-geschat { font-style: italic; color: var(--muted); }
 .tabel-dagen td:first-child { white-space: nowrap; }
 .opm-stip { color: var(--accent); font-size: 0.7rem; }
-.bewerk-rij > td { white-space: normal; background: var(--surface-2); padding: 12px; }
 .bewerk-form p { margin: 0; }
 @media (max-width: 420px) { .verberg-smal { display: none; } }
 
@@ -199,7 +198,6 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 /* Overzicht: zelfde pijltjes, titel in het midden met eventueel "Naar nu" eronder */
 .tijd-nav .kaart-titel { text-transform: none; }
 .tijd-midden { display: grid; justify-items: center; gap: 2px; text-align: center; min-width: 0; }
-.maand-som { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.85rem; color: var(--muted); }
 
 /* ---------- Formulieren ---------- */
 .field-row.drie { grid-template-columns: repeat(3, 1fr); }

@@ -75,7 +75,6 @@ js/core/                      Template-kern (kluis, sync, Face ID) — niet aanp
 ```
 
 Zie `NOTES.md` (stand van zaken), `DECISIONS.md` (keuzes), `CHANGELOG.md` en `WISHLIST.md`.
-Werkinstructies voor Claude staan in `docs/CLAUDE-INSTRUCTIES.md`.
 
 ## Lokaal testen
 

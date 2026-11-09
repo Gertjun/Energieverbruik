@@ -12,8 +12,6 @@ export function newRecord(fields = {}) {
 /** Alleen de niet-verwijderde records. */
 export const alive = (list) => (list || []).filter((r) => !r.deleted);
 
-export const findById = (list, id) => (list || []).find((r) => r.id === id && !r.deleted);
-
 /** Wijzigt een record in de lijst (muteert) en zet updatedAt. */
 export function updateById(list, id, changes) {
   const rec = list.find((r) => r.id === id);

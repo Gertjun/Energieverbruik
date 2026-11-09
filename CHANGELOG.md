@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.38.2
+
+**Opgeruimd**
+- Overgebleven code uit de template en uit eerdere versies weggehaald: de setup-bestanden voor een nieuwe app (`docs/`, `tools/`), zes ongebruikte functies en een ongebruikte lijst, en opmaak die nergens meer gebruikt werd (lijsten, lege-lijstmelding, instellingen als venster). In de app verandert niets.
+
 ## 1.38.1
 
 **Verbeterd**

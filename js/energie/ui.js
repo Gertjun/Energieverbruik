@@ -8,7 +8,6 @@ const nf0 = nf(0); const nf1 = nf(1); const nf2 = nf(2); const nf3 = nf(3);
 export const fmtGetal = (v, d = 1) => (v == null ? '–' : [nf0, nf1, nf2, nf3][d].format(v));
 export const fmtKwh = (v, d = 1) => (v == null ? '–' : `${fmtGetal(v, d)} kWh`);
 export const fmtM3 = (v, d = 2) => (v == null ? '–' : `${fmtGetal(v, d)} m³`);
-export const fmtTemp = (v) => (v == null ? '–' : `${fmtGetal(v, 1)} °C`);
 /** Euro's (getal) netjes als bedrag. */
 export const euro = (v) => (v == null ? '–' : formatEuro(Math.round(v * 100)));
 export const fmtPct = (v) => (v == null ? '–' : `${nf0.format(v * 100)}%`);
@@ -54,6 +53,3 @@ export function kaart(titel, ...inhoud) {
 export function veld(label, invoer, hint) {
   return h('label', { class: 'field' }, h('span', {}, label), invoer, hint ? h('small', { class: 'hint' }, hint) : null);
 }
-
-/** Leest een gekozen bestand als tekst of ArrayBuffer. */
-export const leesBestand = (file, alsBuffer = false) => (alsBuffer ? file.arrayBuffer() : file.text());

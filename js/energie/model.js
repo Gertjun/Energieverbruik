@@ -2,7 +2,7 @@
 
 import { alive, mergeCollections, purgeTombstones } from '../core/records.js';
 import { contractOp, kostenDag, maakProfielen, graaddag, standaardContracten } from './tarief.js';
-import { monthKey, yearKey, isoWeekKey, eachDay, maandStart, maandEinde } from './tijd.js';
+import { monthKey, eachDay, maandStart, maandEinde } from './tijd.js';
 
 // Schema 2 (versie 1.1.0): collectie `importen` (importlogboek met herstelgegevens),
 // en op dagen/maanden/weer het veld `imp` (welke import een waarde heeft gezet)
@@ -14,7 +14,7 @@ export const SCHEMA = 5;
 const TOMBSTONE_DAYS = 180;
 const COLLECTIES = ['dagen', 'weer', 'maanden', 'contracten', 'importen', 'analyses', 'uitgesloten', 'zon'];
 
-export const STANDAARD_INSTELLINGEN = { plaats: 'Eindhoven', lat: 51.44, lon: 5.48, updatedAt: 0 };
+const STANDAARD_INSTELLINGEN = { plaats: 'Eindhoven', lat: 51.44, lon: 5.48, updatedAt: 0 };
 
 export function initialData() {
   const now = Date.now();
@@ -90,8 +90,6 @@ export function afgeleid(data) {
   };
   return cache;
 }
-
-export const PERIODE_SLEUTEL = { dag: (d) => d, week: isoWeekKey, maand: monthKey, jaar: yearKey };
 
 const leegTotaal = () => ({
   afname: 0, terug: 0, gas: 0, kosten: 0, kostenStroom: 0, kostenGas: 0, kostenVast: 0,

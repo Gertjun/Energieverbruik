@@ -63,11 +63,6 @@ function naOphalen(titel, nodig, laden, teken) {
 
 // ---------- 1. Goedkopere uren (tijdvakken) ----------
 
-const KORT_TV = {
-  zomerNormaal: 'Z norm', zomerDalWeek: 'Z dal wk', zomerDalWeekend: 'Z dal wknd',
-  winterNormaal: 'W norm', winterDalDag: 'W dal dag', winterDalNacht: 'W nacht',
-};
-
 const tijdvakSoort = {
   key: 'tijdvak', groep: 'kosten',
   kort: 'Goedkopere uren',

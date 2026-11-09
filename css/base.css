@@ -274,7 +274,6 @@ input[type="file"] { font: inherit; font-size: 0.9rem; color: var(--muted); }
 }
 .icon-btn:hover { background: var(--surface-2); }
 .icon-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.icon-btn-small { width: 36px; height: 36px; color: var(--muted); }
 
 /* Sync-indicator */
 .sync-dot {
@@ -318,56 +317,8 @@ input[type="file"] { font: inherit; font-size: 0.9rem; color: var(--muted); }
 .divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 0.85rem; }
 .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
-/* ---------- Lijsten ---------- */
+/* ---------- Instellingen ---------- */
 
-.list { list-style: none; margin: 0; padding: 0; overflow: hidden; }
-.list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 52px;
-  padding: 4px 8px 4px 16px;
-}
-.list-item + .list-item { border-top: 1px solid var(--border); }
-.list-item .check { flex: 1; min-width: 0; }
-.list-item .check span { overflow-wrap: anywhere; }
-
-.empty { text-align: center; padding: 40px 16px; display: grid; gap: 4px; }
-.empty-title { font-weight: 600; }
-
-/* ---------- Instellingen (sheet) ---------- */
-
-dialog.sheet {
-  width: min(560px, 100%);
-  max-width: 100%;
-  max-height: min(92dvh, 900px);
-  margin: auto auto 0;
-  padding: 0;
-  color: var(--text);
-  background: var(--bg);
-  border: 0;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -8px 40px rgb(0 0 0 / 0.2);
-  overflow: hidden;
-}
-dialog.sheet[open] { display: flex; flex-direction: column; animation: sheet-in 0.22s ease-out; }
-dialog.sheet::backdrop { background: rgb(0 0 0 / 0.4); }
-@media (min-width: 640px) {
-  dialog.sheet { margin: auto; border-radius: 20px; }
-}
-.sheet-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 12px 12px 20px;
-  border-bottom: 1px solid var(--border);
-}
-.sheet-body {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 8px 20px calc(24px + var(--safe-bottom));
-}
 .settings-section { display: grid; gap: 12px; padding: 20px 0; scroll-margin-top: 8px; }
 .settings-section + .settings-section { border-top: 1px solid var(--border); }
 .setting-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -423,7 +374,6 @@ dialog.sheet::backdrop { background: rgb(0 0 0 / 0.4); }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { 50% { opacity: 0.35; } }
-@keyframes sheet-in { from { transform: translateY(24px); opacity: 0; } }
 @keyframes toast-in { from { transform: translate(-50%, 12px); opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {

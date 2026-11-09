@@ -290,3 +290,10 @@
   (Open-Meteo niet bereikbaar in de testomgeving): Geert controleert juli 2026 in de app.
 - Analyse → Gas per graaddag gebruikt nog het oude minimum (waarde verborgen). Bewust zo gelaten; zelfde aanpak
   daar kan later als Geert dat wil.
+
+## Stand (9 november 2026) – versie 1.38.2
+- Opgeruimd: `docs/` (startprompt en Claude-instructies uit de template), `tools/setup.mjs` (eenmalige setup),
+  ongebruikte functies (`findById`, `isSyncing`, `PERIODE_SLEUTEL`, `fmtTemp`, `leesBestand`, `KORT_TV`) en
+  ongebruikte CSS (`.list`, `.list-item`, `.empty`, `dialog.sheet`, `.sheet-*`, `.icon-btn-small`, `.bewerk-rij`, `.maand-som`).
+- `js/core/crypto.js` blijft: dat is de versleuteling van de kluis en sync, niet iets van de Crypto Tracker.
+- Gecontroleerd: alle modules laden zonder fouten in headless Chrome, versie 1.38.2 zichtbaar.

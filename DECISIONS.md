@@ -1,5 +1,13 @@
 # Beslissingen
 
+## 2026-11-09 – Template-restanten opgeruimd (versie 1.38.2)
+- **Setup-bestanden weg**: `docs/STARTPROMPT.md`, `docs/CLAUDE-INSTRUCTIES.md` en `tools/setup.mjs` dienden alleen om
+  een nieuwe app uit de template te maken. De werkinstructies staan in de projectinstructies; de template-repo houdt
+  de originelen.
+- **`js/core/` blijft een kopie van de template**, op twee ongebruikte functies na (`findById`, `isSyncing`). Bij
+  het overnemen van template-updates die twee niet terugzetten, tenzij er iets is dat ze gebruikt.
+- **Settings als venster (`dialog.sheet`) uit de CSS**: de instellingen zijn sinds 1.6.0 een paneel.
+
 ## 2026-11-09 – SolarEdge automatisch (versie 1.38.0)
 - **Ophalen door een GitHub Action in SyncData, niet door de app zelf.** Eis van Geert: de API-sleutel mag niet in
   de publieke repo of code. In de app (kluis) zou hij wel privé zijn, maar SolarEdge staat browserverkeer vanaf een
