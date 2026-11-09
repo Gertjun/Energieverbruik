@@ -475,3 +475,12 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 ## Kleur van verschillen in tabellen (1.28.2)
 - Elke maat heeft een richting (`beter: 'lager'` of `'hoger'`); de verschilkolom kleurt groen als het gunstig is, rood als het ongunstig is. Temperatuur en graaddagen hebben geen richting en blijven wit: aan het weer kun je niets doen.
 - Niet gekleurd: het scherm Controle (daar betekent de kleur klopt/klopt niet) en de lopende tekst bij Cumulatief verloop (kleur in een zin leest onrustig).
+
+## Knoppen synchroniseren/vergrendelen op de titelregel (1.38.3)
+- Op de laptop kostte de kopbalk een hele strook hoogte voor alleen twee pictogrammen (logo en naam staan al in de
+  zijbalk). Daarom verbergt de CSS de kopbalk vanaf 900 px en verplaatst app.js het element `.header-actions`
+  naar rechts op de titelregel (`.scherm-kop-rechts`, na de keuze Indeling).
+- Het element wordt verplaatst, niet nagemaakt: de schil (core/shell.js) koppelt de klikken en de syncstatus aan
+  `#btn-sync`/`#btn-lock`. app.js houdt een vaste verwijzing bij, omdat het oude scherm bij opnieuw tekenen wordt
+  weggegooid. Onder 900 px gaat het terug in de kopbalk.
+- Bewust geaccepteerd: de knoppen scrollen op de laptop mee weg.

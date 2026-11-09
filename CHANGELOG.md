@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.38.3 – 2026-11-09
+- Laptop: de lege bovenbalk is weg. Synchroniseren (wolkje) en vergrendelen (slotje) staan nu rechts op de
+  titelregel van elk scherm, met de keuze voor de indeling ervoor. iPhone/iPad ongewijzigd.
+
 ## 1.38.2
 
 **Opgeruimd**

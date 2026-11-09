@@ -297,3 +297,8 @@
   ongebruikte CSS (`.list`, `.list-item`, `.empty`, `dialog.sheet`, `.sheet-*`, `.icon-btn-small`, `.bewerk-rij`, `.maand-som`).
 - `js/core/crypto.js` blijft: dat is de versleuteling van de kluis en sync, niet iets van de Crypto Tracker.
 - Gecontroleerd: alle modules laden zonder fouten in headless Chrome, versie 1.38.2 zichtbaar.
+
+## Stand (9 november 2026) – versie 1.38.3
+- Laptop (vanaf 900 px breed): geen aparte kopbalk meer; wolkje en slotje rechts op de titelregel.
+  Getest in een testbrowser op 1866, 1000 en 390 px breed (donker thema), inclusief vergrendelen.
+- Gevolg: op de laptop scrollen wolkje en slotje mee omhoog; ze staan niet meer vast bovenin beeld.

@@ -104,6 +104,9 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
   body.zijbalk-in .nav-inklap { margin-left: 0; }
   body.energie-app #screen-app .app-main { max-width: 1040px; padding-bottom: 32px; }
   body.energie-app #screen-app .app-header-inner { max-width: 1008px; }
+  /* Geen aparte kopbalk op de laptop: synchroniseren en vergrendelen staan rechts op de titelregel (app.js) */
+  body.energie-app #screen-app .app-header { display: none; }
+  body.energie-app .settings-panel .settings-section { scroll-margin-top: 16px; }
 }
 
 /* ---------- Kaarten en kerncijfers ---------- */
@@ -332,6 +335,9 @@ input[type="month"] {
 
 /* Keuze indeling bovenin het Overzicht (alleen op een breed scherm) */
 .scherm-kop { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.scherm-kop-rechts { display: flex; align-items: center; gap: 16px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+.scherm-kop-rechts:empty { display: none; }
+.scherm-kop-rechts .header-actions { margin-top: 4px; }
 .indeling-keus { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
 .indeling-keus > span { font-size: 0.85rem; }
 .indeling-keus .segmented { padding: 3px; }

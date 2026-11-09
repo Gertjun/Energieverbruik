@@ -36,6 +36,23 @@ const zijbalkIngeklapt = () => { try { return localStorage.getItem(ZIJBALK_KEY) 
 // dan opnieuw tekenen (bijv. venster verkleind of iPad gedraaid).
 window.matchMedia?.(BREED_SCHERM).addEventListener?.('change', () => { if (staat.tab === 'overzicht') opnieuw(); });
 
+// Laptop (zijbalk): geen aparte kopbalk; de knoppen synchroniseren en vergrendelen staan rechts op de
+// titelregel van het scherm. iPhone/iPad: gewoon in de kopbalk. Het element zelf wordt verplaatst,
+// zodat de schil (shell.js) het via zijn id blijft vinden en de klikfuncties behouden blijven.
+const ZIJBALK_SCHERM = '(min-width: 900px)';
+const opLaptop = () => window.matchMedia?.(ZIJBALK_SCHERM).matches ?? false;
+window.matchMedia?.(ZIJBALK_SCHERM).addEventListener?.('change', () => { plaatsKopKnoppen(null); opnieuw(); });
+let kopKnoppen = null; // vaste verwijzing: na opnieuw tekenen zit het element niet meer in de pagina
+function plaatsKopKnoppen(doel) {
+  kopKnoppen ??= document.querySelector('.header-actions');
+  const knoppen = kopKnoppen;
+  if (!knoppen) return null;
+  if (doel) { doel.append(knoppen); return knoppen; }
+  const kop = document.querySelector('.app-header-inner');
+  if (kop && knoppen.parentElement !== kop) kop.append(knoppen);
+  return knoppen;
+}
+
 function icoon(pad) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
@@ -120,7 +137,9 @@ export const app = {
     // Brede indeling van het Overzicht: de inhoud mag dan breder worden (zie app.css).
     document.body.dataset.indeling = staat.tab === 'overzicht' ? staat.indeling : 'standaard';
     document.querySelectorAll('[data-app-version]').forEach((el) => { el.textContent = `v${APP.version}`; });
-    root.replaceChildren(navigatie(), h('div', { class: 'scherm-kop' }, h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), staat.titelExtra), ...inhoud.filter(Boolean));
+    const kopRechts = h('div', { class: 'scherm-kop-rechts' }, staat.titelExtra);
+    root.replaceChildren(navigatie(), h('div', { class: 'scherm-kop' }, h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), kopRechts), ...inhoud.filter(Boolean));
+    plaatsKopKnoppen(opLaptop() ? kopRechts : null);
     ctx.toonSchilInstellingen?.(schilGroep(staat));
     zorgVoorWeer(ctx, a);
     zorgVoorSolarEdge(ctx, opnieuw);
