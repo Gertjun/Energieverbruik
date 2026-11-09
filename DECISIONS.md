@@ -508,3 +508,11 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - Instellingen → App en sync: de secties van de schil (#settings-panel) in een raster van twee; de back-up (Gegevens)
   over de hele breedte.
 
+## Uitlijning Analyse-tegels (1.39.1)
+- De groepen delen één raster van rijen via CSS `subgrid`: rij 1 = titels (onderaan uitgelijnd), daarna één rij per
+  tegel met `1fr`, zodat elke tegel even hoog is als de hoogste. Het aantal rijen (`--rijen`) zet scherm-analyse.js
+  op de grootste groep. Vervangt de vaste titelhoogte van 1.39.0 (die gaf ongelijke tegels en een groot gat onder
+  de titels). Zonder subgrid-ondersteuning blijft de oude weergave.
+- Container query op de kaart: smaller dan 1250 px vier kolommen in twee banden, omdat zeven kolommen dan te smal
+  zijn en tekst over de volgende kolom liep.
+

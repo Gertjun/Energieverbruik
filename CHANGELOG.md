@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.39.1 – 2026-11-09
+- Analyse op de laptop: de keuzetegels staan nu netjes uitgelijnd. Alle tegels zijn even hoog, de tegels staan in
+  alle kolommen precies naast elkaar en de groepstitels staan op één lijn, dichter bij hun tegels.
+- Is het venster daarvoor te smal (net boven 1200 px met de zijbalk open), dan staan de groepen in vier kolommen
+  over twee rijen in plaats van over elkaar heen te lopen. iPhone/iPad ongewijzigd.
+
 ## 1.39.0 – 2026-11-09
 - Laptop (venster vanaf 1200 px breed): Invoer, Historie, Analyse en Instellingen gebruiken nu de hele breedte,
   net als het Overzicht. Kaarten staan waar dat helpt naast elkaar:

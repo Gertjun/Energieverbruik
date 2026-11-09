@@ -320,3 +320,8 @@
 - Bewust zo gelaten: Historie → Maanden en Dagen zonder open dag zijn één brede tabel (past, maar is luchtig).
   Grafieken in Analyse zijn op de laptop breed en relatief laag; hoger maken kan als Geert dat wil.
 
+## Stand (9 november 2026) – versie 1.39.1
+- Analyse-tegels op de laptop uitgelijnd (één gedeeld rijenraster). Visueel gecontroleerd met een testpagina op
+  1580 px (zeven kolommen), 1250 px (vier kolommen, twee banden) en iPhone-breedte (ongewijzigd).
+- Bij vier kolommen zijn de tegels in de tweede band wat lager dan in de eerste (die band volgt de inhoud);
+  bewust zo gelaten.

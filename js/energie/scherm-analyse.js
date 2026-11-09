@@ -69,7 +69,10 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
   // Eerste keuze, daarom een eigen kaart met tegels bovenaan in plaats van een keuzelijst.
   const soortKaart = h('section', { class: 'card kaart soort-kaart' },
     h('h2', { class: 'kaart-titel' }, 'Wat wil je analyseren?'),
-    h('div', { class: 'soort-groepen', role: 'radiogroup', 'aria-label': 'Soort analyse' },
+    h('div', {
+      class: 'soort-groepen', role: 'radiogroup', 'aria-label': 'Soort analyse',
+      style: `--rijen: ${Math.max(...GROEPEN.map(([g]) => SOORTEN.filter((x) => (x.groep || 'zelf') === g).length))}`,
+    },
       GROEPEN.map(([g, gNaam]) => {
         const inGroep = SOORTEN.filter((x) => (x.groep || 'zelf') === g);
         if (!inGroep.length) return null;

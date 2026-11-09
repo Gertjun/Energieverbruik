@@ -479,6 +479,22 @@ input[type="month"] {
   .soort-groep-titel { min-height: 2rem; }
   /* Zelf samenstellen heeft geen groepstitel: even hoog beginnen als de rest */
   .soort-groep:not(:has(.soort-groep-titel))::before { content: ''; display: block; height: calc(2rem + 6px); }
+  /* Eén gedeeld raster van rijen (subgrid): titels op één lijn, en elke tegel even hoog als de hoogste tegel,
+     zodat de tegels in alle kolommen precies naast elkaar staan. --rijen = meeste tegels in een groep (scherm-analyse.js). */
+  @supports (grid-template-rows: subgrid) {
+    .soort-groepen { grid-template-rows: auto repeat(var(--rijen, 4), 1fr); row-gap: 8px; align-items: stretch; }
+    .soort-groep { display: grid; grid-row: span calc(var(--rijen, 4) + 1); grid-template-rows: subgrid; }
+    .soort-groep .soort-tegels { display: contents; }
+    .soort-groep-titel { min-height: 0; margin: 0; align-self: end; }
+    .soort-groep:not(:has(.soort-groep-titel))::before { height: auto; }
+  }
+  /* Is de kaart te smal voor zeven kolommen (bijv. venster net boven 1200 px met de zijbalk open), dan vier
+     kolommen in twee banden, in plaats van tegels die over elkaar heen lopen. */
+  .soort-kaart { container-type: inline-size; }
+  @container (max-width: 1250px) {
+    .soort-groepen { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: auto; row-gap: 8px; }
+    .soort-groep:nth-child(n+5) { margin-top: 10px; }
+  }
 
   /* Instellingen → Tarieven: prijzen in vier kolommen in plaats van twee */
   .prijs-raster { grid-template-columns: repeat(4, minmax(0, 1fr)); }
