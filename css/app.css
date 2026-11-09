@@ -59,13 +59,18 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .scherm-titel { font-size: 1.5rem; margin: 4px 0 0; }
 
 @media (min-width: 900px) {
+  /* Zonder kopbalk (laptop-indeling) beginnen zijbalk en inhoud direct bovenin. Op de iPad ligt daar de
+     statusbalk met de vervaging van iPadOS, die verder reikt dan de veilige zone: daarom 24 px extra onder die
+     zone. Op de laptop is de veilige zone 0: dan is --boven-veilig 0 en blijft de gewone marge staan (max).
+     min(24px, zone × 100) is 0 als de zone 0 is, en anders 24px. */
+  :root { --boven-veilig: calc(var(--safe-top) + min(24px, var(--safe-top) * 100)); }
   .app-nav {
     top: 0; right: auto; bottom: 0;
     width: var(--zij-b);
     grid-template-columns: 1fr;
     align-content: start;
     gap: 4px;
-    padding: calc(12px + var(--safe-top)) 10px 12px calc(10px + var(--safe-left));
+    padding: max(12px, var(--boven-veilig)) 10px 12px calc(10px + var(--safe-left));
     border-top: 0;
     border-right: 1px solid var(--border);
   }
@@ -102,11 +107,11 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
   body.zijbalk-in .nav-merk { flex-direction: column; gap: 8px; padding: 0; }
   body.zijbalk-in .nav-merk-tekst { display: none; }
   body.zijbalk-in .nav-inklap { margin-left: 0; }
-  body.energie-app #screen-app .app-main { max-width: 1040px; padding-bottom: 32px; }
+  body.energie-app #screen-app .app-main { max-width: 1040px; padding-top: max(16px, var(--boven-veilig)); padding-bottom: 32px; }
   body.energie-app #screen-app .app-header-inner { max-width: 1008px; }
   /* Geen aparte kopbalk op de laptop: synchroniseren en vergrendelen staan rechts op de titelregel (app.js) */
   body.energie-app #screen-app .app-header { display: none; }
-  body.energie-app .settings-panel .settings-section { scroll-margin-top: 16px; }
+  body.energie-app .settings-panel .settings-section { scroll-margin-top: max(16px, var(--boven-veilig)); }
 }
 
 /* ---------- Kaarten en kerncijfers ---------- */
@@ -348,11 +353,12 @@ input[type="month"] {
   .overzicht-raster > :last-child:nth-child(odd) { grid-column: 1 / -1; }
   /* Alleen Dag/Week/Maand/Jaar: niet uitrekken over de hele breedte */
   .keuzes.keuzes-een { grid-template-columns: minmax(0, 520px); }
-  /* Periode, Stroom/Terug/Gas/Kosten en Indeling op één regel. Elke groep heeft vier knoppen en dezelfde breedte,
-     dus alle knoppen zijn even groot. Indeling staat rechts; past het niet, dan schuift die naar de volgende regel. */
-  .keuzes.keuzes-breed { display: flex; flex-wrap: wrap; gap: 8px; }
-  .keuzes-breed > .segmented { flex: 1 1 500px; max-width: 520px; }
-  .keuzes-breed > .indeling-keus { margin-left: auto; }
+  /* Periode, Stroom/Terug/Gas/Kosten en Indeling in een raster van even brede kolommen over de volle breedte
+     van de inhoud. Elke groep heeft vier knoppen, dus alle knoppen zijn even groot en de randen vallen gelijk met
+     de kaarten eronder. Passen er drie kolommen niet, dan twee: Indeling komt dan op regel 2 in de rechterkolom,
+     precies onder Stroom/Terug/Gas/Kosten. Dat geldt voor elke indeling (ook Eén kolom). */
+  .keuzes.keuzes-breed { display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 8px; }
+  .keuzes-breed > .indeling-keus { grid-column: -2 / -1; }
   .keuzes-breed .segmented button { padding: 0 6px; white-space: nowrap; }
   /* Grafiek met de lijst ernaast; breedte lijst gelijk aan LIJST_BREEDTE in scherm-overzicht.js */
   .samen { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
@@ -502,7 +508,7 @@ input[type="month"] {
   .kolom { display: grid; gap: 16px; min-width: 0; align-content: start; }
   /* Het paneel (bijv. de aangetikte dag in Historie) blijft in beeld bij het scrollen door de tabel */
   .kolommen-paneel-rechts > .kolom-hoofd { grid-column: 1; grid-row: 1; }
-  .kolommen-paneel-rechts > .kolom-paneel { grid-column: 2; grid-row: 1; position: sticky; top: 16px; }
+  .kolommen-paneel-rechts > .kolom-paneel { grid-column: 2; grid-row: 1; position: sticky; top: max(16px, var(--boven-veilig)); }
 
   /* Analyse: de groepen tegels naast elkaar als kolommen, zodat de keuze niet een halve pagina hoog is */
   .soort-groepen { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; align-items: start; }

@@ -568,3 +568,13 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - (1.42.1) Lijndikte 1,25 met een rand van 2,5 in de achtergrondkleur: Geert vond 2 te dik; dunner dan 1,25 valt
   de lichte lijn van een jaar eerder in donkere modus weg.
 
+
+## Ruimte bovenin op de iPad en uitlijning knoppen (1.42.2)
+- **Extra marge alleen als er een veilige zone is**: `--boven-veilig` = veilige zone + 24 px, maar 0 als de zone 0 is
+  (laptop). De vervaging van iPadOS reikt verder dan de veilige zone (die alleen de statusbalk dekt). Zijbalk en
+  inhoud krijgen dezelfde bovenmarge, zodat logo en schermtitel op één hoogte beginnen. Ook het meeschuivende paneel
+  in Historie en het springen naar een sectie in Instellingen houden die marge aan.
+- **Knoppengroepen in een raster in plaats van flex**: met flex + vaste maximale breedte eindigde regel 1 vóór de
+  rechterrand en stond Indeling op regel 2 tegen de rechterrand, dus niet onder de groep erboven. Een raster van even
+  brede kolommen (minimaal 460 px) lijnt de groepen altijd op met elkaar en met de kaarten eronder. De knoppen worden
+  daardoor op een volledig laptopscherm iets breder dan 128 px; dat is bewust.

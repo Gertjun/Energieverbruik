@@ -362,3 +362,10 @@
 - Gemiddelde-lijnen dunner op verzoek van Geert (lijn 2 → 1,25, rand 4 → 2,5, kortere streepjes). Bekeken in headless
   Chrome (donker): nog goed te zien.
 
+
+## Stand (9 november 2026) – versie 1.42.2
+- iPad: bovenmarge voor zijbalk en inhoud (zie DECISIONS.md). Op de iPad stond de titel "Overzicht" in de vervaging.
+- Knoppen Overzicht in een raster van even brede kolommen. Bekeken met een testpagina (buiten de repo) in headless Chrome
+  op 1376 px met een nagebootste veilige zone van 24 px (iPad), 1300 px en 1866 px (Naast elkaar en Eén kolom):
+  alles lijnt uit, laptop bovenin ongewijzigd. Niet op een echte iPad getest.
+- [ ] Geert: op de iPad kijken of logo en titel nu vrij van de vervaging staan, en of 24 px extra genoeg (of te veel) is.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.42.2 – 2026-11-09
+- iPad (liggend, met zijbalk): zijbalk én schermtitel beginnen nu onder de vervaging bovenin het scherm, met wat
+  extra ruimte. Op de laptop verandert niets.
+- Overzicht op een breed scherm: de drie knoppengroepen (periode, soort, indeling) staan in even brede kolommen over
+  de volle breedte. Past alles niet op één regel, dan staat Indeling op regel 2 precies onder Stroom/Terug/Gas/Kosten.
+  Dat geldt voor alle vier de indelingen.
+
 ## 1.42.1 – 2026-11-09
 - Overzicht: de gestippelde gemiddelde-lijnen zijn dunner (ook het lijntje in de legenda).
 
