@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.41.1 – 2026-11-09
+- Bugfix Analyse: "Dezelfde periode vorig jaar" bij de indeling **per dag** vergelijkt nu met dezelfde datum een jaar
+  eerder (7 november naast 7 november). Het was 52 weken eerder, waardoor de vergelijking een dag verschoof.
+  Ook de CSV-export en de standaarddatum bij "Een andere periode" volgen dit. Per week blijft het 52 weken eerder.
+- Bugfix Overzicht: de grafieken noemden de staven "Dit jaar" en "Vorig jaar", ook als een maand (bijv. december 2025)
+  in een ander jaar viel. Nu heten ze "Deze periode" en "Een jaar eerder"; in de lijst heet de kolom "Jaar eerder".
+- Overzicht per dag of per week over de jaarwisseling heen: het jaar staat er nu bij (bijv. "31 dec 2025").
+
 ## 1.41.0 – 2026-11-09
 - Grafieken hebben nu een vaste kleur per soort: **geel** voor stroom, **groen** voor teruglevering en zonnepanelen,
   **rood** voor gas, **paars** voor kosten en **blauw** voor temperatuur. Geldt in het Overzicht en in alle analyses,

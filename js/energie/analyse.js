@@ -305,9 +305,12 @@ export function snelPeriode(soort, a) {
   return { van: start, tot: laatste };
 }
 
-/** Dezelfde periode een jaar eerder. Weken schuiven 364 dagen, zodat maandag maandag blijft. */
+/**
+ * Dezelfde periode een jaar eerder: dezelfde kalenderdatum (7 november → 7 november).
+ * Alleen weken schuiven 364 dagen, zodat een week van maandag t/m zondag ook vorig jaar een hele week is.
+ */
 export function vorigJaar(indeling, van, tot) {
-  if (indeling === 'week' || indeling === 'dag') return { van: addDays(van, -364), tot: addDays(tot, -364) };
+  if (indeling === 'week') return { van: addDays(van, -364), tot: addDays(tot, -364) };
   return { van: sameDayLastYear(van), tot: sameDayLastYear(tot) };
 }
 

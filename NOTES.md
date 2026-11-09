@@ -341,3 +341,12 @@
 - Niet in de echte app met Geerts gegevens bekeken; nalopen of iedere analyse de juiste kleur heeft.
 - Gevonden en opgelost: `--rijen` op de Analyse-tegels werd door de CSP geblokkeerd (gold sinds 1.39.1).
 
+
+## Stand (9 november 2026) – versie 1.41.1
+- Bugfix vergelijking met vorig jaar per dag in Analyse (zelfde datum i.p.v. 52 weken) en namen "Dit jaar"/"Vorig jaar"
+  in de Overzicht-grafieken vervangen door "Deze periode"/"Een jaar eerder" (december 2025 stond als "dit jaar").
+- Getest: syntaxcontrole en de nieuwe vergelijkingsperiode (1–9 nov 2026 → 1–9 nov 2025; week blijft 52 weken).
+  Niet in de browser met Geerts echte gegevens bekeken.
+- [ ] Geert: Analyse per dag met vorig jaar: staat bij 7 november nu het verbruik van 7 november 2025?
+- [ ] Geert: als er nog een grafiek is waar december 2025 als "dit jaar" staat, laten weten welke (het screenshot
+  kwam niet mee in deze sessie).

@@ -7,7 +7,7 @@ import { h, saveFile, today } from '../core/dom.js';
 import { alive, newRecord, removeById } from '../core/records.js';
 import { staafGrafiek, soortVanMaat } from './grafiek.js';
 import { MATEN, INDELINGEN, MAX_DAGEN_PER_DAG, SNEL, past, reeks, kanPerDag, zonderUitgesloten, snelPeriode, vorigJaar, anderePeriode, vlakStroomTarief, AANSLUITING, GRENS_FASE, verschilKleur } from './analyse.js';
-import { daysBetween, fmtDatumKort } from './tijd.js';
+import { daysBetween, fmtDatumKort, sameDayLastYear } from './tijd.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 import { SOORTEN, SOORT_STANDAARD, GROEPEN } from './analyse-soorten.js';
 
@@ -186,7 +186,14 @@ function resultaat(a, c, van, tot) {
   const lijnMaat = c.vergelijk === 'maat';
   const eh = (maat, rr) => `${MATEN[maat].eenheid}${rr?.perDag ? ' per dag' : ''}`;
   const n = r.vakjes.length;
-  const w2 = (i) => (r2 ? r2.vakjes[i]?.v ?? null : null);
+  // Per dag met vorig jaar: koppelen op kalenderdatum (zo blijft 29 februari geen dag verschuiven).
+  const perDatum = c.vergelijk === 'vorigjaar' && c.indeling === 'dag' && r2
+    ? new Map(r2.vakjes.map((vk) => [vk.van, vk.v])) : null;
+  const w2 = (i) => {
+    if (!r2) return null;
+    if (perDatum) return perDatum.get(sameDayLastYear(r.vakjes[i].van)) ?? null;
+    return r2.vakjes[i]?.v ?? null;
+  };
 
   const m = MATEN[c.maat];
   const grafiek = n ? staafGrafiek({
@@ -234,7 +241,7 @@ function resultaat(a, c, van, tot) {
 
   const csvKnop = h('button', {
     class: 'btn', type: 'button', disabled: !n,
-    onClick: () => saveFile(`analyse-${c.maat}-${c.indeling}-${today()}.csv`, csv(c, r, r2, naam2, lijnMaat), 'text/csv'),
+    onClick: () => saveFile(`analyse-${c.maat}-${c.indeling}-${today()}.csv`, csv(c, r, r2, naam2, lijnMaat, w2), 'text/csv'),
   }, 'Tabel als CSV');
 
   const titel = lijnMaat
@@ -258,7 +265,8 @@ function resultaat(a, c, van, tot) {
   } else if (c.maat2 === 'basis' && c.vergelijk === 'maat') {
     hints.push('Sluipverbruik = laagste uurverbruik tussen 00:00 en 05:00, alleen voor dagen met uurgegevens; per week/maand/jaar de mediaan.');
   }
-  if (c.vergelijk === 'vorigjaar' && ['dag', 'week'].includes(c.indeling)) hints.push('Vorig jaar = 52 weken eerder, zodat dezelfde weekdagen naast elkaar staan.');
+  if (c.vergelijk === 'vorigjaar' && c.indeling === 'week') hints.push('Vorig jaar = 52 weken eerder, zodat steeds een hele week (maandag t/m zondag) naast dezelfde week vorig jaar staat.');
+  if (c.vergelijk === 'vorigjaar' && c.indeling === 'dag') hints.push('Vorig jaar = dezelfde datum een jaar eerder (7 november naast 7 november).');
 
   return kaart(titel,
     h('p', { class: 'hint' }, `${periodeTekst(van, tot)} · ${INDELINGEN.find(([k]) => k === c.indeling)[1].toLowerCase()}`),
@@ -267,14 +275,14 @@ function resultaat(a, c, van, tot) {
     h('p', { class: 'hint' }, hints.join(' ')));
 }
 
-function csv(c, r, r2, naam2, lijnMaat) {
+function csv(c, r, r2, naam2, lijnMaat, w2) {
   const getal = (maat, v) => (v == null ? '' : v.toFixed(Math.max(MATEN[maat].d, 2)).replace('.', ','));
   const eh = (maat, rr) => `${MATEN[maat].eenheid}${rr?.perDag ? ' per dag' : ''}`;
   const kop = ['Periode', `${MATEN[c.maat].naam} (${eh(c.maat, r)})`];
   if (r2 && !lijnMaat) kop.push(`${naam2} (${eh(c.maat, r)})`);
   if (lijnMaat) kop.push(`${MATEN[c.maat2].naam} (${eh(c.maat2, r2)})`);
   const regel = (label, v, v2) => [label, getal(c.maat, v), ...(r2 ? [getal(lijnMaat ? c.maat2 : c.maat, v2)] : [])];
-  const regels = [kop, ...r.vakjes.map((vk, i) => regel(vk.label, vk.v, r2?.vakjes[i]?.v)), regel(r.totaal.label, r.totaal.v, r2?.totaal.v),
+  const regels = [kop, ...r.vakjes.map((vk, i) => regel(vk.label, vk.v, w2(i))), regel(r.totaal.label, r.totaal.v, r2?.totaal.v),
     ...(r.extra || []).map((x, i) => regel(x.label, x.v, r2?.extra?.[i]?.v))];
   return `﻿${regels.map((rij) => rij.map((x) => (/[;"\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x)).join(';')).join('\r\n')}\r\n`;
 }

@@ -277,7 +277,8 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - **Per uur/tijdvak alleen stroom** (afname, terug, netto): gas en kosten zijn niet per uur opgeslagen. Per uur =
   gemiddeld per dag; dagen zonder uurdata volgen het uurprofiel en zijn als geschat gemarkeerd. Zonne-opbrengst alleen
   per maand/jaar (SolarEdge levert maanden).
-- **Vorig jaar bij dag/week = 364 dagen eerder**, zodat weekdagen gelijk blijven; bij maand/jaar dezelfde datum.
+- **Vorig jaar bij week = 364 dagen eerder**, zodat weekdagen gelijk blijven; bij dag/maand/jaar dezelfde datum
+  (dag aangepast in 1.41.1, zie onder).
 - **Per dag maximaal 400 dagen**: meer staven zijn niet meer te lezen.
 - **Favorieten bewaren relatieve perioden** ("laatste 12 maanden"), zodat ze meegaan in de tijd; eigen datums worden
   vast bewaard.
@@ -544,3 +545,11 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - Vorig jaar = lichtere tint van dezelfde kleur. Geschat kreeg daardoor een stippelrand (anders gelijk aan vorig jaar).
 - Grafieken met jaren als lijnen (Analyse) houden de jaarkleuren; in de zonnegrafiek is het nieuwste jaar nu groen.
 
+
+## Vorig jaar per dag = zelfde datum (1.41.1)
+- Geert verwacht bij een dag dezelfde kalenderdatum vorig jaar, niet 52 weken eerder (dat gaf een dag verschil).
+  `vorigJaar('dag', …)` gebruikt nu `sameDayLastYear`; alleen weken schuiven nog 364 dagen (hele week ma–zo).
+- In Analyse → Samenstellen worden dagen op datum gekoppeld (niet op volgorde), zodat een schrikkeldag de rest
+  van de reeks niet verschuift. 29 februari wordt vergeleken met 28 februari.
+- Overzicht-grafieken: standaardnamen in `staafGrafiek` zijn "Deze periode" / "Een jaar eerder", want de reeks
+  (bijv. laatste 12 maanden) loopt vaak over twee kalenderjaren.

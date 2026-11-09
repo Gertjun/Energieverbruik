@@ -71,7 +71,7 @@ function niceMax(v) {
  * soort: stroom | terug | gas | kosten | temp | zon (kleur, zie soortVanMaat); lijn.soort idem voor de lijn.
  * waarden/vergelijk: getallen of null (geen gegevens).
  */
-export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], markeerVergelijk = [], plafond = null, toelichting = null, lijn = null, grens = null, breedte = null, hoogte = null, soort = null, vergelijkSoort = null }) {
+export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Deze periode', vergelijkNaam = 'Een jaar eerder', markeer = [], markeerVergelijk = [], plafond = null, toelichting = null, lijn = null, grens = null, breedte = null, hoogte = null, soort = null, vergelijkSoort = null }) {
   // Breedte volgt het scherm, zodat de tekst op elk apparaat even groot blijft.
   const W = grafiekBreedte(breedte);
   const H = hoogte || (W < 500 ? 200 : 240); const L = 44; const R = lijn ? 44 : 8; const T = 10; const B = 26;

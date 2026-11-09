@@ -25,16 +25,19 @@ const MAAT = {
 function perioden(soort, eind) {
   const out = [];
   if (soort === 'dag') {
+    // Loopt de reeks over de jaarwisseling, dan staat het jaar bij elke dag (anders lijkt 31 dec van dit jaar).
+    const jaarErbij = addDays(eind, -30).slice(0, 4) !== eind.slice(0, 4);
     for (let i = 30; i >= 0; i--) {
       const d = addDays(eind, -i);
-      out.push({ van: d, tot: d, label: fmtDatumKort(d), kort: d.slice(8), vorig: [sameDayLastYear(d), sameDayLastYear(d)] });
+      out.push({ van: d, tot: d, label: `${fmtDatumKort(d)}${jaarErbij ? ` ${d.slice(0, 4)}` : ''}`, kort: d.slice(8), vorig: [sameDayLastYear(d), sameDayLastYear(d)] });
     }
   } else if (soort === 'week') {
     const ma = mondayOf(eind);
+    const jaarErbij = addDays(ma, -84).slice(0, 4) !== eind.slice(0, 4);
     for (let i = 12; i >= 0; i--) {
       const van = addDays(ma, -7 * i); const tot = addDays(van, 6);
       const wk = isoWeekKey(van);
-      out.push({ van, tot, label: `Week ${Number(wk.slice(6))} (${fmtDatumKort(van)})`, kort: wk.slice(6), vorig: [addDays(van, -364), addDays(tot, -364)] });
+      out.push({ van, tot, label: `Week ${Number(wk.slice(6))} (${fmtDatumKort(van)}${jaarErbij ? ` ${van.slice(0, 4)}` : ''})`, kort: wk.slice(6), vorig: [addDays(van, -364), addDays(tot, -364)] });
     }
   } else if (soort === 'maand') {
     const m = monthKey(eind);
@@ -243,7 +246,7 @@ function lijstTabel({ kop, labels, waarden, vergelijk, fmt, markeer = [], markee
   return h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel tabel-lijst' },
     h('thead', {}, h('tr', {},
       h('th', {}, 'Periode'), h('th', { class: 'num' }, kop),
-      metVorig ? h('th', { class: 'num' }, 'Vorig jaar') : null,
+      metVorig ? h('th', { class: 'num' }, 'Jaar eerder') : null,
       metVorig ? h('th', { class: 'num' }, 'Verschil') : null)),
     h('tbody', {}, rijen)));
 }
