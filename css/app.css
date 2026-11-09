@@ -168,7 +168,7 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .g-afgekapt { fill: var(--text); font-size: 11px; font-weight: 700; pointer-events: none; }
 .g-hit { fill: transparent; cursor: pointer; }
 .g-hit.is-actief { fill: color-mix(in srgb, var(--text) 6%, transparent); }
-.grafiek-legenda { display: flex; gap: 16px; font-size: 0.8rem; color: var(--muted); }
+.grafiek-legenda { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.8rem; color: var(--muted); }
 .grafiek-legenda span { display: inline-flex; align-items: center; gap: 6px; }
 .grafiek-legenda i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 .leg-staaf { background: var(--staaf, var(--accent)); }
@@ -191,6 +191,18 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .jaar-knop i { width: 10px; height: 10px; border-radius: 3px; background: var(--c, transparent); border: 1px solid var(--border); }
 .jaar-knop i[class^="g-zon-"] { border-color: transparent; }
 .leg-lijn { background: var(--lijnkl, var(--warn)); height: 3px !important; border-radius: 2px !important; }
+/* Gemiddelde: gestippelde horizontale lijn in de kleur van de reeks, met een rand in de achtergrondkleur zodat
+   hij ook over een staaf van dezelfde kleur te zien is. */
+.g-gem { pointer-events: none; }
+.g-gem-rand { stroke: var(--surface); stroke-width: 4; stroke-linecap: round; }
+.g-gem-lijn { stroke: var(--gemkl); stroke-width: 2; stroke-dasharray: 6 4; }
+.g-gem-staaf { --gemkl: var(--staaf, var(--accent)); }
+.g-gem-vergelijk { --gemkl: var(--vgl, var(--jaar-1)); }
+.g-gem.g-zon-0, .g-gem.g-zon-1, .g-gem.g-zon-2, .g-gem.g-zon-3 { --gemkl: var(--c); }
+.grafiek-legenda i.leg-gem { width: 16px; height: 0; border-radius: 0; border-top: 2px dashed var(--gemkl); }
+.leg-gem-staaf { --gemkl: var(--staaf, var(--accent)); }
+.leg-gem-vergelijk { --gemkl: var(--vgl, var(--jaar-1)); }
+.leg-gem-zon { --gemkl: var(--c); }
 
 /* ---------- Tabellen ---------- */
 .tabel-wrap { overflow-x: auto; margin: 0 -16px; padding: 0 16px; }

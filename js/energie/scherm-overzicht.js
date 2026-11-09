@@ -308,6 +308,7 @@ export function renderOverzicht(a, staat, opnieuw) {
         () => staafGrafiek({
           labels, korteLabels: lijst.map((p) => p.kort), waarden,
           vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.fmt, markeer, breedte: bKaart, hoogte: hKaart, soort: soortVanMaat(maatKey),
+          gemiddelde: { overslaan: lopend, overslaanVergelijk: lopend },
         }),
         () => lijstTabel({ kop: maat.kop, labels, waarden, vergelijk: heeftVergelijk ? vergelijk : null, fmt: maat.cel, markeer, lopend, beter: maat.beter })),
       maatKey === 'kosten' ? h('p', { class: 'hint' }, `Inclusief vaste kosten en verrekening van teruglevering. ${soort === 'lijst' ? 'Bedragen met ≈ zijn' : soort === 'samen' ? 'Staven met een stippelrand en bedragen met ≈ zijn' : 'Staven met een stippelrand zijn'} (deels) geschat.`) : null,
@@ -368,6 +369,8 @@ export function renderOverzicht(a, staat, opnieuw) {
           vergelijk: heeftGdVorig ? gdVorig : null, ...mGd, soort: 'gas',
           markeer: weinigNu, markeerVergelijk: weinigToen, plafond,
           toelichting: (i, vorig) => weinigTekst(vorig ? gdToen[i] : gdNu[i]),
+          // Niet in het gemiddelde: de periode die nog loopt en staven met weinig graaddagen (onbetrouwbaar).
+          gemiddelde: { overslaan: lopend.map((l, i) => l || weinigNu[i]), overslaanVergelijk: lopend.map((l, i) => l || weinigToen[i]) },
           fmt: (v, as) => (as ? fmtGetal(v, 2) : `${fmtGetal(v, 3)} m³ per graaddag`),
         }),
         () => lijstTabel({ kop: 'm³/graaddag', labels: lijst.map((p) => p.label), waarden: gd, lopend, vergelijk: heeftGdVorig ? gdVorig : null, markeer: weinigNu, markeerVergelijk: weinigToen, ster: true, fmt: (v) => fmtGetal(v, 3), beter: 'lager' })),
@@ -402,6 +405,7 @@ export function renderOverzicht(a, staat, opnieuw) {
           labels: lijst.map((p) => p.label), korteLabels: lijst.map((p) => p.kort),
           reeksen: [{ naam: 'Opbrengst', kleur: 0, waarden: zonLijst }],
           fmtKwh: (v) => fmtKwh(v, 1), fmtPct, fmtAs: (v) => fmtGetal(v, 0), ...mZon,
+          gemiddelde: (i) => lopend[i],
         }),
         () => zonKolommen(lijst.map((p, i) => [p, zonLijst[i], i]).reverse().filter(([, w]) => w)
           .map(([p, w, i]) => zonRij(p.label, w, lopend[i] ? 'loopt nog' : w.onvolledig ? 'niet elke dag' : null)))),
@@ -435,6 +439,8 @@ export function renderOverzicht(a, staat, opnieuw) {
       labels: MND.map((mm) => fmtMaand(`2000-${mm}`).replace(/\s*2000/, '')), korteLabels: MND.map((mm) => fmtMaandKort(`2000-${mm}`)),
       reeksen: gekozen.map((j) => ({ naam: j, kleur: kleurVan(j), waarden: MND.map((mm) => zonWaarde(`${j}-${mm}`)) })),
       fmtKwh: (v) => fmtKwh(v, 0), fmtPct, fmtAs: (v) => fmtGetal(v, 0), ...mZon,
+      // De maand die nog loopt telt niet mee in het gemiddelde.
+      gemiddelde: (i, r) => `${r.naam}-${MND[i]}` === a.laatste.slice(0, 7) && maandEinde(a.laatste.slice(0, 7)) !== a.laatste,
     });
     kaarten.push(wisselKaart('zon', 'Zonnepanelen', (soort) => [
       jaarKeus,

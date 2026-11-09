@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.42.0 – 2026-11-09
+- Overzicht: elke grafiek heeft nu een **gestippelde horizontale lijn op het gemiddelde**, één voor deze periode en
+  één voor een jaar eerder, in dezelfde kleur als de staven (vorig jaar dus de lichtere tint). De waarde staat in de
+  legenda onder de grafiek (bijv. "gemiddeld 86,8 m³").
+- Geldt voor stroom, teruglevering, gas, kosten, gas per graaddag en de zonnepanelen (bij de zonnepanelen per maand:
+  één lijn per gekozen jaar, in de kleur van dat jaar).
+- De periode die nog loopt (bijv. deze maand) telt niet mee in het gemiddelde, net als staven met te weinig
+  graaddagen bij gas per graaddag; anders trekken die het gemiddelde scheef.
+
 ## 1.41.1 – 2026-11-09
 - Bugfix Analyse: "Dezelfde periode vorig jaar" bij de indeling **per dag** vergelijkt nu met dezelfde datum een jaar
   eerder (7 november naast 7 november). Het was 52 weken eerder, waardoor de vergelijking een dag verschoof.

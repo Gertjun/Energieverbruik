@@ -350,3 +350,11 @@
 - [ ] Geert: Analyse per dag met vorig jaar: staat bij 7 november nu het verbruik van 7 november 2025?
 - [ ] Geert: als er nog een grafiek is waar december 2025 als "dit jaar" staat, laten weten welke (het screenshot
   kwam niet mee in deze sessie).
+
+## Stand (9 november 2026) – versie 1.42.0
+- Gemiddelde-lijnen (gestippeld, kleur van de reeks) in alle grafieken van het Overzicht, ook zonnepanelen.
+- Getest met een testpagina (buiten de repo) met nagemaakte cijfers in headless Chrome: laptop licht en donker,
+  iPhone-breedte; de legenda loopt op de iPhone netjes over twee regels. Niet met Geerts echte gegevens bekeken.
+- Analyse-grafieken hebben nog geen gemiddelde-lijn (niet gevraagd); `gemiddelde` kan daar ook aan staafGrafiek mee.
+- [ ] Geert: is de lichte lijn van "een jaar eerder" in donkere modus goed genoeg te zien?
+

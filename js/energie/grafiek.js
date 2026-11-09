@@ -1,6 +1,7 @@
 // Eenvoudige staafgrafiek in SVG, zonder externe library.
 // Optioneel met een vergelijkingsreeks (vorig jaar) als gekleurde staaf ernaast (kleur jaar-1),
 // of met een tweede grootheid als lijn met een eigen as rechts (`lijn`).
+// Optioneel met een gestippelde horizontale lijn op het gemiddelde van elke reeks (`gemiddelde`).
 // Aanraken of aanwijzen van een staaf toont de waarde boven de grafiek.
 
 import { h } from '../core/dom.js';
@@ -66,12 +67,28 @@ function niceMax(v) {
   return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
 }
 
+/** Gemiddelde van de waarden die er zijn, behalve de posities in `overslaan`; null als er geen zijn. */
+function gemiddeldeVan(waarden, overslaan = []) {
+  const w = waarden.filter((v, i) => v != null && !overslaan[i]);
+  return w.length ? w.reduce((a, b) => a + b, 0) / w.length : null;
+}
+
+/** Gestippelde horizontale lijn (met een rand in de achtergrondkleur, zodat hij ook over een staaf te zien is). */
+function gemLijn(x1, x2, yy, cls) {
+  const g = s('g', { class: `g-gem ${cls}` });
+  g.append(s('line', { x1, x2, y1: yy, y2: yy, class: 'g-gem-rand' }));
+  g.append(s('line', { x1, x2, y1: yy, y2: yy, class: 'g-gem-lijn' }));
+  return g;
+}
+
 /**
  * staafGrafiek({ labels, korteLabels, waarden, vergelijk, fmt, naam, vergelijkNaam, markeer, soort, vergelijkSoort })
  * soort: stroom | terug | gas | kosten | temp | zon (kleur, zie soortVanMaat); lijn.soort idem voor de lijn.
  * waarden/vergelijk: getallen of null (geen gegevens).
+ * gemiddelde: { overslaan: [bool], overslaanVergelijk: [bool] } tekent per reeks een gestippelde lijn op het
+ * gemiddelde, in de kleur van die reeks; de posities in overslaan (bijv. een periode die nog loopt) tellen niet mee.
  */
-export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Deze periode', vergelijkNaam = 'Een jaar eerder', markeer = [], markeerVergelijk = [], plafond = null, toelichting = null, lijn = null, grens = null, breedte = null, hoogte = null, soort = null, vergelijkSoort = null }) {
+export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Deze periode', vergelijkNaam = 'Een jaar eerder', markeer = [], markeerVergelijk = [], plafond = null, toelichting = null, lijn = null, grens = null, breedte = null, hoogte = null, soort = null, vergelijkSoort = null, gemiddelde = null }) {
   // Breedte volgt het scherm, zodat de tekst op elk apparaat even groot blijft.
   const W = grafiekBreedte(breedte);
   const H = hoogte || (W < 500 ? 200 : 240); const L = 44; const R = lijn ? 44 : 8; const T = 10; const B = 26;
@@ -152,6 +169,11 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
     }
   }
 
+  // Gemiddelden als gestippelde lijnen (na de staven getekend, zodat ze erboven liggen).
+  const gemNu = gemiddelde ? gemiddeldeVan(waarden, gemiddelde.overslaan) : null;
+  const gemToen = gemiddelde && metVergelijk ? gemiddeldeVan(vergelijk, gemiddelde.overslaanVergelijk) : null;
+  const gemY = (v) => y(Math.max(minV, Math.min(maxV, v)));
+
   const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, '\u00a0');
   const toon = (i) => {
     const extra = (t) => (t ? ` (${t})` : '');
@@ -173,16 +195,24 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
     if (i % stap === 0 || i === n - 1) {
       svg.append(s('text', { x: L + slot * i + slot / 2, y: H - 8, class: 'g-as', 'text-anchor': 'middle' }, korteLabels[i]));
     }
+  }
+  if (gemToen != null) svg.append(gemLijn(L, W - R, gemY(gemToen), 'g-gem-vergelijk'));
+  if (gemNu != null) svg.append(gemLijn(L, W - R, gemY(gemNu), 'g-gem-staaf'));
+  // Vlakken om aan te tikken als laatste, zodat ze boven de lijnen liggen.
+  for (let i = 0; i < n; i++) {
     const hit = s('rect', { x: L + slot * i, y: T, width: slot, height: H - T - B, class: 'g-hit' });
     hit.addEventListener('pointerenter', () => toon(i));
     hit.addEventListener('click', () => toon(i));
     svg.append(hit);
   }
 
-  const legenda = metVergelijk || lijn
+  const gemTekst = (v) => `gemiddeld ${fmt(v)}`;
+  const legenda = metVergelijk || lijn || gemNu != null
     ? h('div', { class: 'grafiek-legenda' },
       h('span', {}, h('i', { class: 'leg-staaf' }), naam),
+      gemNu != null ? h('span', {}, h('i', { class: 'leg-gem leg-gem-staaf' }), gemTekst(gemNu)) : null,
       metVergelijk ? h('span', {}, h('i', { class: 'leg-vergelijk' }), vergelijkNaam) : null,
+      gemToen != null ? h('span', {}, h('i', { class: 'leg-gem leg-gem-vergelijk' }), gemTekst(gemToen)) : null,
       lijn ? h('span', {}, h('i', { class: 'leg-lijn' }), `${lijn.naam} (as rechts)`) : null)
     : null;
   return h('div', { class: kleurKlassen(soort, vergelijkSoort, lijn?.soort) }, info, svg, legenda);
@@ -201,8 +231,10 @@ function kolom(x, y0, y1, bw, cls) {
  * en boven de kolom staat de zelfvoorzienendheid.
  * zonGrafiek({ labels (12), korteLabels (12), reeksen: [{ naam, kleur (0–3), waarden: [{ zon, eigen, aandeel } | null] }], fmtKwh, fmtPct })
  * Reeksen van oud naar nieuw.
+ * gemiddelde: (i, reeks) => true als positie i van die reeks niet mag meetellen (bijv. de maand die nog loopt); met deze optie krijgt
+ * elke reeks een gestippelde lijn op de gemiddelde opbrengst, in de kleur van die reeks.
  */
-export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs, breedte = null, hoogte = null }) {
+export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs, breedte = null, hoogte = null, gemiddelde = null }) {
   const W = grafiekBreedte(breedte);
   const H = hoogte || (W < 500 ? 220 : 260); const L = 44; const R = 8; const T = 24; const B = 26;
   const alle = reeksen.flatMap((r) => r.waarden).filter(Boolean).map((w) => w.zon);
@@ -244,6 +276,12 @@ export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs
     });
   }
 
+  // Gemiddelde opbrengst per reeks als gestippelde lijn, oudste eerst zodat het nieuwste jaar bovenop ligt.
+  const gems = gemiddelde
+    ? reeksen.map((r) => ({ r, v: gemiddeldeVan(r.waarden.map((w) => (w && w.zon ? w.zon : null)), r.waarden.map((_, i) => gemiddelde(i, r))) }))
+      .filter((g) => g.v != null)
+    : [];
+  for (const g of gems) svg.append(gemLijn(L, W - R, y(Math.min(maxV, g.v)), `g-zon-${g.r.kleur}`));
   const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, ' ');
   const stap = n <= 8 ? 1 : Math.max(1, Math.ceil(n / (W < 500 ? 6 : 12)));
   for (let i = 0; i < n; i++) {
@@ -263,7 +301,12 @@ export function zonGrafiek({ labels, korteLabels, reeksen, fmtKwh, fmtPct, fmtAs
     hit.addEventListener('click', toon);
     svg.append(hit);
   }
-  return h('div', { class: 'grafiek' }, info, svg);
+  // Legenda alleen voor de gemiddelden (de jaren staan al op de knoppen boven de grafiek).
+  const legenda = gems.length
+    ? h('div', { class: 'grafiek-legenda' }, [...gems].reverse().map((g) => h('span', { class: `g-zon-${g.r.kleur}` },
+      h('i', { class: 'leg-gem leg-gem-zon' }), `${gems.length > 1 ? `${g.r.naam} ` : ''}gemiddeld ${fmtKwh(g.v)}`)))
+    : null;
+  return h('div', { class: 'grafiek' }, info, svg, legenda);
 }
 
 /** Klassieke stoplichtkleuren voor de heatmap: groen (gewenst) → geel → oranje → rood (ongewenst). */

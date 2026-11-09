@@ -553,3 +553,16 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   van de reeks niet verschuift. 29 februari wordt vergeleken met 28 februari.
 - Overzicht-grafieken: standaardnamen in `staafGrafiek` zijn "Deze periode" / "Een jaar eerder", want de reeks
   (bijv. laatste 12 maanden) loopt vaak over twee kalenderjaren.
+
+## Gemiddelde-lijnen in het Overzicht (1.42.0)
+- `staafGrafiek` en `zonGrafiek` krijgen de optie `gemiddelde`; per reeks een gestippelde lijn op het gewone
+  (rekenkundige) gemiddelde van de getoonde staven. Kleur via `--gemkl`, afgeleid van `--staaf`/`--vgl`/`--c`, zodat
+  de lijn altijd de kleur van zijn reeks volgt (ook in licht/donker).
+- Niet meegeteld: de periode die nog loopt (zou het gemiddelde omlaag trekken) en bij gas per graaddag de staven met
+  te weinig graaddagen (dezelfde die ook niet meetellen voor de schaal). Voor deze periode en een jaar eerder worden
+  dezelfde posities overgeslagen, zodat beide gemiddelden over dezelfde perioden gaan.
+- Een rand in de achtergrondkleur onder de stippellijn, anders verdwijnt de lijn over een staaf van dezelfde kleur.
+- De waarde staat in de legenda en niet als label in de grafiek: een label botst met de staven, zeker op de iPhone.
+- Zonnepanelen per maand: één lijn per gekozen jaar; de lopende maand telt niet mee. Het huidige jaar mist nog de
+  wintermaanden, dus dat gemiddelde ligt hoger dan het jaargemiddelde zal worden.
+
