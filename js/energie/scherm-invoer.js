@@ -6,6 +6,7 @@ import { leesHomeWizard } from './import-homewizard.js';
 import { leesVattenfall, isVattenfall } from './import-vattenfall.js';
 import { leesSolarEdge, isSolarEdge } from './import-solaredge.js';
 import { leesExcel } from './import-excel.js';
+import { solarEdgeStatus, zorgVoorSolarEdge } from './solaredge-auto.js';
 import { zetHomeWizard, zetVattenfall, zetSolarEdge, zetExcel, losVanImport } from './importeren.js';
 import { importRapport, meldingenInPeriode } from './scherm-controle.js';
 import { upsert, dagId, maandId } from './model.js';
@@ -80,6 +81,18 @@ function importMelding(a, staat, opnieuw, ctx) {
     }));
 }
 
+/** Regel over het automatisch ophalen van de zonne-opbrengst (alleen als synchroniseren is ingesteld). */
+function solarEdgeRegel(staat, opnieuw, ctx) {
+  const s = solarEdgeStatus();
+  if (!ctx.syncIngesteld || !s || (!s.bestand && !s.fout)) return null;
+  const knop = h('button', {
+    type: 'button', class: 'btn btn-small',
+    onClick: () => { ctx.toast('Zonne-opbrengst ophalen…'); zorgVoorSolarEdge(ctx, opnieuw, { nu: true }); },
+  }, 'Nu bijwerken');
+  if (s.fout) return h('p', { class: 'form-error' }, `Zonne-opbrengst automatisch ophalen mislukt: ${s.fout}. `, knop);
+  return h('p', { class: 'hint' }, `Zonne-opbrengst komt automatisch van SolarEdge, tot en met ${fmtDatumKort(s.tot)}. `, knop);
+}
+
 function bestandenKaart(a, staat, opnieuw, ctx) {
   const input = h('input', {
     type: 'file', multiple: true, class: 'visually-hidden', id: 'bestand-inlezen',
@@ -93,6 +106,7 @@ function bestandenKaart(a, staat, opnieuw, ctx) {
   const uitleg = (titel, stappen) => h('details', { class: 'uitleg' }, h('summary', {}, titel), h('ol', {}, stappen.map((t) => h('li', {}, t))));
   return kaart('Bestanden inlezen',
     h('p', { class: 'muted' }, 'Kies een of meer bestanden van Vattenfall, HomeWizard of SolarEdge (of je oude Excel). De app ziet zelf welk bestand het is en wat erin staat.'),
+    solarEdgeRegel(staat, opnieuw, ctx),
     a.laatste ? h('p', { class: 'hint' }, `Stroom en gas tot en met ${fmtDatumKort(a.laatste)}. Exporteer vanaf die dag (of eerder; dubbele dagen en maanden worden gewoon bijgewerkt).`) : null,
     h('details', { class: 'uitleg' },
       h('summary', {}, 'Welke gegevens gaan voor bij verschillen?'),
@@ -116,6 +130,13 @@ function bestandenKaart(a, staat, opnieuw, ctx) {
       'Per dag (aanbevolen): open de energiegrafiek, kies de weergave per dag en een periode (bijvoorbeeld een maand) en exporteer als CSV. Het bestand heet ongeveer "energy-chart-data_….csv". Vandaag wordt overgeslagen tot de dag compleet is.',
       'Per maand: open de grafiek waarin je de energie per maand van verschillende jaren vergelijkt en exporteer als CSV ("comparative-month-chart-data_….csv"). De lopende maand wordt overgeslagen tot hij compleet is.',
       'Je kunt beide inlezen. Dagen en maanden die er al stonden, worden bijgewerkt; niets telt dubbel.']),
+    uitleg('SolarEdge automatisch laten ophalen', [
+      'Eenmalig instellen; daarna haalt GitHub elke nacht de opbrengst per dag op en leest de app die vanzelf in. Een SolarEdge-bestand downloaden is dan niet meer nodig.',
+      'De API-sleutel van SolarEdge staat alleen als geheim in je privé-repo SyncData, niet in de app of de code.',
+      'Stap 1: maak in het SolarEdge Monitoring platform een API-sleutel aan (Beheer → Sitetoegang → API-toegang). Dat kan alleen met een beheerdersaccount; heb je dat niet, vraag dan je installateur om je account beheerder te maken of de sleutel voor je aan te maken.',
+      'Stap 2: zet die sleutel in GitHub bij SyncData: Settings → Secrets and variables → Actions → New repository secret, naam SOLAREDGE_API_KEY.',
+      'Stap 3: start het ophalen één keer met de hand: tabblad Actions → "SolarEdge-opbrengst ophalen" → Run workflow. De eerste keer haalt hij alles vanaf de installatie op.',
+      'Werkt alleen als synchroniseren is ingesteld (Instellingen → App en sync).']),
     uitleg('Oude Excel', [
       'Eenmalig je oude Excel-bestand (.xlsx): dagverbruik, opmerkingen, temperaturen (blad DATA), termijnbedragen en zonne-opbrengst (blad Kosten).',
       'Excel vult alleen aan; wat er al stond uit Vattenfall, HomeWizard of SolarEdge blijft staan. Vaker inlezen telt niets dubbel.']),

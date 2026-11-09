@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.38.0
+
+**Toegevoegd**
+- **Zonne-opbrengst automatisch van SolarEdge**: GitHub haalt elke nacht de opbrengst per dag op bij de SolarEdge-API en zet die in je privé-repo SyncData; de app leest die vanzelf in (hooguit eens per uur kijken, alleen nieuwe of gewijzigde dagen, als gewone import met rapport en ongedaan maken). De API-sleutel staat alleen als geheim in SyncData. Op Invoer staat tot welke dag de opbrengst binnen is, met een knop "Nu bijwerken", en uitleg om het in te stellen.
+
 ## 1.37.0
 
 **Toegevoegd**

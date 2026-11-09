@@ -1,5 +1,28 @@
 # Beslissingen
 
+## 2026-11-09 – SolarEdge automatisch (versie 1.38.0)
+- **Ophalen door een GitHub Action in SyncData, niet door de app zelf.** Eis van Geert: de API-sleutel mag niet in
+  de publieke repo of code. In de app (kluis) zou hij wel privé zijn, maar SolarEdge staat browserverkeer vanaf een
+  andere site waarschijnlijk niet toe (CORS; niet te testen in de sandbox). De Action draait bij GitHub, heeft daar
+  geen last van en de sleutel staat als geheim `SOLAREDGE_API_KEY` (site-ID optioneel via `SOLAREDGE_SITE_ID`;
+  anders de eerste site van de sleutel). Elke nacht 04:17 UTC, en met de hand te starten.
+- **Onversleuteld CSV-bestand in de private repo** (`energieverbruik/solaredge-dag.csv`), in de opmaak van een
+  SolarEdge-dagexport. De Action kent het kluiswachtwoord niet, dus versleutelen kan niet; zonne-opbrengst is weinig
+  gevoelig en de repo is privé. Zelfde opmaak = dezelfde inleesroutine (`leesSolarEdge`), en het bestand is ook
+  met de hand in te lezen.
+- **Per dag, niet per kwartier**: past op wat de app nu bewaart (collectie `zon`). Kwartier blijft op de wishlist.
+- **Eerste keer alles vanaf de installatiedatum, daarna de laatste 14 dagen opnieuw** (SolarEdge vult soms later
+  aan). Per vraag maximaal een jaar (grens van de API). Alleen een commit als er iets veranderd is.
+- **App leest het bestand met het sync-token** (zelfde repo, zelfde rechten), via nieuwe `ctx.leesSyncBestand`
+  in shell.js (template-afwijking). Daarvoor eerst een sync, zodat een ander apparaat dat al heeft ingelezen niet
+  tot dubbele imports leidt. Hooguit eens per uur per sessie; sha van het verwerkte bestand per apparaat in
+  localStorage (`energieverbruik:solaredge-sha`), dus bij geen verandering ook geen werk.
+- **Alleen nieuwe of gewijzigde dagen als import** (`zetSolarEdge`, bestandsnaam "SolarEdge (automatisch)"), met
+  rapport en ongedaan maken zoals een gewone import. Geen verandering = geen importregel. Meldingen over reeksen
+  nullen alleen over die dagen (`nulReeksen` uit import-solaredge.js); "overgeslagen vóór installatie" alleen
+  bij de eerste keer.
+- **MINOR (1.38.0)**: geen schemawijziging; alleen een nieuwe bestandsnaam bij een bestaande importsoort.
+
 ## 2026-11-06 – Negen nieuwe analyses (versies 1.29.0 t/m 1.37.0)
 Geert vroeg om alle voorgestelde extra analyses. Zeven van de zestien voorstellen bestonden al (sluipverbruik, einde
 saldering, heatmap, stooklijn/weer-gecorrigeerd, eigen verbruik, piekvermogen, controle op afwijkende dagen); de negen

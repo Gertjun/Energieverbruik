@@ -169,7 +169,23 @@
   iPhone-breedte met Geerts Excel en Vattenfall-bestanden: maand/week/dag/jaar terug en vooruit, wisselen van
   periode na terugbladeren, "Naar nu". Geen fouten.
 
+## Stand (9 november 2026) – versie 1.38.0
+- SolarEdge automatisch: GitHub Action in SyncData (`.github/workflows/solaredge.yml`, `.github/scripts/solaredge.mjs`)
+  schrijft `energieverbruik/solaredge-dag.csv`; de app leest dat in (`solaredge-auto.js`). Zie DECISIONS.md.
+- Getest met nagemaakte SolarEdge-antwoorden (de echte API is vanuit de sandbox niet bereikbaar): eerste keer
+  alles vanaf installatie (in stukken van een jaar), daarna laatste 14 dagen; `null`-waarden overgeslagen; zonder
+  sleutel een duidelijke fout. App-kant met Node: het CSV-bestand van de Action leest goed in, eerste import
+  zet alle dagen, zelfde bestand opnieuw = geen import, één gewijzigde dag = import van alleen die dag.
+- Niet getest: de echte SolarEdge-API en de weergave op Invoer in de browser (de regel verschijnt alleen met
+  sync ingesteld en het bestand aanwezig).
+
 ## Openstaande punten
+- [ ] Geert heeft geen beheerdersaccount bij SolarEdge (nodig voor de API-sleutel). Installateur vragen om zijn
+      account beheerder te maken of de sleutel aan te maken. Tot die tijd doet de Action niets (geen foutmail).
+- [ ] Geert: SolarEdge-API-sleutel aanmaken, als geheim `SOLAREDGE_API_KEY` in SyncData zetten en de Action
+      één keer met de hand starten (uitleg op Invoer). Daarna in de app kijken of de opbrengst binnenkomt en of
+      het importrapport klopt met eerdere SolarEdge-exports.
+- [ ] Als de Action faalt met 403: sleutel of site-ID controleren; eventueel `SOLAREDGE_SITE_ID` als geheim toevoegen.
 - [ ] Geert: pijltjes op het Overzicht bekijken op iPhone/iPad; stap van één periode prettig, of liever een heel scherm tegelijk?
 - [ ] Geert: na het bijwerken alle apparaten eenmaal openen (gegevensversie 5, opbrengst per dag).
 - [ ] Geert: SolarEdge-export per dag inlezen voor de periode die hij wil (bijv. vanaf november 2025, gelijk met de

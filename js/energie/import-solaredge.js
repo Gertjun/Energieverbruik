@@ -160,6 +160,22 @@ export function leesSolarEdge(tekst, vandaag) {
   };
 }
 
+/** Reeksen van minstens 3 dagen 0 kWh achter elkaar (storing of omvormer uit?), als tekst. `dagen` gesorteerd. */
+export function nulReeksen(dagen) {
+  const reeksen = [];
+  let start = null;
+  dagen.forEach((r, i) => {
+    if (r.zon === 0 && start == null) start = i;
+    const einde = r.zon !== 0 || i === dagen.length - 1;
+    if (start != null && einde) {
+      const tot = r.zon === 0 ? i : i - 1;
+      if (tot - start + 1 >= 3) reeksen.push(`${fmtDatumKort(dagen[start].datum)} t/m ${fmtDatumKort(dagen[tot].datum)} ${dagen[tot].datum.slice(0, 4)}`);
+      start = null;
+    }
+  });
+  return reeksen;
+}
+
 /** Dagbestand (of uur/kwartier, per dag opgeteld). */
 function leesDagen(regels, iWaarde, factor, vandaag) {
   const perTijd = new Map(); const ongeldig = []; const geenDatum = []; let dubbel = 0;
@@ -203,18 +219,7 @@ function leesDagen(regels, iWaarde, factor, vandaag) {
   const set = new Set(binnen.map((r) => r.datum));
   const ontbrekend = [];
   for (let d = binnen[0].datum; d <= binnen[binnen.length - 1].datum; d = addDays(d, 1)) if (!set.has(d)) ontbrekend.push(d);
-  // Reeksen van minstens 3 dagen 0 kWh: storing of omvormer uit?
-  const reeksen = [];
-  let start = null;
-  binnen.forEach((r, i) => {
-    if (r.zon === 0 && start == null) start = i;
-    const einde = r.zon !== 0 || i === binnen.length - 1;
-    if (start != null && einde) {
-      const tot = r.zon === 0 ? i : i - 1;
-      if (tot - start + 1 >= 3) reeksen.push(`${fmtDatumKort(binnen[start].datum)} t/m ${fmtDatumKort(binnen[tot].datum)} ${binnen[tot].datum.slice(0, 4)}`);
-      start = null;
-    }
-  });
+  const reeksen = nulReeksen(binnen);
   if (reeksen.length) meldingen.push(`Meerdere dagen achter elkaar geen opbrengst (0 kWh): ${reeksen.join('; ')}. Storing of omvormer uit? De nullen zijn wel ingelezen.`);
   if (interval !== 'dag') meldingen.push(`Het bestand bevat waarden per ${interval}; die zijn per dag opgeteld.`);
 

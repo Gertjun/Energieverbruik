@@ -67,6 +67,18 @@ const ctx = {
   confirm: (msg) => window.confirm(msg),
   /** Toont het instellingenpaneel van de schil (alleen de secties van `groep`) of verbergt het (null). */
   toonSchilInstellingen,
+  /** Is synchroniseren met de data-repo ingesteld (en niet gepauzeerd)? */
+  get syncIngesteld() { return isSyncConfigured() && !blocked; },
+  /**
+   * Leest een ander (onversleuteld) bestand uit de data-repo, bijv. iets wat een GitHub Action daar zet.
+   * Synchroniseert eerst de kluis, zodat gegevens die een ander apparaat al heeft verwerkt hier ook zijn.
+   * @returns {Promise<{sha: string, tekst: string} | null>} null als sync niet is ingesteld of het bestand er niet is.
+   */
+  async leesSyncBestand(pad) {
+    if (!isSyncConfigured() || blocked || !navigator.onLine) return null;
+    await runSync({ quiet: true });
+    return createClient({ ...settings.github, path: pad }).getText();
+  },
 };
 
 export async function start() {

@@ -8,6 +8,7 @@ import { h, today } from './core/dom.js';
 import { APP } from './config.js';
 import { SCHEMA, initialData, migrate, merge, afgeleid, upsert, weerId } from './energie/model.js';
 import { haalTemperaturen } from './energie/weer.js';
+import { zorgVoorSolarEdge } from './energie/solaredge-auto.js';
 import { renderOverzicht, BREED_SCHERM } from './energie/scherm-overzicht.js';
 import { renderInvoer } from './energie/scherm-invoer.js';
 import { renderHistorie } from './energie/scherm-historie.js';
@@ -122,5 +123,6 @@ export const app = {
     root.replaceChildren(navigatie(), h('div', { class: 'scherm-kop' }, h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), staat.titelExtra), ...inhoud.filter(Boolean));
     ctx.toonSchilInstellingen?.(schilGroep(staat));
     zorgVoorWeer(ctx, a);
+    zorgVoorSolarEdge(ctx, opnieuw);
   },
 };

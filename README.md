@@ -42,6 +42,11 @@ Vervangt het Excel-bestand *Gasverbruik.xlsx*. Gebouwd op de eigen PWA-template.
 Alle gegevens staan versleuteld op het apparaat en synchroniseren als één versleuteld bestand naar de
 private repo `gertjun/SyncData` (pad `energieverbruik/vault.json`). Deze code-repo bevat geen gegevens.
 
+De zonne-opbrengst kan automatisch komen: een GitHub Action in SyncData (`.github/workflows/solaredge.yml`
+en `.github/scripts/solaredge.mjs`) haalt elke nacht de opbrengst per dag op bij de SolarEdge-API en schrijft
+`energieverbruik/solaredge-dag.csv`. De API-sleutel staat alleen als geheim `SOLAREDGE_API_KEY` in SyncData,
+nooit in deze publieke repo. De app leest het bestand met het sync-token (`js/energie/solaredge-auto.js`).
+
 ## Structuur
 
 ```
@@ -51,6 +56,7 @@ js/energie/tarief.js          Tijdvakken, contracten, kosten, graaddagen
 js/energie/import-homewizard.js  HomeWizard CSV → verbruik per uur en per dag
 js/energie/import-vattenfall.js  Vattenfall CSV (kwartier/uur/dag) → zelfde omrekening
 js/energie/import-solaredge.js SolarEdge CSV (opbrengst per dag of per maand)
+js/energie/solaredge-auto.js  Opbrengst automatisch inlezen uit SyncData (bestand van de GitHub Action)
 js/energie/import-excel.js    Oude Excel inlezen (via xlsx.js, zonder library)
 js/energie/importeren.js      Imports in de kluis zetten, importlogboek, ongedaan maken
 js/energie/controle.js        Controles: verdachte waarden, ontbrekende dagen, steekproef
@@ -65,6 +71,7 @@ js/energie/extern.js          Zoninstraling (Open-Meteo) en beursprijzen (Energy
 js/energie/scherm-*.js        De vijf schermen
 js/core/                      Template-kern (kluis, sync, Face ID) — niet aanpassen, behalve:
                               shell.js toont de instellingen als paneel (#settings-panel) i.p.v. venster (1.6.0)
+                              shell.js: ctx.syncIngesteld en ctx.leesSyncBestand(pad); github.js: getText() (1.38.0)
 ```
 
 Zie `NOTES.md` (stand van zaken), `DECISIONS.md` (keuzes), `CHANGELOG.md` en `WISHLIST.md`.
