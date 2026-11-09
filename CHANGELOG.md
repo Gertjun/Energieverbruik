@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.42.1 – 2026-11-09
+- Overzicht: de gestippelde gemiddelde-lijnen zijn dunner (ook het lijntje in de legenda).
+
 ## 1.42.0 – 2026-11-09
 - Overzicht: elke grafiek heeft nu een **gestippelde horizontale lijn op het gemiddelde**, één voor deze periode en
   één voor een jaar eerder, in dezelfde kleur als de staven (vorig jaar dus de lichtere tint). De waarde staat in de

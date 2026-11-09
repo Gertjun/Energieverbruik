@@ -358,3 +358,7 @@
 - Analyse-grafieken hebben nog geen gemiddelde-lijn (niet gevraagd); `gemiddelde` kan daar ook aan staafGrafiek mee.
 - [ ] Geert: is de lichte lijn van "een jaar eerder" in donkere modus goed genoeg te zien?
 
+## Stand (9 november 2026) – versie 1.42.1
+- Gemiddelde-lijnen dunner op verzoek van Geert (lijn 2 → 1,25, rand 4 → 2,5, kortere streepjes). Bekeken in headless
+  Chrome (donker): nog goed te zien.
+

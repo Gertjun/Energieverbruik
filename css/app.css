@@ -194,12 +194,12 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 /* Gemiddelde: gestippelde horizontale lijn in de kleur van de reeks, met een rand in de achtergrondkleur zodat
    hij ook over een staaf van dezelfde kleur te zien is. */
 .g-gem { pointer-events: none; }
-.g-gem-rand { stroke: var(--surface); stroke-width: 4; stroke-linecap: round; }
-.g-gem-lijn { stroke: var(--gemkl); stroke-width: 2; stroke-dasharray: 6 4; }
+.g-gem-rand { stroke: var(--surface); stroke-width: 2.5; stroke-linecap: round; }
+.g-gem-lijn { stroke: var(--gemkl); stroke-width: 1.25; stroke-dasharray: 5 3; }
 .g-gem-staaf { --gemkl: var(--staaf, var(--accent)); }
 .g-gem-vergelijk { --gemkl: var(--vgl, var(--jaar-1)); }
 .g-gem.g-zon-0, .g-gem.g-zon-1, .g-gem.g-zon-2, .g-gem.g-zon-3 { --gemkl: var(--c); }
-.grafiek-legenda i.leg-gem { width: 16px; height: 0; border-radius: 0; border-top: 2px dashed var(--gemkl); }
+.grafiek-legenda i.leg-gem { width: 16px; height: 0; border-radius: 0; border-top: 1.5px dashed var(--gemkl); }
 .leg-gem-staaf { --gemkl: var(--staaf, var(--accent)); }
 .leg-gem-vergelijk { --gemkl: var(--vgl, var(--jaar-1)); }
 .leg-gem-zon { --gemkl: var(--c); }

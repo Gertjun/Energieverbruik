@@ -565,4 +565,6 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - De waarde staat in de legenda en niet als label in de grafiek: een label botst met de staven, zeker op de iPhone.
 - Zonnepanelen per maand: één lijn per gekozen jaar; de lopende maand telt niet mee. Het huidige jaar mist nog de
   wintermaanden, dus dat gemiddelde ligt hoger dan het jaargemiddelde zal worden.
+- (1.42.1) Lijndikte 1,25 met een rand van 2,5 in de achtergrondkleur: Geert vond 2 te dik; dunner dan 1,25 valt
+  de lichte lijn van een jaar eerder in donkere modus weg.
 
