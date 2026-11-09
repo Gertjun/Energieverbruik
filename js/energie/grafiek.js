@@ -34,12 +34,13 @@ function niceMax(v) {
  * staafGrafiek({ labels, korteLabels, waarden, vergelijk, fmt, naam, vergelijkNaam, markeer })
  * waarden/vergelijk: getallen of null (geen gegevens).
  */
-export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], lijn = null, grens = null, breedte = null, hoogte = null }) {
+export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk = null, fmt, naam = 'Dit jaar', vergelijkNaam = 'Vorig jaar', markeer = [], markeerVergelijk = [], plafond = null, toelichting = null, lijn = null, grens = null, breedte = null, hoogte = null }) {
   // Breedte volgt het scherm, zodat de tekst op elk apparaat even groot blijft.
   const W = grafiekBreedte(breedte);
   const H = hoogte || (W < 500 ? 200 : 240); const L = 44; const R = lijn ? 44 : 8; const T = 10; const B = 26;
   const alle = [...waarden, ...(vergelijk || []), ...(grens ? [grens.waarde] : [])].filter((v) => v != null);
-  const maxV = niceMax(Math.max(0, ...alle));
+  // Met een plafond bepaalt dat de schaal; hogere staven worden afgekapt (met een pijltje erboven).
+  const maxV = niceMax(plafond != null ? plafond : Math.max(0, ...alle));
   const minV = Math.min(0, ...alle) < 0 ? -niceMax(-Math.min(0, ...alle)) : 0;
   const y = (v) => T + (H - T - B) * (1 - (v - minV) / (maxV - minV));
   const n = waarden.length;
@@ -72,14 +73,19 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
   const stap = n <= 8 ? 1 : Math.max(1, Math.ceil(n / (W < 500 ? 6 : 12)));
   const staaf = (x, v, cls) => {
     if (v == null || v === 0) return null;
-    const y0 = y(0); const y1 = y(v);
+    const afgekapt = plafond != null && v > maxV;
+    const y0 = y(0); const y1 = y(afgekapt ? maxV : v);
     const top = Math.min(y0, y1); const hgt = Math.max(1, Math.abs(y1 - y0));
     const r = Math.min(4, bw / 2, hgt);
     // Afgeronde kant aan de buitenkant (weg van de nullijn).
     const d = v > 0
       ? `M${x},${y0} V${top + r} Q${x},${top} ${x + r},${top} H${x + bw - r} Q${x + bw},${top} ${x + bw},${top + r} V${y0} Z`
       : `M${x},${y0} V${top + hgt - r} Q${x},${top + hgt} ${x + r},${top + hgt} H${x + bw - r} Q${x + bw},${top + hgt} ${x + bw},${top + hgt - r} V${y0} Z`;
-    return s('path', { d, class: cls });
+    if (!afgekapt) return s('path', { d, class: cls });
+    const g = s('g', {});
+    g.append(s('path', { d, class: cls }));
+    g.append(s('text', { x: x + bw / 2, y: top + 9, class: 'g-afgekapt', 'text-anchor': 'middle' }, '↑'));
+    return g;
   };
 
   // Tweede grootheid als lijn met eigen schaal rechts.
@@ -111,8 +117,9 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
 
   const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, '\u00a0');
   const toon = (i) => {
-    const delen = [`${labels[i]}: ${waarden[i] == null ? 'geen gegevens' : fmt(waarden[i])}`];
-    if (metVergelijk) delen.push(`${vergelijkNaam.toLowerCase()}: ${vergelijk[i] == null ? '–' : fmt(vergelijk[i])}`);
+    const extra = (t) => (t ? ` (${t})` : '');
+    const delen = [`${labels[i]}: ${waarden[i] == null ? 'geen gegevens' : fmt(waarden[i]) + extra(toelichting?.(i, false))}`];
+    if (metVergelijk) delen.push(`${vergelijkNaam.toLowerCase()}: ${vergelijk[i] == null ? '–' : fmt(vergelijk[i]) + extra(toelichting?.(i, true))}`);
     if (lijn) delen.push(`${lijn.naam.toLowerCase()}: ${lijn.waarden[i] == null ? '–' : lijn.fmt(lijn.waarden[i])}`);
     info.textContent = delen.join(' · ');
     svg.querySelectorAll('.g-hit').forEach((el, j) => el.classList.toggle('is-actief', j === i));
@@ -121,7 +128,7 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
   for (let i = 0; i < n; i++) {
     const x0 = L + slot * i + (slot - groep) / 2;
     if (metVergelijk) {
-      const a = staaf(x0, vergelijk[i], 'g-vergelijk'); if (a) svg.append(a);
+      const a = staaf(x0, vergelijk[i], `g-vergelijk${markeerVergelijk[i] ? ' g-vergelijk-licht' : ''}`); if (a) svg.append(a);
       const b = staaf(x0 + bw + 2, waarden[i], `g-staaf${markeer[i] ? ' g-geschat' : ''}`); if (b) svg.append(b);
     } else {
       const b = staaf(x0, waarden[i], `g-staaf${markeer[i] ? ' g-geschat' : ''}`); if (b) svg.append(b);

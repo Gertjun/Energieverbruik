@@ -143,6 +143,8 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
   --jaar-3: light-dark(#c2378f, #e879c0);
 }
 .g-vergelijk { fill: var(--jaar-1); }
+.g-vergelijk-licht { fill: color-mix(in srgb, var(--jaar-1) 50%, var(--surface)); }
+.g-afgekapt { fill: var(--text); font-size: 11px; font-weight: 700; pointer-events: none; }
 .g-hit { fill: transparent; cursor: pointer; }
 .g-hit.is-actief { fill: color-mix(in srgb, var(--text) 6%, transparent); }
 .grafiek-legenda { display: flex; gap: 16px; font-size: 0.8rem; color: var(--muted); }

@@ -281,3 +281,12 @@
 - [ ] Geert: grenzen van zijn terugleverschaal nakijken (staat 14 = 3.500–4.000 kWh nog op het contract?).
 - [ ] Geert: aantal personen en soort woning kiezen bij Tegenover gemiddeld (standaard 2 personen, twee-onder-een-kap).
 - [ ] Geert: tegels in groepen bekijken op iPhone/iPad; overzichtelijk genoeg?
+
+## Stand (9 november 2026) – versie 1.38.1
+- Juli 2026 ontbrak in Gas per graaddag (Overzicht): minder dan 5 gewogen graaddagen in de maand, dus verborgen
+  door het minimum uit 1.3.1. Nu getoond als lichte staaf, schaal op de gewone perioden, te hoge staven afgekapt (↑).
+  Geldt voor alle periodekeuzes (dag/week/maand/jaar) en ook voor de staven van vorig jaar.
+- Visueel gecontroleerd met testgegevens in headless Chrome (laptopbreedte). Niet met de echte data getest
+  (Open-Meteo niet bereikbaar in de testomgeving): Geert controleert juli 2026 in de app.
+- Analyse → Gas per graaddag gebruikt nog het oude minimum (waarde verborgen). Bewust zo gelaten; zelfde aanpak
+  daar kan later als Geert dat wil.

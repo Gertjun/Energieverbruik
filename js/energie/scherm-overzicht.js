@@ -224,7 +224,7 @@ function grafiekOfLijst(soort, grafiek, lijst) {
 }
 
 /** Tabel bij een grafiek: nieuwste periode bovenaan, met vorig jaar en verschil als die er is. */
-function lijstTabel({ kop, labels, waarden, vergelijk, fmt, markeer = [], lopend = [], beter }) {
+function lijstTabel({ kop, labels, waarden, vergelijk, fmt, markeer = [], markeerVergelijk = [], ster = false, lopend = [], beter }) {
   const metVorig = Array.isArray(vergelijk);
   const verschil = (nu, toen) => {
     if (nu == null || toen == null || toen === 0) return '–';
@@ -236,8 +236,8 @@ function lijstTabel({ kop, labels, waarden, vergelijk, fmt, markeer = [], lopend
     if (waarden[i] == null && (!metVorig || vergelijk[i] == null)) continue;
     rijen.push(h('tr', {},
       h('td', {}, labels[i], lopend[i] ? h('small', { class: 'muted lopend' }, 'loopt nog') : null),
-      h('td', { class: 'num' }, waarden[i] == null ? '–' : `${markeer[i] ? '≈ ' : ''}${fmt(waarden[i])}`),
-      metVorig ? h('td', { class: 'num muted' }, vergelijk[i] == null ? '–' : fmt(vergelijk[i])) : null,
+      h('td', { class: 'num' }, waarden[i] == null ? '–' : ster ? `${fmt(waarden[i])}${markeer[i] ? ' *' : ''}` : `${markeer[i] ? '≈ ' : ''}${fmt(waarden[i])}`),
+      metVorig ? h('td', { class: 'num muted' }, vergelijk[i] == null ? '–' : `${fmt(vergelijk[i])}${markeerVergelijk[i] ? ' *' : ''}`) : null,
       metVorig ? h('td', { class: `num${lopend[i] || waarden[i] == null || vergelijk[i] == null || vergelijk[i] === 0 ? '' : verschilKleur(beter, waarden[i] - vergelijk[i])}` }, lopend[i] ? '–' : verschil(waarden[i], vergelijk[i])) : null));
   }
   return h('div', { class: 'tabel-wrap' }, h('table', { class: 'tabel tabel-lijst' },
@@ -332,22 +332,37 @@ export function renderOverzicht(a, staat, opnieuw) {
   // Gas per graaddag (volgt de gekozen periode)
   const mnd = perioden('maand', a.laatste);
   const minGd = GD_MINIMUM[staat.periode];
-  const gdWaarde = (van, tot) => { const t = totaal(a, van, tot); return t.graaddagen >= minGd && t.graaddagen > 0 ? t.gasStookdagen / t.graaddagen : null; };
-  const gd = lijst.map((p) => gdWaarde(p.van, p.tot));
-  const gdVorig = lijst.map((p) => (p.vorig ? gdWaarde(p.vorig[0], p.vorig[1]) : null));
+  // Waarde zodra er gestookt is (net als in Historie). Bij minder dan het minimum aan graaddagen is de deling
+  // onbetrouwbaar: die staaf wordt licht getoond en telt niet mee voor de schaal (te hoge staven afgekapt).
+  const gdInfo = (van, tot) => {
+    const t = totaal(a, van, tot);
+    return t.graaddagen > 0 ? { v: t.gasStookdagen / t.graaddagen, gd: t.graaddagen, weinig: t.graaddagen < minGd } : null;
+  };
+  const gdNu = lijst.map((p) => gdInfo(p.van, p.tot));
+  const gdToen = lijst.map((p) => (p.vorig ? gdInfo(p.vorig[0], p.vorig[1]) : null));
+  const gd = gdNu.map((x) => x?.v ?? null);
+  const gdVorig = gdToen.map((x) => x?.v ?? null);
+  const weinigNu = gdNu.map((x) => !!x?.weinig);
+  const weinigToen = gdToen.map((x) => !!x?.weinig);
   if (gd.some((v) => v != null)) {
     const heeftGdVorig = gdVorig.some((v) => v != null);
     const mGd = maat2(!heeftZon && kaarten.length % 2 === 0);
+    const gewoon = [...gdNu, ...(heeftGdVorig ? gdToen : [])].filter((x) => x && !x.weinig).map((x) => x.v);
+    const heeftWeinig = weinigNu.some(Boolean) || (heeftGdVorig && weinigToen.some(Boolean));
+    const plafond = heeftWeinig && gewoon.length ? Math.max(...gewoon) : null;
+    const weinigTekst = (x) => (x?.weinig ? `weinig graaddagen: ${fmtGetal(x.gd, 1)}, minder betrouwbaar` : null);
     kaarten.push(wisselKaart('graaddag', `Gas per graaddag · ${PER_TEKST[staat.periode]}`, (soort) => [
       null,
       grafiekOfLijst(soort,
         () => staafGrafiek({
           labels: lijst.map((p) => p.label), korteLabels: lijst.map((p) => p.kort), waarden: gd,
           vergelijk: heeftGdVorig ? gdVorig : null, ...mGd,
+          markeer: weinigNu, markeerVergelijk: weinigToen, plafond,
+          toelichting: (i, vorig) => weinigTekst(vorig ? gdToen[i] : gdNu[i]),
           fmt: (v, as) => (as ? fmtGetal(v, 2) : `${fmtGetal(v, 3)} m³ per graaddag`),
         }),
-        () => lijstTabel({ kop: 'm³/graaddag', labels: lijst.map((p) => p.label), waarden: gd, lopend, vergelijk: heeftGdVorig ? gdVorig : null, fmt: (v) => fmtGetal(v, 3), beter: 'lager' })),
-      h('p', { class: 'hint' }, `Hoe lager, hoe zuiniger je stookt, los van het weer. Graaddag: 18 °C min de gemiddelde buitentemperatuur, gewogen per seizoen. Niet getoond bij minder dan ${fmtGetal(minGd, 0)} graaddag${minGd === 1 ? '' : 'en'} in de periode: dan is er te weinig gestookt en geeft de deling grote uitschieters.`),
+        () => lijstTabel({ kop: 'm³/graaddag', labels: lijst.map((p) => p.label), waarden: gd, lopend, vergelijk: heeftGdVorig ? gdVorig : null, markeer: weinigNu, markeerVergelijk: weinigToen, ster: true, fmt: (v) => fmtGetal(v, 3), beter: 'lager' })),
+      h('p', { class: 'hint' }, `Hoe lager, hoe zuiniger je stookt, los van het weer. Graaddag: 18 °C min de gemiddelde buitentemperatuur, gewogen per seizoen.${heeftWeinig ? ` Lichte staven (en * in de lijst): minder dan ${fmtGetal(minGd, 0)} graaddag${minGd === 1 ? '' : 'en'} in de periode. Dan is er nauwelijks gestookt (vooral warm water en koken) en zegt de deling weinig; zulke staven tellen niet mee voor de schaal en een ↑ betekent dat de staaf is afgekapt. Tik erop voor de echte waarde.` : ''}`),
     ], opnieuw, samen));
   }
 

@@ -348,6 +348,13 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - **Zelfde vormgeving als de maandkeuze in Historie** (‹ titel ›), met "Naar nu" onder de titel.
 - **MINOR**: nieuwe functie, geen schemawijziging.
 
+## 2026-11-09 – Gas per graaddag: weinig graaddagen toch tonen (versie 1.38.1)
+- **Aanleiding**: juli 2026 was leeg in het Overzicht maar had wel een waarde in Historie; dat verwarde.
+- **Keuze (Geert)**: tonen maar markeren. Onder het minimum (dag 1, week 3, maand/jaar 5 graaddagen) een lichte staaf
+  en * in de lijst. De schaal volgt alleen de gewone perioden, zodat zomeruitschieters de rest niet platdrukken;
+  wat erboven uitkomt wordt afgekapt met een ↑ en de echte waarde staat in de info bij aantikken.
+- **PATCH**: verbetering van een bestaande grafiek.
+
 ## 2026-11-05 – Gas per graaddag volgt de periode (versie 1.3.1)
 - **Zelfde perioden als de hoofdgrafiek** (31 dagen, 13 weken, 12 maanden, 5 jaar), met vorig jaar ter vergelijking.
 - **Minimum graaddagen per periode**: dag 1, week 3, maand en jaar 5. In de grafiek zouden zachte dagen met een

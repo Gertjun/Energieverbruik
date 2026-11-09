@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.38.1
+
+**Verbeterd**
+- **Gas per graaddag in het Overzicht**: perioden met weinig graaddagen (zoals juli 2026) bleven leeg, terwijl Historie ze wel toonde. Ze staan er nu wel, als lichte staaf (en met * in de lijst). Ze tellen niet mee voor de schaal; een te hoge staaf wordt afgekapt met een ↑, aantikken toont de echte waarde.
+
 ## 1.38.0
 
 **Toegevoegd**
