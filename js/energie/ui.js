@@ -50,6 +50,18 @@ export function kaart(titel, ...inhoud) {
   return h('section', { class: 'card kaart' }, titel ? h('h2', { class: 'kaart-titel' }, titel) : null, ...inhoud);
 }
 
+/**
+ * Twee kolommen naast elkaar op een breed scherm (laptop, zie app.css: `.kolommen`).
+ * Smaller dan de grens vallen de kolommen weg (display: contents) en staat alles onder elkaar, net als zonder.
+ * `soort`: 'gelijk' (twee even brede kolommen) of 'paneel-rechts' (smalle kolom rechts, blijft in beeld).
+ * Bij 'paneel-rechts' staat het paneel in de pagina vóór de rest, zodat het op iPhone/iPad bovenaan staat.
+ */
+export function kolommen(soort, links, rechts) {
+  const kolom = (inhoud, extra = '') => h('div', { class: `kolom${extra}` }, ...[].concat(inhoud).filter(Boolean));
+  const delen = soort === 'paneel-rechts' ? [kolom(rechts, ' kolom-paneel'), kolom(links, ' kolom-hoofd')] : [kolom(links), kolom(rechts)];
+  return h('div', { class: `kolommen kolommen-${soort}` }, ...delen);
+}
+
 export function veld(label, invoer, hint) {
   return h('label', { class: 'field' }, h('span', {}, label), invoer, hint ? h('small', { class: 'hint' }, hint) : null);
 }

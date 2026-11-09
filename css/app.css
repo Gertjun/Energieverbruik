@@ -456,3 +456,35 @@ input[type="month"] {
   --surface-2: color-mix(in oklab, var(--accent) 4%, #17181b);
   --border: #24262b;
 }
+
+/* ---------- Brede schermen (laptop): Invoer, Historie, Analyse en Instellingen ----------
+   Het Overzicht regelt zijn eigen breedte via de keuze Indeling (hierboven). De andere schermen gebruiken vanaf
+   1200 px dezelfde maximale breedte, met kaarten in twee kolommen (.kolommen, zie kolommen() in ui.js).
+   Smaller vallen de kolommen weg (display: contents) en staat alles onder elkaar zoals altijd. */
+.kolommen, .kolom { display: contents; }
+@media (min-width: 1200px) {
+  body.energie-app:not([data-scherm="overzicht"]) #screen-app .app-main { max-width: 1640px; }
+  body.energie-app:not([data-scherm="overzicht"]) #screen-app .app-header-inner { max-width: 1608px; }
+  .kolommen { display: grid; gap: 16px; align-items: start; }
+  .kolommen-gelijk { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .kolommen-paneel-rechts { grid-template-columns: minmax(0, 1fr) minmax(360px, 480px); }
+  .kolom { display: grid; gap: 16px; min-width: 0; align-content: start; }
+  /* Het paneel (bijv. de aangetikte dag in Historie) blijft in beeld bij het scrollen door de tabel */
+  .kolommen-paneel-rechts > .kolom-hoofd { grid-column: 1; grid-row: 1; }
+  .kolommen-paneel-rechts > .kolom-paneel { grid-column: 2; grid-row: 1; position: sticky; top: 16px; }
+
+  /* Analyse: de groepen tegels naast elkaar als kolommen, zodat de keuze niet een halve pagina hoog is */
+  .soort-groepen { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; align-items: start; }
+  .soort-groep .soort-tegels { grid-template-columns: minmax(0, 1fr); }
+  .soort-groep-titel { min-height: 2rem; }
+  /* Zelf samenstellen heeft geen groepstitel: even hoog beginnen als de rest */
+  .soort-groep:not(:has(.soort-groep-titel))::before { content: ''; display: block; height: calc(2rem + 6px); }
+
+  /* Instellingen → Tarieven: prijzen in vier kolommen in plaats van twee */
+  .prijs-raster { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  /* Instellingen → App en sync: de kaarten van synchroniseren, beveiliging, versie en wissen twee aan twee */
+  .settings-panel { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .settings-panel .settings-section + .settings-section { border-top: 0; }
+  #settings-backup { grid-column: 1 / -1; }
+}

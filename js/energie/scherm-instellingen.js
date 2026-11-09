@@ -9,7 +9,7 @@ import { h, saveFile, today } from '../core/dom.js';
 import { newRecord, updateById, removeById } from '../core/records.js';
 import { TIJDVAKKEN } from './tarief.js';
 import { fmtDatumKort } from './tijd.js';
-import { kaart, veld, leesGetal, toonGetal, fmtGetal, segmented } from './ui.js';
+import { kaart, kolommen, veld, leesGetal, toonGetal, fmtGetal, segmented } from './ui.js';
 
 const ONDERDELEN = [['tarieven', 'Tarieven'], ['gegevens', 'Gegevens'], ['app', 'App en sync']];
 
@@ -42,7 +42,7 @@ export function renderInstellingen(a, staat, opnieuw, ctx) {
   const keuze = h('div', { class: 'weergave-keuze' }, segmented(ONDERDELEN, deel, (k) => {
     staat.instellingenDeel = k; opnieuw(); window.scrollTo({ top: 0 });
   }, 'Onderdeel van de instellingen'));
-  if (deel === 'gegevens') return [keuze, exportKaart(a, ctx), weerKaart(ctx)];
+  if (deel === 'gegevens') return [keuze, kolommen('gelijk', exportKaart(a, ctx), weerKaart(ctx))];
   if (deel === 'app') return [keuze, weergaveKaart(opnieuw)];
   return [keuze, contractenKaart(a, staat, opnieuw, ctx)];
 }

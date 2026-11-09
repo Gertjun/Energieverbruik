@@ -8,7 +8,7 @@ import { losVanImport, bronNaam } from './importeren.js';
 import { controleer } from './controle.js';
 import { renderMaanden, renderControle, vinkAf } from './scherm-controle.js';
 import { daysBetween, eachDay, fmtDag, fmtDagLang, fmtMaand, maandStart, maandEinde, maandPlus, monthKey } from './tijd.js';
-import { kaart, segmented, fmtGetal, euro, leesGetal, toonGetal, veld } from './ui.js';
+import { kaart, kolommen, segmented, fmtGetal, euro, leesGetal, toonGetal, veld } from './ui.js';
 
 const WEERGAVEN = [['dagen', 'Dagen'], ['maanden', 'Maanden'], ['controle', 'Controle']];
 
@@ -84,8 +84,10 @@ function renderDagen(a, staat, opnieuw, ctx) {
 
   const bewerk = staat.open && staat.open >= van && staat.open <= tot
     ? kaart(null, bewerkDag(staat.open, a.perDag.get(staat.open), ctx, staat, opnieuw, meldingen.get(staat.open))) : null;
-  return [bewerk, kaart(null, nav, tabel,
-    h('p', { class: 'hint' }, 'De vette eerste regel is het maandtotaal (m³/gd = totaal gas ÷ totaal graaddagen, °C = gemiddelde). Tik op een dag voor details, een opmerking of een correctie (verschijnt bovenaan). m³/gd = gas per gewogen graaddag (– als het te warm was om te stoken). Cursieve kosten zijn geschat (geen uurverdeling bekend). ⚠ = controlemelding, zie Controle.'))];
+  const tabelKaart = kaart(null, nav, tabel,
+    h('p', { class: 'hint' }, 'De vette eerste regel is het maandtotaal (m³/gd = totaal gas ÷ totaal graaddagen, °C = gemiddelde). Tik op een dag voor details, een opmerking of een correctie (verschijnt bovenaan, op de laptop ernaast). m³/gd = gas per gewogen graaddag (– als het te warm was om te stoken). Cursieve kosten zijn geschat (geen uurverdeling bekend). ⚠ = controlemelding, zie Controle.'));
+  // Laptop: de aangetikte dag naast de tabel in plaats van erboven.
+  return bewerk ? [kolommen('paneel-rechts', tabelKaart, bewerk)] : [tabelKaart];
 }
 
 function bewerkDag(datum, x, ctx, staat, opnieuw, meldingen = []) {

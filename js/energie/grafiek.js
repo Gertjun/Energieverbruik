@@ -20,6 +20,13 @@ function s(tag, attrs = {}, ...kids) {
  */
 function grafiekBreedte(breedte) {
   if (breedte) return Math.round(Math.max(300, breedte));
+  // Brede schermen buiten het Overzicht (zie app.css, 'Brede schermen'): de kaart is daar tot 1640 px breed.
+  // Rekenen met de echte breedte, anders wordt een grafiek van 960 eenheden uitvergroot (grote letters).
+  const b = document.body;
+  if (window.innerWidth >= 1200 && b?.dataset.scherm && b.dataset.scherm !== 'overzicht') {
+    const inhoud = Math.min(1640, window.innerWidth - (b.classList.contains('zijbalk-in') ? 68 : 256)) - 32;
+    return Math.round(Math.max(300, inhoud - 34)); // min. padding en rand van de kaart
+  }
   return Math.round(Math.min(960, Math.max(300, (window.innerWidth || 640) - (window.innerWidth >= 900 ? 300 : 66))));
 }
 

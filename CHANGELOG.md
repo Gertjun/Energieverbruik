@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.39.0 – 2026-11-09
+- Laptop (venster vanaf 1200 px breed): Invoer, Historie, Analyse en Instellingen gebruiken nu de hele breedte,
+  net als het Overzicht. Kaarten staan waar dat helpt naast elkaar:
+  - Invoer: bestanden inlezen (met het importrapport) links, dag handmatig en maandgegevens rechts.
+  - Historie → Dagen: de aangetikte dag staat naast de tabel en blijft in beeld bij het scrollen.
+  - Historie → Controle: samenvatting en meldingen links, de overige controles rechts.
+  - Analyse: de tegels staan per groep in kolommen naast elkaar (één blok i.p.v. een halve pagina);
+    grafieken gebruiken de hele breedte met gewone lettergrootte.
+  - Instellingen: prijzen van een contract in vier kolommen; Gegevens en App en sync in twee kolommen.
+- iPhone, iPad en smallere vensters: ongewijzigd (alles onder elkaar).
+
 ## 1.38.4 – 2026-11-09
 - Overzicht op de laptop: de keuze voor de indeling staat nu rechts op dezelfde regel als Dag/Week/Maand/Jaar
   (en Stroom/Terug/Gas/Kosten). Alle knoppen zijn even groot. Is het venster te smal, dan schuift de indeling

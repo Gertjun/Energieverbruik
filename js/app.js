@@ -32,9 +32,9 @@ const opnieuw = () => { if (laatsteRoot) app.render(laatsteRoot, laatsteCtx); };
 const ZIJBALK_KEY = `${APP.storagePrefix}:zijbalk-ingeklapt`;
 const zijbalkIngeklapt = () => { try { return localStorage.getItem(ZIJBALK_KEY) === '1'; } catch { return false; } };
 
-// Wordt het venster breder of smaller dan de grens voor de brede indeling van het Overzicht,
-// dan opnieuw tekenen (bijv. venster verkleind of iPad gedraaid).
-window.matchMedia?.(BREED_SCHERM).addEventListener?.('change', () => { if (staat.tab === 'overzicht') opnieuw(); });
+// Wordt het venster breder of smaller dan de grens voor de brede schermen (1200 px), dan opnieuw tekenen
+// (bijv. venster verkleind of iPad gedraaid): het Overzicht kiest dan een andere indeling, grafieken een andere breedte.
+window.matchMedia?.(BREED_SCHERM).addEventListener?.('change', () => opnieuw());
 
 // Laptop (zijbalk): geen aparte kopbalk; de knoppen synchroniseren en vergrendelen staan rechts op de
 // titelregel van het scherm. iPhone/iPad: gewoon in de kopbalk. Het element zelf wordt verplaatst,
@@ -126,6 +126,9 @@ export const app = {
     const a = afgeleid(ctx.data);
     staat.tab ??= a.eerste ? 'overzicht' : 'invoer';
     staat.zijbalkIn = zijbalkIngeklapt();
+    // Vóór het tekenen zetten: grafieken rekenen hun breedte uit met het scherm en de zijbalk (grafiek.js).
+    document.body.dataset.scherm = staat.tab;
+    document.body.classList.toggle('zijbalk-in', staat.zijbalkIn);
     staat.indeling = 'standaard'; // het Overzicht zet hier zijn brede indeling in
     staat.titelExtra = null; // een scherm kan hier iets rechts naast de titel zetten
     let inhoud;

@@ -11,10 +11,11 @@ import { zetHomeWizard, zetVattenfall, zetSolarEdge, zetExcel, losVanImport } fr
 import { importRapport, meldingenInPeriode } from './scherm-controle.js';
 import { upsert, dagId, maandId } from './model.js';
 import { addDays, fmtDatumKort, monthKey, maandPlus } from './tijd.js';
-import { kaart, veld, leesGetal, toonGetal } from './ui.js';
+import { kaart, kolommen, veld, leesGetal, toonGetal } from './ui.js';
 
 export function renderInvoer(a, staat, opnieuw, ctx) {
-  return [bestandenKaart(a, staat, opnieuw, ctx), dagKaart(a, ctx), maandKaart(a, ctx)];
+  // Laptop: bestanden inlezen (met het importrapport) links, handmatig invullen rechts.
+  return [kolommen('gelijk', bestandenKaart(a, staat, opnieuw, ctx), [dagKaart(a, ctx), maandKaart(a, ctx)])];
 }
 
 // Volgorde van verwerken bij meerdere bestanden tegelijk: de betrouwbaarste bron eerst.

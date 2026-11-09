@@ -491,3 +491,20 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   schuift bij te weinig ruimte naar de volgende regel. Geen vaste drie kolommen: dan werden knopteksten afgekapt
   of stond bij 'Alles tegelijk' de indeling midden in de rij.
 - Het label "Indeling" vervalt (zou de groepen ongelijk maken); de uitleg per knop staat als tooltip.
+
+## Brede schermen buiten het Overzicht (1.39.0)
+- Vanaf 1200 px krijgen alle schermen behalve het Overzicht dezelfde maximale breedte (1640 px). Het Overzicht houdt
+  zijn eigen keuze Indeling (bij 'Eén kolom' blijft het smal). app.js zet `body[data-scherm]` vóór het tekenen.
+- Kaarten naast elkaar via `kolommen(soort, links, rechts)` in ui.js. Smaller dan 1200 px zijn `.kolommen`/`.kolom`
+  `display: contents`: dan staat alles onder elkaar, precies zoals eerder, zonder aparte code voor smalle schermen.
+  Twee kolommen met elk hun eigen stapel (geen gedeeld raster), zodat een lange kaart links geen gaten rechts maakt.
+- 'paneel-rechts' (Historie, aangetikte dag): het paneel staat in de pagina vóór de tabel, zodat het op iPhone/iPad
+  bovenaan blijft; op de laptop zet CSS het rechts (sticky). 
+- Analyse: tegelgroepen als zeven kolommen naast elkaar. Groepstitels krijgen een vaste hoogte (ook 'Zelf samenstellen'
+  zonder titel), zodat de eerste tegels op één lijn staan.
+- Grafieken zonder opgegeven breedte rekenden met hoogstens 960 eenheden; in een kaart van ~1500 px werd de tekst dan
+  anderhalf keer zo groot. grafiek.js rekent op brede schermen (niet het Overzicht) nu met de echte kaartbreedte;
+  bij het passeren van 1200 px tekent app.js elk scherm opnieuw (was alleen het Overzicht).
+- Instellingen → App en sync: de secties van de schil (#settings-panel) in een raster van twee; de back-up (Gegevens)
+  over de hele breedte.
+

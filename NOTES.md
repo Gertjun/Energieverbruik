@@ -308,3 +308,15 @@
   Getest op 1866 px (Eén kolom en Alles tegelijk) en 1240 px (wrapt netjes).
 - Bij Eén kolom is de inhoud smaller (1040 px): dan staan Periode en Stroom/Terug/Gas/Kosten op regel 1 en de
   indeling rechts op regel 2. Het woord "Indeling" is weg (staat als tooltip).
+
+## Stand (9 november 2026) – versie 1.39.0
+- Alle schermen breed op de laptop (vanaf 1200 px), zie CHANGELOG en DECISIONS.md.
+- Getest met een testpagina (buiten de repo) die de echte app draait met Geerts Vattenfall-, HomeWizard- en
+  Excel-bestanden, in headless Chrome op 1860 px (donker), 1100 px en iPhone-breedte (390 px). Bekeken: Invoer (met
+  importrapporten), Historie Dagen (met en zonder open dag) en Controle, Analyse (Samenstellen, Heatmap,
+  Jaarprognose), Instellingen (Tarieven met open contract, Gegevens, App en sync), Overzicht (ongewijzigd).
+  Geen fouten in de console.
+- [ ] Geert: op de laptop door alle schermen lopen; staan de kaarten logisch naast elkaar?
+- Bewust zo gelaten: Historie → Maanden en Dagen zonder open dag zijn één brede tabel (past, maar is luchtig).
+  Grafieken in Analyse zijn op de laptop breed en relatief laag; hoger maken kan als Geert dat wil.
+

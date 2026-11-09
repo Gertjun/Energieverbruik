@@ -8,7 +8,7 @@ import {
   MAAT_NAAM,
 } from './controle.js';
 import { addDays, fmtDag, fmtDatumKort, fmtMaand, monthKey, daysBetween } from './tijd.js';
-import { kaart, veld, fmtGetal, fmtKwh, fmtM3, fmtPct, leesGetal } from './ui.js';
+import { kaart, kolommen, veld, fmtGetal, fmtKwh, fmtM3, fmtPct, leesGetal } from './ui.js';
 
 const SOORT_NAAM = {
   'vattenfall-stroom': 'Vattenfall stroom', 'vattenfall-gas': 'Vattenfall gas',
@@ -76,14 +76,11 @@ export function renderControle(a, staat, opnieuw, ctx) {
   if (!a.eerste && !importen.length) return [kaart('Nog geen gegevens', h('p', { class: 'muted' }, 'Lees eerst gegevens in via Invoer.'))];
   const c = controleer(a);
   const ontbrekend = ontbrekendPerSoort(a);
-  return [
-    samenvattingKaart(c, ontbrekend),
-    c.lijst.length ? meldingenKaart(a, c, staat, opnieuw, ctx) : null,
-    ontbrekendKaart(ontbrekend, staat, opnieuw),
-    vergelijkKaart(a, staat, opnieuw),
-    steekproefKaart(a, staat, opnieuw),
-    importenKaart(importen, staat, opnieuw, ctx),
-  ];
+  // Laptop: samenvatting en meldingen links, de overige controles rechts.
+  return [kolommen('gelijk',
+    [samenvattingKaart(c, ontbrekend), c.lijst.length ? meldingenKaart(a, c, staat, opnieuw, ctx) : null],
+    [ontbrekendKaart(ontbrekend, staat, opnieuw), vergelijkKaart(a, staat, opnieuw),
+      steekproefKaart(a, staat, opnieuw), importenKaart(importen, staat, opnieuw, ctx)])];
 }
 
 function samenvattingKaart(c, ontbrekend) {
