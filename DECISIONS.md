@@ -589,3 +589,12 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   volgen nu `--safe-top`, net als het meeschuivende paneel in Historie en springen naar een sectie in Instellingen.
 - Niet aangepast: `scroll-margin-top: 76px` van Instellingen-secties onder de kopbalk (iPhone/iPad staand). Op de iPad
   staand is de kopbalk nu 24 px hoger; een sectie kan bij springen iets onder de kopbalk vallen.
+
+## App-icoon: bliksem + vlam (1.42.5, 9 november 2026)
+- Gekozen uit vier voorstellen (stroom + gas, zon op huis, meter, vlam met bliksem). Bliksem + vlam laat in één
+  oogopslag zien dat de app over stroom én gas gaat en blijft op 32 px leesbaar.
+- Achtergrond blijft de accentkleur #0f766e; vlam in #f5b82e.
+- Bron is `icons/icon.svg`; de PNG's zijn daarmee gemaakt (rsvg-convert). Het iPhone-icoon (apple-touch-icon) is
+  vierkant zonder ronde hoeken (iOS rondt zelf af); het maskable-icoon heeft het symbool kleiner in het midden,
+  zodat Android het in elke vorm kan uitsnijden zonder iets af te knippen.
+

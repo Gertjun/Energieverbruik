@@ -383,3 +383,8 @@
   iPhone 390×844 en 932×430 en laptop 1280×800 (zonder touch): ongewijzigd (8 / 12 / 16 px). Logo en inhoud sluiten
   aan (logo op 42 px, inhoud op 40 px).
 - [ ] Geert: op de iPad (liggend en staand) kijken of kopbalk/zijbalk nu vrij van de vervaging staan.
+
+## Stand (9 november 2026) – versie 1.42.5
+- Nieuw app-icoon (bliksem + vlam). Op de iPhone/iPad blijft het oude icoon op het beginscherm staan tot Geert de
+  app daar verwijdert en opnieuw toevoegt via Safari → Deel → Zet op beginscherm.
+

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.42.5 – 2026-11-09
+- Nieuw app-icoon: een witte bliksem (stroom) en een gele vlam (gas) op het vertrouwde groene vlak, in plaats van
+  de letter E. Geldt voor het beginscherm, de browser, het inlogscherm en het logo in zijbalk en kopbalk.
+
 ## 1.42.4 – 2026-11-09
 - iPad (app op het beginscherm): veiligheidsmarge bovenin van minimaal 24 px, zoals in Games Backlog. iPadOS geeft
   daar vaak een veilige zone van 0 door, waardoor kopbalk, zijbalk en titel onder de statusbalk met de vervaging
