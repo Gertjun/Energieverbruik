@@ -374,3 +374,12 @@
 - Geert zag in 1.42.2 de zijbalk niet zakken: die had al 12 px onder de veilige zone, dus ging maar 12 px omlaag.
   Extra marge nu 40 px (zijbalk ~28 px lager dan in 1.42.1). Zijbalk en titel blijven op dezelfde hoogte.
 - [ ] Geert: op de iPad kijken (v1.42.3 onder het logo); is de ruimte nu goed?
+
+## Stand (9 november 2026) – versie 1.42.4
+- Veiligheidsmarge bovenin voor de iPad volgens Games Backlog (zie DECISIONS.md). Oorzaak van 1.42.2/1.42.3 zonder
+  effect: iPadOS geeft een veilige zone van 0 door.
+- Getest op een kopie zonder "(display-mode: standalone) and " (Chromium kan dat niet nabootsen), met getComputedStyle:
+  iPad 1180×820 (touch): zijbalk 36 px, inhoud 40 px (beide +24); iPad 820×1180 (touch): kopbalk 32 px (+24);
+  iPhone 390×844 en 932×430 en laptop 1280×800 (zonder touch): ongewijzigd (8 / 12 / 16 px). Logo en inhoud sluiten
+  aan (logo op 42 px, inhoud op 40 px).
+- [ ] Geert: op de iPad (liggend en staand) kijken of kopbalk/zijbalk nu vrij van de vervaging staan.

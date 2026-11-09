@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.42.4 – 2026-11-09
+- iPad (app op het beginscherm): veiligheidsmarge bovenin van minimaal 24 px, zoals in Games Backlog. iPadOS geeft
+  daar vaak een veilige zone van 0 door, waardoor kopbalk, zijbalk en titel onder de statusbalk met de vervaging
+  schoven. Op de iPhone en de laptop verandert niets.
+- De aanpak uit 1.42.2/1.42.3 (extra marge bovenop de veilige zone) is vervangen: die deed op de iPad niets, omdat
+  de veilige zone daar 0 was. Zijbalk en inhoud zonder kopbalk volgen nu gewoon `--safe-top`.
+
 ## 1.42.3 – 2026-11-09
 - iPad: zijbalk (logo en titel) en schermtitel staan duidelijk lager: 40 px onder de statusbalk in plaats van 24 px.
   In 1.42.2 zakte de zijbalk maar 12 px, omdat die al een kleine marge onder de statusbalk had.

@@ -578,3 +578,14 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   rechterrand en stond Indeling op regel 2 tegen de rechterrand, dus niet onder de groep erboven. Een raster van even
   brede kolommen (minimaal 460 px) lijnt de groepen altijd op met elkaar en met de kaarten eronder. De knoppen worden
   daardoor op een volledig laptopscherm iets breder dan 128 px; dat is bewust.
+
+## Veiligheidsmarge iPad via --safe-top (1.42.4)
+- **Zelfde regel als Games Backlog** (1.21.1): bovenaan app.css krijgt `--safe-top` minimaal 24 px als de app op het
+  beginscherm draait (`display-mode: standalone`) met een aanraakscherm in een hoog venster (min. 700 × 600 px).
+  Zo niet op de iPhone liggend en niet op de laptop. Eén plek voor de marge: alle CSS gebruikt `var(--safe-top)`,
+  `env(safe-area-inset-top)` staat alleen in de definitie in base.css.
+- **Vervangt `--boven-veilig` (1.42.2/1.42.3)**: die telde alleen extra marge op als de veilige zone groter dan 0 was;
+  op de iPad is die vaak 0, dus er gebeurde niets. Zijbalk (12 px + zone) en inhoud zonder kopbalk (16 px + zone)
+  volgen nu `--safe-top`, net als het meeschuivende paneel in Historie en springen naar een sectie in Instellingen.
+- Niet aangepast: `scroll-margin-top: 76px` van Instellingen-secties onder de kopbalk (iPhone/iPad staand). Op de iPad
+  staand is de kopbalk nu 24 px hoger; een sectie kan bij springen iets onder de kopbalk vallen.
