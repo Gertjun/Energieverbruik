@@ -325,3 +325,12 @@
   1580 px (zeven kolommen), 1250 px (vier kolommen, twee banden) en iPhone-breedte (ongewijzigd).
 - Bij vier kolommen zijn de tegels in de tweede band wat lager dan in de eerste (die band volgt de inhoud);
   bewust zo gelaten.
+
+## Stand (9 november 2026) – versie 1.40.0
+- Analyse → Gasprognose gebouwd (zie CHANGELOG en DECISIONS.md). Nieuw bestand `js/energie/analyse-gasprognose.js`.
+- Getest met een testpagina (buiten de repo) met Geerts HomeWizard- en Vattenfall-gasbestanden, in headless Chrome
+  op laptop (licht), iPhone-breedte (donker) en de keuze 14 dagen. Open-Meteo is in de testomgeving geblokkeerd:
+  temperaturen en voorspelling waren nagemaakt. Geen fouten in de console.
+- In de test (gas bekend t/m 4-11) gaf de app: november ~114 m³ (99–149 m³). Getallen zeggen niets, temperaturen nep.
+- [ ] Geert: Gasprognose openen op iPhone en laptop. Haalt hij de voorspelling op, en lijkt het totaal redelijk?
+- [ ] Geert: eind november vergelijken: werkelijk verbruik tegenover de prognose van begin/half november.

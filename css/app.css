@@ -293,6 +293,7 @@ input[type="month"] {
 }
 .tabel-analyse .jaar-rij th { text-align: left; }
 .tabel-analyse td.is-geschat { font-style: italic; }
+.tabel-analyse tr.is-vandaag td { font-weight: 600; }
 .tabel-analyse tr.extra-rij th, .tabel-analyse tr.extra-rij td { font-weight: 500; color: var(--muted); }
 .tabel-analyse td.plus { color: var(--danger); }
 .tabel-analyse td.min { color: var(--ok); }

@@ -9,9 +9,10 @@ import { fmtDatumKort, addDays, fmtMaand, fmtMaandKort, daysBetween } from './ti
 import { totaal } from './model.js';
 import { kaart, veld, fmtGetal, euro } from './ui.js';
 import { WATALS_SOORTEN, WATALS_STANDAARD } from './analyse-watals-soorten.js';
+import { gasPrognoseSoort, GASPROGNOSE_STANDAARD } from './analyse-gasprognose.js';
 
 /** Standaardwaarden van de keuzes van alle soorten (worden onderdeel van een favoriet). */
-export const SOORT_STANDAARD = { hmMaat: 'afname', wgRef: 'vorigjaar', wgVan: '', wgTot: '', cuMaat: 'gas', cuJaren: '2', topMaat: 'afname', topIndeling: 'dag', ...WATALS_STANDAARD };
+export const SOORT_STANDAARD = { hmMaat: 'afname', wgRef: 'vorigjaar', wgVan: '', wgTot: '', cuMaat: 'gas', cuJaren: '2', topMaat: 'afname', topIndeling: 'dag', ...WATALS_STANDAARD, ...GASPROGNOSE_STANDAARD };
 
 const periodeTekst = (van, tot) => `${fmtDatumKort(van)} ${van.slice(0, 4)} – ${fmtDatumKort(tot)} ${tot.slice(0, 4)}`;
 const keuze = (waarde, opties, onChange) => h('select', { onChange: (e) => onChange(e.target.value) },
@@ -449,6 +450,7 @@ export const SOORTEN = [
   prognoseSoort,
   stooklijnSoort,
   weerSoort,
+  gasPrognoseSoort,
   zonurenSoort,
   salderingSoort,
   ...WATALS_SOORTEN,

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.40.0 – 2026-11-09
+- Nieuwe analyse **Gasprognose** (groep Gas en verwarming): hoeveel gas je de rest van deze maand nog gaat
+  gebruiken, op basis van de weersverwachting voor Eindhoven en je stooklijn. Ook te kiezen: komende 7 of 14 dagen.
+- Toont verwacht totaal met een bandbreedte (2 graden warmer/kouder dan voorspeld), wat al gebruikt is, wat nog
+  komt, dezelfde dagen vorig jaar en de variabele gaskosten. Grafiek per dag (gas en temperatuur) en een tabel
+  met per dag de temperatuur en waar die vandaan komt (gemeten, voorspelling of normaal).
+- Dagen verder dan 16 dagen vooruit (zo ver reikt de voorspelling) krijgen de normale temperatuur: het gemiddelde
+  van die kalenderdag over de afgelopen 10 jaar.
+
 ## 1.39.1 – 2026-11-09
 - Analyse op de laptop: de keuzetegels staan nu netjes uitgelijnd. Alle tegels zijn even hoog, de tegels staan in
   alle kolommen precies naast elkaar en de groepstitels staan op één lijn, dichter bij hun tegels.

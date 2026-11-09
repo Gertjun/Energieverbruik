@@ -356,6 +356,23 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - **Zelfde vormgeving als de maandkeuze in Historie** (‹ titel ›), met "Naar nu" onder de titel.
 - **MINOR**: nieuwe functie, geen schemawijziging.
 
+## 2026-11-09 – Gasprognose met de weersverwachting (versie 1.40.0)
+- Model: de stooklijn van de laatste 365 dagen met gegevens (zelfde als Jaarprognose), met de gemiddelde
+  dagtemperatuur. Eén model in de hele app, zodat Stooklijn, Jaarprognose en Gasprognose elkaar niet tegenspreken.
+- Temperatuur per dag: gemeten (dagen vóór vandaag) → Open-Meteo-voorspelling (16 dagen vooruit, het maximum) →
+  normaal = gemiddelde van die kalenderdag ± 3 dagen over de afgelopen 10 jaar (Open-Meteo-archief, één verzoek per
+  jaar). Niet "dezelfde dag vorig jaar" zoals de Jaarprognose: één jaar is voor een paar losse dagen te grillig.
+- Vandaag telt als voorspelde dag (de dag is nog niet voorbij). Dagen vóór vandaag zonder gas (nog niet ingelezen)
+  worden geschat met de gemeten temperatuur en apart genoemd.
+- Bandbreedte = hetzelfde model met 2 °C warmer/kouder op de dagen die nog moeten komen. Gekozen boven een
+  statistische marge omdat het weer de grootste onzekerheid is en dit in gewone taal uit te leggen is.
+- Tot-nu-toe-afwijking (werkelijk tegenover de stooklijn deze maand) wordt alleen getoond, niet in de prognose
+  verwerkt: na een paar dagen is dat te toevallig om op te bouwen.
+- Voorspelling en normalen staan in localStorage (openbare gegevens, niet in de kluis/sync, zoals instraling en
+  beursprijzen). Voorspelling wordt ververst als hij ouder is dan 3 uur; normalen één keer per jaar. Zonder
+  verbinding toont hij de laatst opgehaalde voorspelling met een melding.
+- Kosten: alleen variabel (m³ × levering + energiebelasting van het contract van die dag).
+
 ## 2026-11-09 – Gas per graaddag: weinig graaddagen toch tonen (versie 1.38.1)
 - **Aanleiding**: juli 2026 was leeg in het Overzicht maar had wel een waarde in Historie; dat verwarde.
 - **Keuze (Geert)**: tonen maar markeren. Onder het minimum (dag 1, week 3, maand/jaar 5 graaddagen) een lichte staaf
