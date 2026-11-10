@@ -143,7 +143,7 @@ export const app = {
     const kopRechts = h('div', { class: 'scherm-kop-rechts' }, staat.titelExtra);
     root.replaceChildren(navigatie(), h('div', { class: 'scherm-kop' }, h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), kopRechts), ...inhoud.filter(Boolean));
     plaatsKopKnoppen(opLaptop() ? kopRechts : null);
-    ctx.toonSchilInstellingen?.(schilGroep(staat));
+    ctx.showShellSettings?.(schilGroep(staat));
     zorgVoorWeer(ctx, a);
     zorgVoorSolarEdge(ctx, opnieuw);
   },

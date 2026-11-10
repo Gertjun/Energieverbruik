@@ -36,7 +36,7 @@ const bewaarSha = (sha) => { try { localStorage.setItem(SHA_KEY, sha); } catch {
  * `nu: true` negeert de wachttijd (knop "Nu bijwerken").
  */
 export function zorgVoorSolarEdge(ctx, opnieuw, { nu = false } = {}) {
-  if (bezig || !ctx.syncIngesteld || !navigator.onLine) return;
+  if (bezig || !ctx.syncConfigured || !navigator.onLine) return;
   if (!nu && Date.now() - laatstePoging < INTERVAL) return;
   bezig = true; laatstePoging = Date.now();
   haalEnLees(ctx, nu)
@@ -49,9 +49,9 @@ export function zorgVoorSolarEdge(ctx, opnieuw, { nu = false } = {}) {
 }
 
 async function haalEnLees(ctx, nu) {
-  const bestand = await ctx.leesSyncBestand(SOLAREDGE_PAD);
+  const bestand = await ctx.readSyncFile(SOLAREDGE_PAD);
   if (!bestand) return { bestand: false, gekeken: Date.now() };
-  const res = leesSolarEdge(bestand.tekst, today());
+  const res = leesSolarEdge(bestand.text, today());
   const basis = { bestand: true, tot: res.tot, gekeken: Date.now(), nieuw: 0 };
   if (!nu && bestand.sha === leesSha()) return basis;
 

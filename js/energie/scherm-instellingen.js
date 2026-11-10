@@ -2,7 +2,7 @@
 //   Tarieven  – contracten met tarieven per tijdvak
 //   Gegevens  – export (CSV/JSON), temperatuurlocatie, en de back-up van de schil
 //   App       – weergave (kleurthema, licht/donker), synchronisatie, beveiliging, versie/updates en wissen (secties van de schil)
-// De secties van de schil staan in index.html (#settings-panel); dit scherm zet ze aan via ctx.toonSchilInstellingen().
+// De secties van de schil staan in index.html (#settings-panel); dit scherm zet ze aan via ctx.showShellSettings().
 // Bestanden inlezen (ook Excel) gebeurt bij Invoer.
 
 import { h, saveFile, today } from '../core/dom.js';

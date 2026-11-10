@@ -85,7 +85,7 @@ function importMelding(a, staat, opnieuw, ctx) {
 /** Regel over het automatisch ophalen van de zonne-opbrengst (alleen als synchroniseren is ingesteld). */
 function solarEdgeRegel(staat, opnieuw, ctx) {
   const s = solarEdgeStatus();
-  if (!ctx.syncIngesteld || !s || (!s.bestand && !s.fout)) return null;
+  if (!ctx.syncConfigured || !s || (!s.bestand && !s.fout)) return null;
   const knop = h('button', {
     type: 'button', class: 'btn btn-small',
     onClick: () => { ctx.toast('Zonne-opbrengst ophalen…'); zorgVoorSolarEdge(ctx, opnieuw, { nu: true }); },

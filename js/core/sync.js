@@ -21,6 +21,8 @@ export class UpdateRequiredError extends Error {
 
 let running = null;
 
+export const isSyncing = () => running !== null;
+
 /**
  * @param {{settings, merge, migrate, schemaVersion}} opts
  * @returns {Promise<'up-to-date'|'uploaded'|'downloaded'|'merged'|'restored'>}

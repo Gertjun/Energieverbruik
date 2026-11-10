@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.44.0 – 2026-11-10
+
+**Gewijzigd** (Face ID / passkey, uit de gedeelde kern)
+- Een bestaande passkey hergebruiken gaat nu zoals in je andere apps: kies *Bestaande passkey* in Instellingen → App → Beveiliging, of *Bestaande gebruiken* bij "Sneller ontgrendelen?". De lijst met passkey-id's in de kluis (1.43.2) is daarvoor niet meer nodig.
+
+**Toegevoegd**
+- Face ID start vanzelf bij het openen van de app of als je terugkeert naar de app.
+- **Automatisch vergrendelen** is per apparaat in te stellen (Instellingen → App → Beveiliging).
+
+Je huidige Face ID-instelling blijft werken. Je gegevens veranderen niet.
+
 ## 1.43.2 – 2026-11-10
 - Passkey hergebruiken na opnieuw installeren: de app onthoudt (versleuteld meegesynchroniseerd) welke passkeys voor je
   kluis bestaan. Zet je na het opnieuw installeren "Ontgrendelen met Face ID" aan, dan gebruikt de app je bestaande

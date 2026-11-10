@@ -6,7 +6,6 @@
 //   kdf: { name: 'PBKDF2-SHA256', iterations, salt },
 //   wrappedKey: { iv, data },   // datasleutel, ingepakt met wachtwoordsleutel
 //   payload:    { iv, data },   // de gegevens, versleuteld met de datasleutel
-//   passkeys:   [id, …],        // (optioneel) id's van passkeys voor ontgrendelen; geen geheim
 //   updatedAt
 // }
 //
@@ -231,12 +230,9 @@ export async function decryptRemote(env) {
 export async function adoptRemote(env, nextData, sha, { keepLocal }) {
   requireUnlocked();
   const meta = getSyncMeta();
-  const passkeys = unionIds(envelope?.passkeys, env.passkeys);
   envelope = meta.keyDirty
     ? { ...env, kdf: envelope.kdf, wrappedKey: envelope.wrappedKey } // lokale wachtwoordwijziging wint
     : { ...env };
-  if (passkeys.length) envelope.passkeys = passkeys;
-  if (passkeys.length !== (env.passkeys?.length ?? 0)) keepLocal = true; // eigen passkey-id ook uploaden
   data = nextData;
   revision++;
   updateSyncMeta({ sha, dirty: keepLocal });
@@ -256,23 +252,6 @@ export function getSyncMeta() {
 }
 export const setSyncMeta = (meta) => save(KEYS.sync, meta);
 export const updateSyncMeta = (patch) => save(KEYS.sync, { ...getSyncMeta(), ...patch });
-
-// ---------- Passkeys (id's worden meegesynchroniseerd) ----------
-
-const unionIds = (a = [], b = []) => [...new Set([...(a || []), ...(b || [])])];
-
-/** Id's van passkeys die ooit voor deze kluis zijn ingesteld (op welk apparaat dan ook). */
-export function getPasskeyIds() { requireUnlocked(); return envelope.passkeys ?? []; }
-
-/** Onthoudt een passkey-id in de kluis, zodat hij na opnieuw installeren herbruikbaar is. */
-export async function addPasskeyId(id) {
-  requireUnlocked();
-  if (!id || getPasskeyIds().includes(id)) return;
-  envelope = { ...envelope, passkeys: unionIds(envelope.passkeys, [id]) };
-  revision++;
-  updateSyncMeta({ dirty: true });
-  await persist({ reencrypt: false });
-}
 
 // ---------- Apparaatinstellingen (versleuteld, worden NIET gesynchroniseerd) ----------
 

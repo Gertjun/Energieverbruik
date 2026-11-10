@@ -68,7 +68,7 @@ export function createClient({ owner, repo, branch, path, token }) {
       const blob = await call('GET', `${base}/git/blobs/${json.sha}`);
       content = blob?.content ?? '';
     }
-    return { sha: json.sha, tekst: b64ToUtf8(content) };
+    return { sha: json.sha, text: b64ToUtf8(content) };
   }
 
   return {
@@ -78,15 +78,15 @@ export function createClient({ owner, repo, branch, path, token }) {
       return { private: info.private, defaultBranch: info.default_branch };
     },
 
-    /** Ruwe tekst van het bestand. @returns {Promise<{sha: string, tekst: string} | null>} */
+    /** Ruwe inhoud van het bestand als tekst. @returns {Promise<{sha: string, text: string} | null>} */
     getText,
 
     /** @returns {Promise<{sha: string, envelope: object} | null>} */
     async getFile() {
-      const bestand = await getText();
-      if (!bestand) return null;
+      const file = await getText();
+      if (!file) return null;
       try {
-        return { sha: bestand.sha, envelope: JSON.parse(bestand.tekst) };
+        return { sha: file.sha, envelope: JSON.parse(file.text) };
       } catch {
         throw new GitHubError('Het bestand op GitHub is geen geldig kluisbestand.');
       }
