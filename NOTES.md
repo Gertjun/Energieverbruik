@@ -388,3 +388,11 @@
 - Nieuw app-icoon (bliksem + vlam). Op de iPhone/iPad blijft het oude icoon op het beginscherm staan tot Geert de
   app daar verwijdert en opnieuw toevoegt via Safari → Deel → Zet op beginscherm.
 
+## Stand (10 november 2026) – versie 1.42.6
+- Bugfix Overzicht per maand: kalenderjaar (jan–dec) i.p.v. de laatste 12 maanden; december 2025 staat nu bij
+  "Een jaar eerder" naast een (nog lege) december 2026. Termijnbedragen blijven over de laatste 12 maanden.
+- Getest: syntaxcontrole en de periodelijst nagerekend (jan 2026 ← jan 2025 … dec 2026 ← dec 2025). Niet in de
+  browser met Geerts echte gegevens bekeken.
+- [ ] Geert: Overzicht → Maand bekijken op iPhone en laptop. Bevalt het dat december (en nu ook november-vooruit) leeg
+  is tot die maand er is? Bij terugbladeren naar een maand in 2025 toont de grafiek heel 2025.
+

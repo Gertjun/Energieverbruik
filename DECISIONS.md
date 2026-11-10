@@ -598,3 +598,11 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   vierkant zonder ronde hoeken (iOS rondt zelf af); het maskable-icoon heeft het symbool kleiner in het midden,
   zodat Android het in elke vorm kan uitsnijden zonder iets af te knippen.
 
+## Overzicht per maand = kalenderjaar (1.42.6, 10 november 2026)
+- Keuze: de maandgrafieken in het Overzicht tonen januari t/m december van het jaar van de gekozen datum, met
+  dezelfde maand een jaar eerder ernaast. Maanden die nog moeten komen blijven leeg.
+- Waarom: met de laatste 12 maanden stond december van vorig jaar als "Deze periode" vooraan, terwijl Geert december
+  ziet als een maand die dit jaar nog moet komen. Het kalenderjaar sluit aan bij hoe hij over het jaar denkt en bij de
+  zonnepanelen-grafiek (ook per kalendermaand).
+- De vergelijking termijnbedrag ↔ werkelijke kosten blijft over de laatste 12 maanden (dat is een doorlopende schatting).
+

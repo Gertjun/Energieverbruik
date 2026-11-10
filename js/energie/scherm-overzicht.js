@@ -21,8 +21,12 @@ const MAAT = {
   kosten: { beter: 'lager', naam: 'Kosten', kop: 'Kosten', cel: euro, fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), geldig: (t) => t.dagen > 0 && !t.zonderContract },
 };
 
-/** Lijst van perioden (van/tot/label) die eindigt bij `eind`. */
-function perioden(soort, eind) {
+/**
+ * Lijst van perioden (van/tot/label) die eindigt bij `eind`. Per maand standaard het kalenderjaar van `eind`
+ * (januari t/m december; maanden die nog moeten komen blijven leeg), zodat december het december van dit jaar
+ * is en het december van vorig jaar bij "Een jaar eerder" staat. Met `doorlopend` de laatste 12 maanden.
+ */
+function perioden(soort, eind, doorlopend = false) {
   const out = [];
   if (soort === 'dag') {
     // Loopt de reeks over de jaarwisseling, dan staat het jaar bij elke dag (anders lijkt 31 dec van dit jaar).
@@ -40,7 +44,7 @@ function perioden(soort, eind) {
       out.push({ van, tot, label: `Week ${Number(wk.slice(6))} (${fmtDatumKort(van)}${jaarErbij ? ` ${van.slice(0, 4)}` : ''})`, kort: wk.slice(6), vorig: [addDays(van, -364), addDays(tot, -364)] });
     }
   } else if (soort === 'maand') {
-    const m = monthKey(eind);
+    const m = doorlopend ? monthKey(eind) : `${eind.slice(0, 4)}-12`;
     for (let i = 11; i >= 0; i--) {
       const mk = maandPlus(m, -i);
       const vm = maandPlus(mk, -12);
@@ -238,7 +242,7 @@ function lijstTabel({ kop, labels, waarden, vergelijk, fmt, markeer = [], markee
   for (let i = labels.length - 1; i >= 0; i--) {
     if (waarden[i] == null && (!metVorig || vergelijk[i] == null)) continue;
     rijen.push(h('tr', {},
-      h('td', {}, labels[i], lopend[i] ? h('small', { class: 'muted lopend' }, 'loopt nog') : null),
+      h('td', {}, labels[i], lopend[i] && waarden[i] != null ? h('small', { class: 'muted lopend' }, 'loopt nog') : null),
       h('td', { class: 'num' }, waarden[i] == null ? '–' : ster ? `${fmt(waarden[i])}${markeer[i] ? ' *' : ''}` : `${markeer[i] ? '≈ ' : ''}${fmt(waarden[i])}`),
       metVorig ? h('td', { class: 'num muted' }, vergelijk[i] == null ? '–' : `${fmt(vergelijk[i])}${markeerVergelijk[i] ? ' *' : ''}`) : null,
       metVorig ? h('td', { class: `num${lopend[i] || waarden[i] == null || vergelijk[i] == null || vergelijk[i] === 0 ? '' : verschilKleur(beter, waarden[i] - vergelijk[i])}` }, lopend[i] ? '–' : verschil(waarden[i], vergelijk[i])) : null));
@@ -340,7 +344,7 @@ export function renderOverzicht(a, staat, opnieuw) {
   const delen = [keuzeRij, kpis];
 
   // Gas per graaddag (volgt de gekozen periode)
-  const mnd = perioden('maand', a.laatste);
+  const mnd = perioden('maand', a.laatste, true); // termijnbedragen: laatste 12 maanden
   const minGd = GD_MINIMUM[staat.periode];
   // Waarde zodra er gestookt is (net als in Historie). Bij minder dan het minimum aan graaddagen is de deling
   // onbetrouwbaar: die staaf wordt licht getoond en telt niet mee voor de schaal (te hoge staven afgekapt).

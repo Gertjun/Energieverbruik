@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.42.6 – 2026-11-10
+- Overzicht per maand: de grafieken (stroom, teruglevering, gas, kosten, gas per graaddag) tonen nu het kalenderjaar,
+  januari t/m december. December is het december van dit jaar (nog leeg zolang die maand niet geweest is); december
+  van vorig jaar staat bij "Een jaar eerder". Voorheen liep de reeks de laatste 12 maanden, waardoor december 2025 als
+  "Deze periode" verscheen.
+- In de lijst staat "loopt nog" alleen bij de lopende maand, niet bij maanden die nog moeten komen.
+
 ## 1.42.5 – 2026-11-09
 - Nieuw app-icoon: een witte bliksem (stroom) en een gele vlam (gas) op het vertrouwde groene vlak, in plaats van
   de letter E. Geldt voor het beginscherm, de browser, het inlogscherm en het logo in zijbalk en kopbalk.
