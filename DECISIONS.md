@@ -624,3 +624,11 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - `kostenDag` geeft daarvoor ook `vastStroom` en `vastGas` terug (naast `vast`); bestaande velden zijn ongewijzigd.
 - Percentages alleen als beide delen ≥ 0; anders (stroom negatief door teruglevering) zijn ze misleidend.
 
+
+## Analyse-keuze inklappen op de telefoon (1.43.1, 10 november 2026)
+- Keuze: op telefoonbreedte (max. 699 px, dezelfde grens als de tegels in twee kolommen) klapt de kaart "Wat wil je
+  analyseren?" na een keuze in tot één regel (gekozen analyse + "Andere kiezen ▾") en scrollt het scherm zo dat die regel
+  net onder de kopbalk staat, met de analyse direct eronder. Waarom: de tegels vullen op de iPhone meer dan een scherm,
+  zodat je na het kiezen ver moest scrollen.
+- Ingeklapt of open is schermtoestand (`staat.analyseKeuzeDicht`), niet in de kluis; het blijft ingeklapt als je
+  tussen tabs wisselt. Op iPad en laptop altijd open (daar passen de tegels compact).

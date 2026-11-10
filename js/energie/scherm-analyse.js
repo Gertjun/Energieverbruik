@@ -66,8 +66,21 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
   const van = p.van <= p.tot ? p.van : p.tot; const tot = p.van <= p.tot ? p.tot : p.van;
 
   const soort = SOORTEN.find((x) => x.key === c.soort) || SOORTEN[0];
+  // Telefoon: na het kiezen klapt de tegelkaart in tot één regel en springt het scherm naar de analyse.
+  const telefoon = window.matchMedia?.(TELEFOON).matches ?? false;
+  const kies = (key) => {
+    if (telefoon) staat.analyseKeuzeDicht = true;
+    if (key !== soort.key) wijzig({ soort: key }); else opnieuw();
+    if (telefoon) naarAnalyse();
+  };
   // Eerste keuze, daarom een eigen kaart met tegels bovenaan in plaats van een keuzelijst.
-  const soortKaart = h('section', { class: 'card kaart soort-kaart' },
+  const soortKaart = telefoon && staat.analyseKeuzeDicht ? h('section', { class: 'card kaart soort-kaart is-dicht' },
+    h('button', {
+      type: 'button', class: 'soort-dicht', 'aria-expanded': 'false',
+      onClick: () => { staat.analyseKeuzeDicht = false; opnieuw(); },
+    },
+      h('span', { class: 'soort-dicht-tekst' }, h('small', {}, 'Analyse'), h('strong', {}, soort.kort || soort.naam)),
+      h('span', { class: 'soort-dicht-wijzig' }, 'Andere kiezen ▾'))) : h('section', { class: 'card kaart soort-kaart' },
     h('h2', { class: 'kaart-titel' }, 'Wat wil je analyseren?'),
     h('div', {
       class: 'soort-groepen', role: 'radiogroup', 'aria-label': 'Soort analyse',
@@ -79,11 +92,11 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
           g === 'zelf' ? null : h('h3', { class: 'soort-groep-titel' }, gNaam),
           h('div', { class: 'soort-tegels' }, inGroep.map((x) => h('button', {
             type: 'button', class: 'soort-tegel', role: 'radio', 'aria-checked': x.key === soort.key ? 'true' : 'false',
-            onClick: () => { if (x.key !== soort.key) wijzig({ soort: x.key }); },
+            onClick: () => kies(x.key),
           }, h('strong', {}, x.kort || x.naam), h('span', {}, x.uitleg || '')))));
       })));
   // Aantal rijen voor het tegelraster (zie app.css). Via style.setProperty: een style-attribuut blokkeert de CSP.
-  soortKaart.querySelector('.soort-groepen').style.setProperty('--rijen',
+  soortKaart.querySelector('.soort-groepen')?.style.setProperty('--rijen',
     String(Math.max(...GROEPEN.map(([g]) => SOORTEN.filter((x) => (x.groep || 'zelf') === g).length))));
   const periodeKeus = soort.geenPeriode ? null : h('div', { class: 'field' }, h('span', {}, 'Periode'),
     h('div', { class: 'snelknoppen' }, SNEL.map(([k, t]) => h('button', {
@@ -127,6 +140,21 @@ export function renderAnalyse(a, staat, opnieuw, ctx) {
       `Per dag kan voor maximaal ${MAX_DAGEN_PER_DAG} dagen. Kies een kortere periode of een indeling per week of maand.`))];
   }
   return [soortKaart, keuzes, resultaat(a, c, van, tot), uitsluitMelding(a, volledigA)];
+}
+
+// Telefoonbreedte (zelfde grens als de tegels in twee kolommen, zie app.css).
+const TELEFOON = '(max-width: 699px)';
+
+/** Na het opnieuw tekenen: de ingeklapte keuzeregel bovenaan in beeld, met de gekozen analyse er direct onder. */
+function naarAnalyse() {
+  requestAnimationFrame(() => {
+    const kaartEl = document.querySelector('.soort-kaart');
+    if (!kaartEl) return;
+    const kop = document.querySelector('.app-header');
+    const kopHoogte = kop && getComputedStyle(kop).position === 'sticky' ? kop.getBoundingClientRect().height : 0;
+    const top = kaartEl.getBoundingClientRect().top + window.scrollY - kopHoogte - 8;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  });
 }
 
 /** Korte regel onder het resultaat als er dagen zijn weggelaten. */

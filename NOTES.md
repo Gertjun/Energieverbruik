@@ -409,3 +409,8 @@
 - [ ] Geert: Analyse → Jaarprognose bekijken op iPhone en laptop. Ook de bedragen stroom/gas in de tabel zien? (nu alleen in
   de grafiek en de legenda)
 
+
+## Stand (10 november 2026) – versie 1.43.1
+- Analyse op telefoonbreedte (< 700 px): na het tikken op een tegel klapt de keuzekaart in tot één regel en scrollt het
+  scherm naar de analyse. Getest in een testbrowser op 390 px (met Geerts HomeWizard-export): inklappen, springen en
+  weer openen werken; op 1300 px klapt niets in. Nog nakijken op de echte iPhone.

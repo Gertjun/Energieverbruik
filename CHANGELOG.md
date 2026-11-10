@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.43.1 – 2026-11-10
+- Analyse op de iPhone: kies je een analyse, dan klapt het blok "Wat wil je analyseren?" in tot één regel met de
+  gekozen analyse, en springt het scherm meteen naar die analyse. Tik op "Andere kiezen ▾" om de tegels weer te
+  openen. Op iPad en laptop blijft het blok gewoon open.
+
 ## 1.43.0 – 2026-11-10
 - Analyse → Jaarprognose: de grafiek "Kosten per maand" toont nu per maand de opbouw uit gas (rood, onder) en stroom
   (geel, erboven), elk inclusief hun eigen vaste kosten. Tik of wijs een maand aan voor de bedragen en het aandeel in
