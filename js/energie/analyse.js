@@ -582,7 +582,8 @@ export function cumulatief(a, maat, jaren) {
  * Dagen met gegevens tellen zoals ze zijn; voor de overige dagen (de rest van het jaar en eventuele gaten):
  *  - stroom: dezelfde dag vorig jaar, anders het daggemiddelde van die kalendermaand (alle jaren), anders van de laatste 28 dagen;
  *  - gas: de stooklijn van de laatste 365 dagen bij de temperatuur van dezelfde dag vorig jaar, anders als stroom;
- *  - kosten: met het contract van die dag (vaste kosten inbegrepen; een schatting).
+ *  - kosten: met het contract van die dag (vaste kosten inbegrepen; een schatting), ook verdeeld over stroom en gas
+ *    (kostenStroom/kostenGas, elk met hun eigen vaste kosten).
  */
 export function jaarPrognose(a) {
   const jaar = a.laatste.slice(0, 4);
@@ -623,7 +624,7 @@ export function jaarPrognose(a) {
   };
 
   const maanden = [];
-  const leeg = () => ({ afname: 0, terug: 0, gas: 0, kosten: 0, dagenEcht: 0, dagenGeschat: 0 });
+  const leeg = () => ({ afname: 0, terug: 0, gas: 0, kosten: 0, kostenStroom: 0, kostenGas: 0, dagenEcht: 0, dagenGeschat: 0 });
   const totaalT = { echt: leeg(), geschat: leeg() };
   const hoe = {};
   for (let m = 1; m <= 12; m++) {
@@ -642,6 +643,9 @@ export function jaarPrognose(a) {
       const doel = echt ? t.echt : t.geschat;
       const kosten = echt ? x.kosten : kostenDag({ ...(x?.dag || {}), ...dag }, contractOp(a.contracten, d), a.profielen);
       doel.afname += dag.afname; doel.terug += dag.terug; doel.gas += dag.gas; doel.kosten += kosten.totaal;
+      // Verdeling stroom/gas, elk met hun eigen vaste kosten (stroom = afname + teruglevering + vast stroom).
+      const kGas = (kosten.gas || 0) + (kosten.vastGas || 0);
+      doel.kostenGas += kGas; doel.kostenStroom += kosten.totaal - kGas;
       if (echt) doel.dagenEcht++; else doel.dagenGeschat++;
     }
     for (const k of ['echt', 'geschat']) for (const [veld, v] of Object.entries(t[k])) totaalT[k][veld] += v;

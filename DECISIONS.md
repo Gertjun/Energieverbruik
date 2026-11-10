@@ -613,3 +613,14 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   'alles' wordt bij het lezen omgezet naar 'naast'. De grafiek/lijst-keuze per kaart blijft (sleutels `alles-<soort>`,
   zodat eerder gekozen weergaven blijven werken).
 - Dag/Week/Maand/Jaar staat nu alleen op de regel (keuzes-een, max. 520 px breed), ook tussen 640 en 1200 px.
+
+## Jaarprognose: kosten verdeeld over stroom en gas (1.43.0, 10 november 2026)
+- Keuze: de maandkolommen in de Jaarprognose zijn gestapeld: gas onderaan, stroom erop. Nieuwe grafiekfunctie
+  `stapelGrafiek` in grafiek.js (positieve delen stapelen omhoog, negatieve omlaag vanaf de nullijn).
+- Verdeling: stroom = afname + teruglevering (verrekening/vergoeding) + vaste kosten stroom (levering, netbeheer,
+  min vermindering energiebelasting, plus vaste terugleverkosten bij saldering); gas = gasverbruik + vaste kosten gas.
+  Waarom vaste kosten meetellen: zo tellen stroom en gas precies op tot de totale kosten, en is de vermindering
+  energiebelasting (die bij de stroomaansluiting hoort) bij stroom ondergebracht.
+- `kostenDag` geeft daarvoor ook `vastStroom` en `vastGas` terug (naast `vast`); bestaande velden zijn ongewijzigd.
+- Percentages alleen als beide delen ≥ 0; anders (stroom negatief door teruglevering) zijn ze misleidend.
+

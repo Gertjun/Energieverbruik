@@ -218,6 +218,79 @@ export function staafGrafiek({ labels, korteLabels = labels, waarden, vergelijk 
   return h('div', { class: kleurKlassen(soort, vergelijkSoort, lijn?.soort) }, info, svg, legenda);
 }
 
+/**
+ * Gestapelde staafgrafiek: per kolom de opbouw uit meerdere delen (bijv. kosten stroom en gas).
+ * stapelGrafiek({ labels, korteLabels, delen: [{ naam, soort, waarden }], fmt, markeer, naam, totaalNaam })
+ * Het eerste deel ligt onderaan. Positieve delen stapelen omhoog, negatieve (bijv. stroomkosten in de zomer
+ * door teruglevering) omlaag vanaf de nullijn. Een gemarkeerde kolom (geschat) is licht met een stippelrand.
+ */
+export function stapelGrafiek({ labels, korteLabels = labels, delen, fmt, markeer = [], naam = 'Opbouw', totaalNaam = 'totaal', breedte = null, hoogte = null }) {
+  const W = grafiekBreedte(breedte);
+  const H = hoogte || (W < 500 ? 200 : 240); const L = 44; const R = 8; const T = 10; const B = 26;
+  const n = labels.length;
+  let hoog = 0; let laag = 0;
+  for (let i = 0; i < n; i++) {
+    let p = 0; let m = 0;
+    for (const d of delen) { const v = d.waarden[i] || 0; if (v > 0) p += v; else m += v; }
+    hoog = Math.max(hoog, p); laag = Math.min(laag, m);
+  }
+  const maxV = niceMax(hoog);
+  const minV = laag < 0 ? -niceMax(-laag) : 0;
+  const y = (v) => T + (H - T - B) * (1 - (v - minV) / (maxV - minV));
+  const slot = (W - L - R) / Math.max(1, n);
+  const bw = Math.min(slot * 0.7, 36);
+  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, class: 'grafiek-svg', role: 'img', 'aria-label': naam });
+
+  const span = maxV - minV;
+  const mant = span / 10 ** Math.floor(Math.log10(span));
+  const stappenAs = Math.abs(mant - 2.5) < 1e-9 || Math.abs(mant - 5) < 1e-9 ? 5 : 4;
+  for (let i = 0; i <= stappenAs; i++) {
+    const v = minV + (span * i) / stappenAs;
+    svg.append(s('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), class: v === 0 ? 'g-nul' : 'g-raster' }));
+    svg.append(s('text', { x: L - 6, y: y(v) + 4, class: 'g-as', 'text-anchor': 'end' }, fmt(v, true)));
+  }
+
+  const stap = n <= 8 ? 1 : Math.max(1, Math.ceil(n / (W < 500 ? 6 : 12)));
+  for (let i = 0; i < n; i++) {
+    const x = L + slot * i + (slot - bw) / 2;
+    let p = 0; let m = 0;
+    for (const d of delen) {
+      const v = d.waarden[i];
+      if (!v) continue;
+      const van = v > 0 ? p : m; const tot = van + v;
+      if (v > 0) p = tot; else m = tot;
+      const top = Math.min(y(van), y(tot)); const hgt = Math.max(1, Math.abs(y(tot) - y(van)));
+      svg.append(s('rect', { x, y: top, width: bw, height: hgt, class: `g-deel g-deel-${d.soort}${markeer[i] ? ' g-deel-geschat' : ''}` }));
+    }
+    if (i % stap === 0 || i === n - 1) {
+      svg.append(s('text', { x: L + slot * i + slot / 2, y: H - 8, class: 'g-as', 'text-anchor': 'middle' }, korteLabels[i]));
+    }
+  }
+
+  const info = h('p', { class: 'grafiek-info', 'aria-live': 'polite' }, '\u00a0');
+  const aandeel = (v, tot, alle) => (alle.every((w) => w >= 0) && tot > 0 ? ` (${Math.round((v / tot) * 100)}%)` : '');
+  const toon = (i) => {
+    const w = delen.map((d) => d.waarden[i] || 0);
+    const tot = w.reduce((a, b) => a + b, 0);
+    info.textContent = `${labels[i]}${markeer[i] ? ' (deels geschat)' : ''}: `
+      + delen.map((d, j) => `${d.naam.toLowerCase()} ${fmt(w[j])}${aandeel(w[j], tot, w)}`).join(' · ')
+      + ` · ${totaalNaam} ${fmt(tot)}`;
+    svg.querySelectorAll('.g-hit').forEach((el, j) => el.classList.toggle('is-actief', j === i));
+  };
+  for (let i = 0; i < n; i++) {
+    const hit = s('rect', { x: L + slot * i, y: T, width: slot, height: H - T - B, class: 'g-hit' });
+    hit.addEventListener('pointerenter', () => toon(i));
+    hit.addEventListener('click', () => toon(i));
+    svg.append(hit);
+  }
+  // Legenda met het totaal per deel over alle kolommen en het aandeel daarvan.
+  const som = delen.map((d) => d.waarden.reduce((a, b) => a + (b || 0), 0));
+  const somTot = som.reduce((a, b) => a + b, 0);
+  const legenda = h('div', { class: 'grafiek-legenda' },
+    delen.map((d, j) => h('span', {}, h('i', { class: `leg-deel-${d.soort}` }), `${d.naam} ${fmt(som[j])}${aandeel(som[j], somTot, som)}`)));
+  return h('div', { class: 'grafiek' }, info, svg, legenda);
+}
+
 /** Kolom met afgeronde bovenkant (alleen positieve waarden). */
 function kolom(x, y0, y1, bw, cls) {
   const hgt = Math.max(1, y0 - y1); const top = y0 - hgt;

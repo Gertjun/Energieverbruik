@@ -400,3 +400,12 @@
 - Overzicht toont altijd alle vier grafieken (stroom, terug, gas, kosten); keuzeknoppen weg. Indeling "Alles tegelijk"
   vervallen; een opgeslagen keuze daarvoor wordt "Naast elkaar". Gecontroleerd met testgegevens op iPhone- (390 px)
   en laptopbreedte (1500 px): geen fouten, vier kaarten onder elkaar resp. in twee kolommen.
+
+## Stand (10 november 2026) – versie 1.43.0
+- Jaarprognose: kostenkolommen opgebouwd uit gas en stroom (zie DECISIONS.md).
+- Getest met een testpagina (buiten de repo) met Geerts HomeWizard-exports (P1e/P1g 2025-11-4 t/m 2026-11-4) in headless
+  Chrome op 1300 px (licht en donker) en 390 px: gas € 1.822 (55%) + stroom € 1.483 (45%) = € 3.304,81, gelijk aan het
+  jaartotaal. Juli 2026: gas € 45 / stroom € 101. Tabel ongewijzigd. Niet met de echte app-gegevens (incl. Excel) bekeken.
+- [ ] Geert: Analyse → Jaarprognose bekijken op iPhone en laptop. Ook de bedragen stroom/gas in de tabel zien? (nu alleen in
+  de grafiek en de legenda)
+

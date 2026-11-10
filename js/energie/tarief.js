@@ -127,7 +127,7 @@ const n = (v) => (Number.isFinite(v) ? v : 0);
  * (kosten − vergoeding) per kWh.
  */
 export function kostenDag(dag, contract, profielen) {
-  const leeg = { stroom: 0, terug: 0, gas: 0, vast: 0, totaal: 0, geschat: false, contract: false };
+  const leeg = { stroom: 0, terug: 0, gas: 0, vast: 0, vastStroom: 0, vastGas: 0, totaal: 0, geschat: false, contract: false };
   if (!contract) return leeg;
   const tv = perTijdvak(dag, profielen);
   const eb = n(contract.stroomEb);
@@ -141,9 +141,12 @@ export function kostenDag(dag, contract, profielen) {
   }
   const gas = n(dag.gas) * (n(contract.gasLevering) + n(contract.gasEb));
   const vs = contract.vastStroom || {}; const vg = contract.vastGas || {};
-  const vast = n(vs.levering) + n(vs.netbeheer) - n(vs.verminderingEb) + n(vg.levering) + n(vg.netbeheer)
+  // Vaste kosten apart voor stroom (incl. vaste terugleverkosten) en gas, voor de verdeling stroom/gas.
+  const vastStroom = n(vs.levering) + n(vs.netbeheer) - n(vs.verminderingEb)
     + (t.regeling === 'saldering' ? n(t.vasteKostenJaar) / 12 / dagenInMaand(dag.datum) : 0);
-  return { stroom, terug, gas, vast, totaal: stroom + terug + gas + vast, geschat: tv.geschat, contract: true };
+  const vastGas = n(vg.levering) + n(vg.netbeheer);
+  const vast = vastStroom + vastGas;
+  return { stroom, terug, gas, vast, vastStroom, vastGas, totaal: stroom + terug + gas + vast, geschat: tv.geschat, contract: true };
 }
 
 // ---------- Graaddagen ----------

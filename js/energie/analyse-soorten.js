@@ -3,7 +3,7 @@
 // De keuzes staan in de analyse-staat `c` en gaan mee in favorieten (zie SOORT_STANDAARD).
 
 import { h } from '../core/dom.js';
-import { heatmap, staafGrafiek, puntenGrafiek, lijnenGrafiek } from './grafiek.js';
+import { heatmap, staafGrafiek, stapelGrafiek, puntenGrafiek, lijnenGrafiek } from './grafiek.js';
 import { heatmapRijen, heatmapIndeling, salderingReeks, zonurenReeks, stooklijn, weerGecorrigeerd, vorigJaar, cumulatief, dagVanJaar, jaarPrognose, MATEN, reeks, past } from './analyse.js';
 import { fmtDatumKort, addDays, fmtMaand, fmtMaandKort, daysBetween } from './tijd.js';
 import { totaal } from './model.js';
@@ -352,11 +352,15 @@ const prognoseSoort = {
       kpi('Kosten (incl. vaste kosten)', euro(som('kosten')), uitleg(vjStroom && vjGas, som('kosten'), vj.kosten, e.kosten, euro)),
       p.termijnen != null ? kpi('Termijnen dit jaar', euro(p.termijnen), p.termijnenIngevuld < 12 ? `${p.termijnenIngevuld} van 12 maanden ingevuld, de rest met het laatste bedrag` : '12 maanden') : null,
       saldo != null ? kpi(saldo >= 0 ? 'Verwacht terug' : 'Verwacht bijbetalen', euro(Math.abs(saldo)), 'termijnen min verwachte kosten', saldo >= 0 ? 'is-goed' : 'is-slecht') : null);
-    const grafiek = staafGrafiek({
+    // Per maand de opbouw van de kosten: gas onderaan, stroom erop (elk inclusief hun eigen vaste kosten).
+    const grafiek = stapelGrafiek({
       labels: p.maanden.map((m) => fmtMaand(m.maand)), korteLabels: p.maanden.map((m) => fmtMaandKort(m.maand)),
-      waarden: p.maanden.map((m) => m.echt.kosten + m.geschat.kosten),
+      delen: [
+        { naam: 'Gas', soort: 'gas', waarden: p.maanden.map((m) => m.echt.kostenGas + m.geschat.kostenGas) },
+        { naam: 'Stroom', soort: 'stroom', waarden: p.maanden.map((m) => m.echt.kostenStroom + m.geschat.kostenStroom) },
+      ],
       markeer: p.maanden.map((m) => m.geschat.dagenGeschat > 0),
-      fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), naam: 'Kosten per maand', soort: 'kosten',
+      fmt: (v, as) => (as ? `€${fmtGetal(v, 0)}` : euro(v)), naam: 'Kosten per maand, stroom en gas',
     });
     const rij = (label, x, cls) => h('tr', { class: cls }, h(cls ? 'th' : 'td', cls ? { scope: 'row' } : {}, label),
       h('td', { class: `num${x.geschat ? ' is-geschat' : ''}` }, fmtGetal(x.afname, 0)),
@@ -376,7 +380,7 @@ const prognoseSoort = {
         'Voor dagen die nog moeten komen (en dagen zonder gegevens) schat de app het verbruik: stroom zoals dezelfde dag vorig jaar, gas met je stooklijn bij de temperatuur van dezelfde dag vorig jaar (dus bij een normaal jaar zoals vorig jaar). ',
         'Lukt dat niet, dan het daggemiddelde van die maand of van de laatste 4 weken. ',
         hoe ? `Gebruikt: ${hoe}. ` : '',
-        'Kosten zijn berekend met je tarieven, inclusief vaste kosten. Cursief = (deels) geschat. De termijnen gaan over het kalenderjaar; je jaarafrekening kan over een andere periode lopen en is leidend.',
+        'Kosten zijn berekend met je tarieven, inclusief vaste kosten. In de grafiek is elke maand verdeeld in gas (onder) en stroom (boven), elk met hun eigen vaste kosten; stroom is afname min teruglevering. Valt stroom in een maand negatief uit (meer teruggeleverd dan afgenomen), dan staat dat deel onder de nullijn. Lichte staaf = (deels) geschat. Cursief = (deels) geschat. De termijnen gaan over het kalenderjaar; je jaarafrekening kan over een andere periode lopen en is leidend.',
       ].join('')));
   },
 };

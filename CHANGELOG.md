@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.43.0 – 2026-11-10
+- Analyse → Jaarprognose: de grafiek "Kosten per maand" toont nu per maand de opbouw uit gas (rood, onder) en stroom
+  (geel, erboven), elk inclusief hun eigen vaste kosten. Tik of wijs een maand aan voor de bedragen en het aandeel in
+  procenten; onder de grafiek staan de jaartotalen van stroom en gas met hun aandeel. Geschatte maanden blijven licht
+  met een stippelrand.
+
 ## 1.42.7 – 2026-11-10
 - Overzicht: de knoppen Stroom/Terug/Gas/Kosten zijn weg. Stroom afgenomen, teruglevering, gas en kosten staan nu
   altijd alle vier als eigen kaart in het Overzicht, op iPhone, iPad en laptop.

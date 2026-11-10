@@ -203,6 +203,14 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .jaar-knop i { width: 10px; height: 10px; border-radius: 3px; background: var(--c, transparent); border: 1px solid var(--border); }
 .jaar-knop i[class^="g-zon-"] { border-color: transparent; }
 .leg-lijn { background: var(--lijnkl, var(--warn)); height: 3px !important; border-radius: 2px !important; }
+/* Gestapelde staven (stapelGrafiek): één kleur per deel, met een smalle rand in de achtergrondkleur tussen de delen. */
+.g-deel { stroke: var(--surface); stroke-width: 1; }
+.g-deel-stroom { --deel: var(--kleur-stroom); } .g-deel-gas { --deel: var(--kleur-gas); }
+.g-deel-terug { --deel: var(--kleur-terug); } .g-deel-kosten { --deel: var(--kleur-kosten); }
+.g-deel { fill: var(--deel, var(--accent)); }
+.g-deel.g-deel-geschat { fill: color-mix(in srgb, var(--deel) 30%, var(--surface)); stroke: var(--deel); stroke-dasharray: 3 2; }
+.leg-deel-stroom { background: var(--kleur-stroom); } .leg-deel-gas { background: var(--kleur-gas); }
+.leg-deel-terug { background: var(--kleur-terug); } .leg-deel-kosten { background: var(--kleur-kosten); }
 /* Gemiddelde: gestippelde horizontale lijn in de kleur van de reeks, met een rand in de achtergrondkleur zodat
    hij ook over een staaf van dezelfde kleur te zien is. */
 .g-gem { pointer-events: none; }
