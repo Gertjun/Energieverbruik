@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.42.7 – 2026-11-10
+- Overzicht: de knoppen Stroom/Terug/Gas/Kosten zijn weg. Stroom afgenomen, teruglevering, gas en kosten staan nu
+  altijd alle vier als eigen kaart in het Overzicht, op iPhone, iPad en laptop.
+- Laptop: de indeling "Alles tegelijk" is vervallen (die is nu gelijk aan "Naast elkaar"). Had je die gekozen, dan
+  krijg je vanzelf "Naast elkaar".
+
 ## 1.42.6 – 2026-11-10
 - Overzicht per maand: de grafieken (stroom, teruglevering, gas, kosten, gas per graaddag) tonen nu het kalenderjaar,
   januari t/m december. December is het december van dit jaar (nog leeg zolang die maand niet geweest is); december

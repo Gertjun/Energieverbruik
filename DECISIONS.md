@@ -606,3 +606,10 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   zonnepanelen-grafiek (ook per kalendermaand).
 - De vergelijking termijnbedrag ↔ werkelijke kosten blijft over de laatste 12 maanden (dat is een doorlopende schatting).
 
+## Overzicht: altijd alle vier grafieken (1.42.7, 10 november 2026)
+- Keuze: stroom, teruglevering, gas en kosten staan altijd tegelijk in het Overzicht; de knoppen Stroom/Terug/Gas/Kosten
+  zijn verwijderd. Waarom: Geert wil alles in één keer zien zonder te wisselen.
+- Daardoor was de laptop-indeling "Alles tegelijk" hetzelfde als "Naast elkaar"; die is geschrapt. Een bewaarde waarde
+  'alles' wordt bij het lezen omgezet naar 'naast'. De grafiek/lijst-keuze per kaart blijft (sleutels `alles-<soort>`,
+  zodat eerder gekozen weergaven blijven werken).
+- Dag/Week/Maand/Jaar staat nu alleen op de regel (keuzes-een, max. 520 px breed), ook tussen 640 en 1200 px.

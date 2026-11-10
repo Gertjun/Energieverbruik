@@ -24,7 +24,7 @@ const TABS = [
 ];
 
 // Schermtoestand (niet opgeslagen in de kluis).
-const staat = { tab: null, periode: 'maand', maat: 'afname', historieMaand: null, open: null };
+const staat = { tab: null, periode: 'maand', historieMaand: null, open: null };
 let laatsteRoot = null; let laatsteCtx = null;
 const opnieuw = () => { if (laatsteRoot) app.render(laatsteRoot, laatsteCtx); };
 

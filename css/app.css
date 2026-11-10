@@ -127,6 +127,8 @@ body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24p
 .kaart-wissel .segmented button { min-height: 30px; padding: 0 12px; font-size: 0.8rem; }
 .keuzes { display: grid; gap: 8px; }
 @media (min-width: 640px) { .keuzes { grid-template-columns: 1fr 1fr; } }
+/* Alleen Dag/Week/Maand/Jaar: niet uitrekken over de hele breedte */
+.keuzes.keuzes-een { grid-template-columns: minmax(0, 520px); }
 
 .kpi-raster { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 @media (min-width: 900px) { .kpi-raster { grid-template-columns: repeat(4, 1fr); } }
@@ -356,12 +358,8 @@ input[type="month"] {
   .overzicht-raster > .kaart-vakken > .kaart-leeg { margin-top: 0; }
   /* Een losse laatste kaart (oneven aantal) over de hele breedte */
   .overzicht-raster > :last-child:nth-child(odd) { grid-column: 1 / -1; }
-  /* Alleen Dag/Week/Maand/Jaar: niet uitrekken over de hele breedte */
-  .keuzes.keuzes-een { grid-template-columns: minmax(0, 520px); }
-  /* Periode, Stroom/Terug/Gas/Kosten en Indeling in een raster van even brede kolommen over de volle breedte
-     van de inhoud. Elke groep heeft vier knoppen, dus alle knoppen zijn even groot en de randen vallen gelijk met
-     de kaarten eronder. Passen er drie kolommen niet, dan twee: Indeling komt dan op regel 2 in de rechterkolom,
-     precies onder Stroom/Terug/Gas/Kosten. Dat geldt voor elke indeling (ook Eén kolom). */
+  /* Periode en Indeling in een raster van even brede kolommen over de volle breedte van de inhoud, zodat de randen
+     gelijk vallen met de kaarten eronder. Passen twee kolommen niet, dan staat Indeling eronder. */
   .keuzes.keuzes-breed { display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 8px; }
   .keuzes-breed > .indeling-keus { grid-column: -2 / -1; }
   .keuzes-breed .segmented button { padding: 0 6px; white-space: nowrap; }

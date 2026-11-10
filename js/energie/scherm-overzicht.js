@@ -12,7 +12,7 @@ import { kpi, kaart, segmented, fmtKwh, fmtM3, euro, fmtGetal, fmtPct } from './
 import { verschilKleur } from './analyse.js';
 
 const PERIODES = [['dag', 'Dag'], ['week', 'Week'], ['maand', 'Maand'], ['jaar', 'Jaar']];
-const MATEN = [['afname', 'Stroom'], ['terug', 'Terug'], ['gas', 'Gas'], ['kosten', 'Kosten']];
+const MATEN = ['afname', 'terug', 'gas', 'kosten'];
 
 const MAAT = {
   afname: { beter: 'lager', naam: 'Stroom afgenomen', kop: 'Stroom (kWh)', cel: (v) => fmtGetal(v, 1), fmt: (v, as) => (as ? fmtGetal(v, 0) : fmtKwh(v)), geldig: (t) => t.dagenAfname > 0 },
@@ -163,19 +163,21 @@ function bewaarZonJaren(beschikbaar, gekozen, jaar) {
 //   standaard – één kolom (zoals op iPhone/iPad)
 //   naast     – kaarten in twee kolommen naast elkaar
 //   samen     – grafiek en lijst tegelijk in elke kaart
-//   alles     – Stroom, Terug, Gas en Kosten tegelijk, in twee kolommen
 export const INDELINGEN = [
   ['standaard', 'Eén kolom', 'Zoals op de iPhone: alles onder elkaar, met een keuze tussen grafiek en lijst.'],
   ['naast', 'Naast elkaar', 'Kaarten in twee kolommen, zodat je meer ziet zonder te scrollen.'],
   ['samen', 'Grafiek en lijst', 'In elke kaart de grafiek met de lijst met getallen ernaast.'],
-  ['alles', 'Alles tegelijk', 'Stroom, teruglevering, gas en kosten als vier grafieken naast elkaar; de keuze Stroom/Terug/Gas/Kosten vervalt.'],
 ];
 const INDELING_KEY = 'energieverbruik.overzichtIndeling';
 /** Vanaf deze vensterbreedte geldt de gekozen indeling; daaronder altijd één kolom. */
 export const BREED_SCHERM = '(min-width: 1200px)';
 const MAX_BREED = 1640; // maximale breedte van de inhoud bij een brede indeling (px)
 export function leesIndeling() {
-  try { const v = localStorage.getItem(INDELING_KEY); return INDELINGEN.some(([k]) => k === v) ? v : 'standaard'; } catch { return 'standaard'; }
+  try {
+    let v = localStorage.getItem(INDELING_KEY);
+    if (v === 'alles') v = 'naast'; // 'Alles tegelijk' bestaat niet meer (1.42.7): stroom, terug, gas en kosten staan er nu altijd
+    return INDELINGEN.some(([k]) => k === v) ? v : 'standaard';
+  } catch { return 'standaard'; }
 }
 export function bewaarIndeling(v) {
   try { localStorage.setItem(INDELING_KEY, v); } catch { /* geen opslag */ }
@@ -266,14 +268,13 @@ export function renderOverzicht(a, staat, opnieuw) {
   staat.indeling = indeling; // app.js zet hiermee de bredere opmaak aan
   const B = breedtes(indeling, staat.zijbalkIn);
   const samen = indeling === 'samen';
-  const tweeKolommen = indeling === 'naast' || indeling === 'alles';
+  const tweeKolommen = indeling === 'naast';
   // Breedte voor een grafiek in een gewone kaart (één of twee kolommen, of naast de lijst).
   const bKaart = samen ? B.naastLijst : tweeKolommen ? B.half : null;
   // In twee kolommen alle grafieken even hoog, zodat kaarten naast elkaar gelijk uitkomen.
   const hKaart = tweeKolommen ? (bKaart < 500 ? 220 : 260) : null;
 
   const periodeKeus = segmented(PERIODES, staat.periode, (v) => { staat.periode = v; opnieuw(); }, 'Periode');
-  const maatKeus = indeling === 'alles' ? null : segmented(MATEN, staat.maat, (v) => { staat.maat = v; opnieuw(); }, 'Wat tonen');
 
   // Kerncijfers
   const eind = eindDatum(a, staat);
@@ -294,7 +295,7 @@ export function renderOverzicht(a, staat, opnieuw) {
       kpi('Kosten', of(nu, 'kosten', 'kosten'), euro, of(toen, 'kosten', 'kosten'))),
     nu.geschat ? h('p', { class: 'hint' }, 'Kosten deels geschat: voor sommige dagen is geen uurverdeling bekend.') : null);
 
-  // Grafiek(en) per soort: één (gekozen met Stroom/Terug/Gas/Kosten) of alle vier bij de indeling 'alles'.
+  // Grafieken per soort: altijd alle vier (stroom, teruglevering, gas, kosten).
   const lijst = perioden(staat.periode, eind);
   const labels = lijst.map((p) => p.label);
   // De laatste periode loopt meestal nog; dan is een verschil met de hele periode vorig jaar misleidend.
@@ -318,9 +319,7 @@ export function renderOverzicht(a, staat, opnieuw) {
       maatKey === 'kosten' ? h('p', { class: 'hint' }, `Inclusief vaste kosten en verrekening van teruglevering. ${soort === 'lijst' ? 'Bedragen met ≈ zijn' : soort === 'samen' ? 'Staven met een stippelrand en bedragen met ≈ zijn' : 'Staven met een stippelrand zijn'} (deels) geschat.`) : null,
     ], opnieuw, samen);
   };
-  const grafieken = indeling === 'alles'
-    ? MATEN.map(([k]) => maatKaart(k, `alles-${k}`))
-    : [maatKaart(staat.maat, 'hoofd')];
+  const grafieken = MATEN.map((k) => maatKaart(k, `alles-${k}`));
 
   const kaarten = [...grafieken]; // komen in het raster (één of twee kolommen)
   // Een losse laatste kaart in twee kolommen loopt over de hele breedte (zie app.css); dan ook de grafiek.
@@ -339,8 +338,8 @@ export function renderOverzicht(a, staat, opnieuw) {
     indelingKeus.querySelectorAll('button').forEach((knop, i) => { knop.title = INDELINGEN[i][2]; });
   }
   const keuzeRij = breed
-    ? h('div', { class: 'keuzes keuzes-breed' }, periodeKeus, maatKeus, indelingKeus)
-    : h('div', { class: `keuzes${maatKeus ? '' : ' keuzes-een'}` }, periodeKeus, maatKeus);
+    ? h('div', { class: 'keuzes keuzes-breed' }, periodeKeus, indelingKeus)
+    : h('div', { class: 'keuzes keuzes-een' }, periodeKeus);
   const delen = [keuzeRij, kpis];
 
   // Gas per graaddag (volgt de gekozen periode)

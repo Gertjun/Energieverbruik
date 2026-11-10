@@ -396,3 +396,7 @@
 - [ ] Geert: Overzicht → Maand bekijken op iPhone en laptop. Bevalt het dat december (en nu ook november-vooruit) leeg
   is tot die maand er is? Bij terugbladeren naar een maand in 2025 toont de grafiek heel 2025.
 
+## Stand (10 november 2026) – versie 1.42.7
+- Overzicht toont altijd alle vier grafieken (stroom, terug, gas, kosten); keuzeknoppen weg. Indeling "Alles tegelijk"
+  vervallen; een opgeslagen keuze daarvoor wordt "Naast elkaar". Gecontroleerd met testgegevens op iPhone- (390 px)
+  en laptopbreedte (1500 px): geen fouten, vier kaarten onder elkaar resp. in twee kolommen.
