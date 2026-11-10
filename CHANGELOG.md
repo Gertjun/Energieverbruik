@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.43.2 – 2026-11-10
+- Passkey hergebruiken na opnieuw installeren: de app onthoudt (versleuteld meegesynchroniseerd) welke passkeys voor je
+  kluis bestaan. Zet je na het opnieuw installeren "Ontgrendelen met Face ID" aan, dan gebruikt de app je bestaande
+  passkey uit de sleutelhanger in plaats van een nieuwe te maken. Lukt dat niet (of annuleer je), dan wordt er net als
+  vroeger een nieuwe gemaakt.
+
 ## 1.43.1 – 2026-11-10
 - Analyse op de iPhone: kies je een analyse, dan klapt het blok "Wat wil je analyseren?" in tot één regel met de
   gekozen analyse, en springt het scherm meteen naar die analyse. Tik op "Andere kiezen ▾" om de tegels weer te

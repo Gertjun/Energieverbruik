@@ -414,3 +414,16 @@
 - Analyse op telefoonbreedte (< 700 px): na het tikken op een tegel klapt de keuzekaart in tot één regel en scrollt het
   scherm naar de analyse. Getest in een testbrowser op 390 px (met Geerts HomeWizard-export): inklappen, springen en
   weer openen werken; op 1300 px klapt niets in. Nog nakijken op de echte iPhone.
+
+## Stand (10 november 2026) – versie 1.43.2
+- Probleem van Geert: na verwijderen en opnieuw installeren van de web-app (bijv. voor een nieuw icoon) moest hij steeds
+  een nieuwe passkey maken. Oorzaak: iOS wist bij verwijderen alle opslag van de web-app, ook het gegeven welke passkey
+  bij de app hoort. De passkey zelf blijft in iCloud-sleutelhanger staan.
+- Oplossing: passkey-id's staan nu in het kluisbestand (veld `passkeys`, zie DECISIONS.md) en worden hergebruikt.
+  Een passkey van vóór 1.43.2 wordt na de eerste ontgrendeling vastgelegd en daarna gesynchroniseerd.
+- Kluiscode getest in node (toevoegen, samenvoegen bij sync, herladen). Het hergebruik zelf (Face ID-venster) kon niet
+  in de testomgeving; nog testen op de iPhone. Opnieuw koppelen (GitHub-token + wachtwoord) blijft na opnieuw
+  installeren nodig: dat wist iOS ook.
+- [ ] Geert: na deze update één keer de app openen en ontgrendelen op het apparaat met de passkey, zodat die wordt vastgelegd.
+- [ ] Dezelfde wijziging (js/core/biometric.js, vault.js, shell.js) ook in de PWA-template en de andere apps zetten
+  (staat op WISHLIST.md).

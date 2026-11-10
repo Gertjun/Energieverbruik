@@ -346,23 +346,38 @@ function requestPersistentStorage() {
     .catch(() => {});
 }
 
+/** Passkey instellen; een eerder gemaakte passkey wordt zo mogelijk hergebruikt. */
+async function enrollBiometrics() {
+  const { credentialId, reused } = await bio.enroll(vault.getDataKey(), vault.getPasskeyIds());
+  await vault.addPasskeyId(credentialId);
+  toast(reused
+    ? 'Ontgrendelen met Face ID / passkey is ingeschakeld (bestaande passkey hergebruikt).'
+    : 'Ontgrendelen met Face ID / passkey is ingeschakeld.', 'ok');
+}
+
 async function offerBiometrics() {
+  // Passkey van vóór 1.43.2 alsnog in de kluis vastleggen, zodat hij herbruikbaar is.
+  const localId = bio.enrolledId();
+  if (localId) vault.addPasskeyId(localId).catch(() => {});
+
   if (bio.isEnrolled() || localStorage.getItem(BIO_OFFER_KEY) || !(await bio.isSupported())) return;
   const enable = h('button', { class: 'btn btn-primary btn-small', type: 'button' }, 'Inschakelen');
   const later = h('button', { class: 'btn btn-ghost btn-small', type: 'button' }, 'Niet nu');
   enable.addEventListener('click', async () => {
     await withBusy(enable, async () => {
-      await bio.enroll(vault.getDataKey());
+      await enrollBiometrics();
       hideNotice();
-      toast('Ontgrendelen met Face ID / passkey is ingeschakeld.', 'ok');
     }).catch((err) => toast(bioMessage(err), 'error'));
   });
   later.addEventListener('click', () => {
     localStorage.setItem(BIO_OFFER_KEY, '1');
     hideNotice();
   });
+  const known = vault.getPasskeyIds().length > 0;
   showNotice(
-    h('p', {}, h('strong', {}, 'Sneller ontgrendelen?'), ' Gebruik Face ID, Touch ID of een passkey in plaats van je wachtwoord.'),
+    h('p', {}, h('strong', {}, 'Sneller ontgrendelen?'), known
+      ? ' Gebruik je bestaande passkey weer (Face ID, Touch ID) in plaats van je wachtwoord.'
+      : ' Gebruik Face ID, Touch ID of een passkey in plaats van je wachtwoord.'),
     h('div', { class: 'button-row' }, enable, later),
   );
 }
@@ -591,9 +606,8 @@ function wireSettings() {
       return updateBioUI();
     }
     await withBusy(e.currentTarget, async () => {
-      await bio.enroll(vault.getDataKey());
+      await enrollBiometrics();
       hideNotice();
-      toast('Ontgrendelen met Face ID / passkey is ingeschakeld.', 'ok');
     }).catch((err) => toast(bioMessage(err), 'error'));
     updateBioUI();
   });

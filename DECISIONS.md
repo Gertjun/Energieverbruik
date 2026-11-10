@@ -632,3 +632,16 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   zodat je na het kiezen ver moest scrollen.
 - Ingeklapt of open is schermtoestand (`staat.analyseKeuzeDicht`), niet in de kluis; het blijft ingeklapt als je
   tussen tabs wisselt. Op iPad en laptop altijd open (daar passen de tegels compact).
+
+
+## Passkey hergebruiken na opnieuw installeren (1.43.2, 10 november 2026)
+- Keuze: het kluisbestand krijgt een optioneel veld `passkeys` met de id's van passkeys die voor deze kluis zijn
+  ingesteld. Bij "Inschakelen" vraagt de app eerst om één van die passkeys (Face ID); alleen als dat niet lukt maakt hij
+  een nieuwe. Het PRF-zout en de ingepakte sleutel blijven per apparaat lokaal (met een nieuw zout bij hergebruik).
+- Waarom: iOS wist bij verwijderen van de web-app al zijn opslag, maar de passkey staat in iCloud-sleutelhanger en is
+  dus nog bruikbaar. Een id is geen geheim (zonder Face ID levert hij niets op), daarom buiten de versleutelde payload,
+  zodat het veld ook bruikbaar is zonder de app-gegevens te migreren.
+- Bij sync worden de lijsten samengevoegd (vereniging), zodat elk apparaat zijn eigen passkey kan toevoegen.
+- Niet gekozen: een vaste gebruikers-id per app (dan vervangt een nieuwe passkey de oude). Dat zou de passkey op je
+  andere apparaten (via iCloud gedeeld) ongeldig maken.
+- Oudere app-versies negeren het veld; geen actie van Geert nodig (dus geen MAJOR).
