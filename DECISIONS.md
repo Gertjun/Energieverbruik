@@ -1,5 +1,13 @@
 # Beslissingen
 
+## 2026-11-11 – Navigatie en Instellingen uit de kern (versie 1.45.0)
+- **Geen eigen navigatie en instellingenpaneel meer.** Schermen staan in `app.screens`; de schil tekent tabbalk,
+  tabbladen (iPad rechtop) of zijbalk en het scherm Instellingen met het vaste overzicht (template D6). Geert wil
+  al zijn apps dezelfde indeling geven. Vervangt "instellingen als paneel" (1.6.0) en de kopknoppen op de titelregel.
+- **Eigen instellingen als pagina's van de schil**: Tarieven, Gegevens en Weergave via `app.renderSettings()`.
+- **`js/core/` is weer een exacte kopie van de template** (ook `findById` en `isSyncing`); vervangt de uitzondering
+  van 1.38.2. Zo blijft de kern in alle apps gelijk.
+
 ## 2026-11-09 – Template-restanten opgeruimd (versie 1.38.2)
 - **Setup-bestanden weg**: `docs/STARTPROMPT.md`, `docs/CLAUDE-INSTRUCTIES.md` en `tools/setup.mjs` dienden alleen om
   een nieuwe app uit de template te maken. De werkinstructies staan in de projectinstructies; de template-repo houdt

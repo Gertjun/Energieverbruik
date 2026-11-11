@@ -427,3 +427,13 @@
 - [ ] Geert: na deze update één keer de app openen en ontgrendelen op het apparaat met de passkey, zodat die wordt vastgelegd.
 - [ ] Dezelfde wijziging (js/core/biometric.js, vault.js, shell.js) ook in de PWA-template en de andere apps zetten
   (staat op WISHLIST.md).
+
+## Stand (11 november 2026) – versie 1.45.0
+- Zelfde indeling als de andere apps: navigatie, kopbalk en het scherm Instellingen komen uit de kern (template 1.4.2).
+  De eigen navigatie, de kopknoppen op de titelregel en het instellingenpaneel (`#settings-panel`) zijn weg.
+- Eigen instellingen staan als pagina's in het instellingenscherm van de schil: Tarieven, Gegevens, Weergave
+  (`app.renderSettings()` in `app.js`, inhoud in `energie/scherm-instellingen.js`).
+- Zijbalk vanaf 1000 px (was 900) en 236 px breed (was 256); de breedteberekening van de grafieken rekent daarmee.
+- Koppelcode met pincode toegevoegd (uit de kern). Getest: kluis van 1.44.0 opent in 1.45.0, alle schermen op
+  telefoon, iPad rechtop en laptop.
+

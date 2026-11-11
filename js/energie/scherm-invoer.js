@@ -137,7 +137,7 @@ function bestandenKaart(a, staat, opnieuw, ctx) {
       'Stap 1: maak in het SolarEdge Monitoring platform een API-sleutel aan (Beheer → Sitetoegang → API-toegang). Dat kan alleen met een beheerdersaccount; heb je dat niet, vraag dan je installateur om je account beheerder te maken of de sleutel voor je aan te maken.',
       'Stap 2: zet die sleutel in GitHub bij SyncData: Settings → Secrets and variables → Actions → New repository secret, naam SOLAREDGE_API_KEY.',
       'Stap 3: start het ophalen één keer met de hand: tabblad Actions → "SolarEdge-opbrengst ophalen" → Run workflow. De eerste keer haalt hij alles vanaf de installatie op.',
-      'Werkt alleen als synchroniseren is ingesteld (Instellingen → App en sync).']),
+      'Werkt alleen als synchroniseren is ingesteld (Instellingen → Synchronisatie).']),
     uitleg('Oude Excel', [
       'Eenmalig je oude Excel-bestand (.xlsx): dagverbruik, opmerkingen, temperaturen (blad DATA), termijnbedragen en zonne-opbrengst (blad Kosten).',
       'Excel vult alleen aan; wat er al stond uit Vattenfall, HomeWizard of SolarEdge blijft staan. Vaker inlezen telt niets dubbel.']),

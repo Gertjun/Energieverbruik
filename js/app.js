@@ -1,11 +1,10 @@
 // =============================================================
 //  Energieverbruik — app-specifieke code
 // =============================================================
-// Schermen: Overzicht, Invoer, Historie, Analyse, Instellingen.
-// iPhone/iPad: tabbalk onderin. Laptop: inklapbare zijbalk links.
+// Schermen: Overzicht, Invoer, Historie, Analyse. De navigatie en het scherm Instellingen zijn van de
+// schil (core/nav.js); de eigen instellingenpagina's (tarieven, gegevens, weergave) vult renderSettings().
 
 import { h, today } from './core/dom.js';
-import { APP } from './config.js';
 import { SCHEMA, initialData, migrate, merge, afgeleid, upsert, weerId } from './energie/model.js';
 import { haalTemperaturen } from './energie/weer.js';
 import { zorgVoorSolarEdge } from './energie/solaredge-auto.js';
@@ -13,77 +12,33 @@ import { renderOverzicht, BREED_SCHERM } from './energie/scherm-overzicht.js';
 import { renderInvoer } from './energie/scherm-invoer.js';
 import { renderHistorie } from './energie/scherm-historie.js';
 import { renderAnalyse } from './energie/scherm-analyse.js';
-import { renderInstellingen, schilGroep } from './energie/scherm-instellingen.js';
+import { renderInstellingen } from './energie/scherm-instellingen.js';
 
-const TABS = [
-  { key: 'overzicht', label: 'Overzicht', icoon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
-  { key: 'invoer', label: 'Invoer', icoon: 'M12 5v14M5 12h14' },
-  { key: 'historie', label: 'Historie', icoon: 'M4 6h16M4 12h16M4 18h16' },
-  { key: 'analyse', label: 'Analyse', icoon: 'M3 17l6-6 4 4 8-8M15 7h6v6' },
-  { key: 'instellingen', label: 'Instellingen', icoon: 'M4 7h10M18 7h2M4 17h4M12 17h8M14 4v6M8 14v6' },
+const SCHERMEN = [
+  { id: 'overzicht', label: 'Overzicht', icon: ['M4 20V10M10 20V4M16 20v-7M22 20H2'] },
+  { id: 'invoer', label: 'Invoer', icon: ['M12 5v14M5 12h14'] },
+  { id: 'historie', label: 'Historie', icon: ['M4 6h16M4 12h16M4 18h16'] },
+  { id: 'analyse', label: 'Analyse', icon: ['M3 17l6-6 4 4 8-8M15 7h6v6'] },
 ];
 
-// Schermtoestand (niet opgeslagen in de kluis).
+// Schermtoestand (niet opgeslagen in de kluis). staat.tab is het scherm van de schil (ctx.screen);
+// een scherm mag staat.tab zelf zetten en opnieuw() aanroepen om naar een ander scherm te gaan.
 const staat = { tab: null, periode: 'maand', historieMaand: null, open: null };
 let laatsteRoot = null; let laatsteCtx = null;
-const opnieuw = () => { if (laatsteRoot) app.render(laatsteRoot, laatsteCtx); };
-
-// Ingeklapte zijbalk is een weergavevoorkeur (geen gegevens), dus buiten de kluis.
-const ZIJBALK_KEY = `${APP.storagePrefix}:zijbalk-ingeklapt`;
-const zijbalkIngeklapt = () => { try { return localStorage.getItem(ZIJBALK_KEY) === '1'; } catch { return false; } };
+const opnieuw = () => {
+  if (!laatsteRoot) return;
+  if (staat.tab && staat.tab !== laatsteCtx.screen) laatsteCtx.go(staat.tab); // de schil tekent dan opnieuw
+  else app.render(laatsteRoot, laatsteCtx);
+};
 
 // Wordt het venster breder of smaller dan de grens voor de brede schermen (1200 px), dan opnieuw tekenen
 // (bijv. venster verkleind of iPad gedraaid): het Overzicht kiest dan een andere indeling, grafieken een andere breedte.
 window.matchMedia?.(BREED_SCHERM).addEventListener?.('change', () => opnieuw());
 
-// Laptop (zijbalk): geen aparte kopbalk; de knoppen synchroniseren en vergrendelen staan rechts op de
-// titelregel van het scherm. iPhone/iPad: gewoon in de kopbalk. Het element zelf wordt verplaatst,
-// zodat de schil (shell.js) het via zijn id blijft vinden en de klikfuncties behouden blijven.
-const ZIJBALK_SCHERM = '(min-width: 900px)';
-const opLaptop = () => window.matchMedia?.(ZIJBALK_SCHERM).matches ?? false;
-window.matchMedia?.(ZIJBALK_SCHERM).addEventListener?.('change', () => { plaatsKopKnoppen(null); opnieuw(); });
-let kopKnoppen = null; // vaste verwijzing: na opnieuw tekenen zit het element niet meer in de pagina
-function plaatsKopKnoppen(doel) {
-  kopKnoppen ??= document.querySelector('.header-actions');
-  const knoppen = kopKnoppen;
-  if (!knoppen) return null;
-  if (doel) { doel.append(knoppen); return knoppen; }
-  const kop = document.querySelector('.app-header-inner');
-  if (kop && knoppen.parentElement !== kop) kop.append(knoppen);
-  return knoppen;
-}
-
-function icoon(pad) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('aria-hidden', 'true');
-  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  p.setAttribute('d', pad);
-  svg.append(p);
-  return svg;
-}
-
-function navigatie() {
-  const ingeklapt = zijbalkIngeklapt();
-  document.body.classList.add('energie-app');
-  document.body.classList.toggle('zijbalk-in', ingeklapt);
-  const knop = (t) => h('button', {
-    type: 'button', class: 'nav-knop', 'aria-current': staat.tab === t.key ? 'page' : null, title: t.label,
-    onClick: () => { staat.tab = t.key; staat.open = null; opnieuw(); window.scrollTo({ top: 0 }); },
-  }, icoon(t.icoon), h('span', {}, t.label));
-  // Logo, naam en versie bovenin de zijbalk (alleen laptop; op iPhone/iPad staat dit in de kopbalk).
-  const merk = h('div', { class: 'nav-merk' },
-    h('img', { src: 'icons/icon-192.png', alt: '', class: 'nav-logo', width: 36, height: 36 }),
-    h('div', { class: 'nav-merk-tekst' },
-      h('strong', {}, APP.name),
-      h('span', { class: 'nav-versie' }, `v${APP.version}`)),
-    h('button', {
-      type: 'button', class: 'nav-inklap', 'aria-label': ingeklapt ? 'Zijbalk uitklappen' : 'Zijbalk inklappen',
-      title: ingeklapt ? 'Zijbalk uitklappen' : 'Zijbalk inklappen',
-      onClick: () => { try { localStorage.setItem(ZIJBALK_KEY, ingeklapt ? '0' : '1'); } catch { /* geen opslag */ } opnieuw(); },
-    }, icoon(ingeklapt ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6')));
-  return h('nav', { class: 'app-nav', 'aria-label': 'Schermen' }, merk, TABS.map(knop));
-}
+// Zijbalk in- of uitgeklapt (core/nav.js zet de class nav-collapsed op #screen-app): grafieken opnieuw op maat.
+const schermApp = document.getElementById('screen-app');
+const zijbalkIngeklapt = () => schermApp?.classList.contains('nav-collapsed') ?? false;
+if (schermApp) new MutationObserver(() => { if (zijbalkIngeklapt() !== staat.zijbalkIn) opnieuw(); }).observe(schermApp, { attributes: true, attributeFilter: ['class'] });
 
 // ---------- Temperaturen automatisch aanvullen ----------
 
@@ -114,17 +69,25 @@ export const app = {
   migrate,
   merge,
 
-  /** Door de schil aangeroepen (bijv. sync-knop zonder koppeling): naar Instellingen → App en sync. */
-  openSettings(section) {
-    staat.tab = 'instellingen';
-    staat.instellingenDeel = section === 'backup' ? 'gegevens' : 'app';
-    opnieuw();
+  screens: SCHERMEN,
+
+  /** Eigen instellingenpagina's (tarieven, gegevens, weergave) in het instellingenscherm van de schil. */
+  renderSettings(pagina, el, ctx) {
+    const a = afgeleid(ctx.data);
+    const weer = () => app.renderSettings(pagina, el, ctx);
+    el.replaceChildren(...renderInstellingen(pagina, a, staat, weer, ctx).filter(Boolean));
   },
 
   render(root, ctx) {
     laatsteRoot = root; laatsteCtx = ctx;
     const a = afgeleid(ctx.data);
-    staat.tab ??= a.eerste ? 'overzicht' : 'invoer';
+    // Eerste keer zonder gegevens: begin bij Invoer.
+    if (!staat.gestart) {
+      staat.gestart = true;
+      if (!a.eerste && ctx.screen === 'overzicht') { ctx.go('invoer'); return; }
+    }
+    if (staat.tab !== ctx.screen) { staat.tab = ctx.screen; staat.open = null; }
+    document.body.classList.add('energie-app');
     staat.zijbalkIn = zijbalkIngeklapt();
     // Vóór het tekenen zetten: grafieken rekenen hun breedte uit met het scherm en de zijbalk (grafiek.js).
     document.body.dataset.scherm = staat.tab;
@@ -135,15 +98,12 @@ export const app = {
     if (staat.tab === 'invoer') inhoud = renderInvoer(a, staat, opnieuw, ctx);
     else if (staat.tab === 'historie') inhoud = renderHistorie(a, staat, opnieuw, ctx);
     else if (staat.tab === 'analyse') inhoud = renderAnalyse(a, staat, opnieuw, ctx);
-    else if (staat.tab === 'instellingen') inhoud = renderInstellingen(a, staat, opnieuw, ctx);
     else inhoud = renderOverzicht(a, staat, opnieuw);
     // Brede indeling van het Overzicht: de inhoud mag dan breder worden (zie app.css).
     document.body.dataset.indeling = staat.tab === 'overzicht' ? staat.indeling : 'standaard';
-    document.querySelectorAll('[data-app-version]').forEach((el) => { el.textContent = `v${APP.version}`; });
-    const kopRechts = h('div', { class: 'scherm-kop-rechts' }, staat.titelExtra);
-    root.replaceChildren(navigatie(), h('div', { class: 'scherm-kop' }, h('h1', { class: 'scherm-titel' }, TABS.find((t) => t.key === staat.tab).label), kopRechts), ...inhoud.filter(Boolean));
-    plaatsKopKnoppen(opLaptop() ? kopRechts : null);
-    ctx.showShellSettings?.(schilGroep(staat));
+    // Een scherm kan iets rechts boven de inhoud zetten (staat.titelExtra); de titel zelf staat in de kopbalk.
+    const kop = staat.titelExtra ? h('div', { class: 'scherm-kop' }, h('div', { class: 'scherm-kop-rechts' }, staat.titelExtra)) : null;
+    root.replaceChildren(...[kop, ...inhoud].filter(Boolean));
     zorgVoorWeer(ctx, a);
     zorgVoorSolarEdge(ctx, opnieuw);
   },

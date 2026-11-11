@@ -22,101 +22,11 @@
 }
 /* @accent-end */
 
-/* ---------- Navigatie: tabbalk (mobiel) / zijbalk (laptop) ---------- */
-:root { --nav-h: 58px; --zij-b: 256px; --zij-in: 68px; }
-
-.app-nav {
-  position: fixed;
-  z-index: 20;
-  left: 0; right: 0; bottom: 0;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  padding: 4px calc(4px + var(--safe-right)) calc(4px + var(--safe-bottom)) calc(4px + var(--safe-left));
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  -webkit-backdrop-filter: saturate(180%) blur(16px);
-  backdrop-filter: saturate(180%) blur(16px);
-  border-top: 1px solid var(--border);
-}
-.nav-knop {
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: 2px;
-  min-height: 50px;
-  font: inherit;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--muted);
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-}
-.nav-knop svg, .nav-inklap svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.nav-knop[aria-current="page"] { color: var(--accent); }
-.nav-knop:focus-visible, .nav-inklap:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.nav-inklap { display: none; }
-.nav-merk { display: none; }
-
-/* Logo, naam en versie in de kopbalk (iPhone/iPad) */
-.app-merk { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.app-merk-logo { flex: none; width: 32px; height: 32px; border-radius: 8px; }
-.app-merk-tekst { display: grid; min-width: 0; line-height: 1.15; }
-.app-merk-tekst .app-title { font-size: 1.05rem; }
-.app-merk-versie, .nav-versie { font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-body.energie-app #screen-app .app-main { padding-bottom: calc(var(--nav-h) + 24px + var(--safe-bottom)); }
-
-.scherm-titel { font-size: 1.5rem; margin: 4px 0 0; }
-
-@media (min-width: 900px) {
-  .app-nav {
-    top: 0; right: auto; bottom: 0;
-    width: var(--zij-b);
-    grid-template-columns: 1fr;
-    align-content: start;
-    gap: 4px;
-    padding: calc(12px + var(--safe-top)) 10px 12px calc(10px + var(--safe-left));
-    border-top: 0;
-    border-right: 1px solid var(--border);
-  }
-  .nav-knop {
-    grid-auto-flow: column;
-    justify-content: start;
-    gap: 12px;
-    min-height: 44px;
-    padding: 0 12px;
-    font-size: 0.95rem;
-  }
-  .nav-knop:hover { background: var(--surface-2); }
-  .nav-knop[aria-current="page"] { background: color-mix(in srgb, var(--accent) 12%, transparent); }
-  /* Merkblok bovenin de zijbalk; in de kopbalk is het dan overbodig */
-  .nav-merk {
-    display: flex; align-items: center; gap: 10px;
-    min-height: 48px; padding: 0 0 0 6px; margin-bottom: 12px;
-  }
-  .nav-logo { flex: none; width: 36px; height: 36px; border-radius: 9px; }
-  .nav-merk-tekst { display: grid; min-width: 0; line-height: 1.2; }
-  .nav-merk-tekst strong { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  body.energie-app .app-header .app-merk { visibility: hidden; }
-  .nav-inklap {
-    display: inline-grid; place-items: center; flex: none; margin-left: auto;
-    width: 36px; height: 36px;
-    color: var(--muted); background: transparent; border: 0; border-radius: var(--radius-sm); cursor: pointer;
-  }
-  .nav-inklap:hover { background: var(--surface-2); }
-  body.energie-app #screen-app { padding-left: var(--zij-b); }
-  body.energie-app.zijbalk-in #screen-app { padding-left: var(--zij-in); }
-  body.zijbalk-in .app-nav { width: var(--zij-in); padding-left: 10px; padding-right: 10px; }
-  body.zijbalk-in .nav-knop { justify-content: center; padding: 0; }
-  body.zijbalk-in .nav-knop span { display: none; }
-  body.zijbalk-in .nav-merk { flex-direction: column; gap: 8px; padding: 0; }
-  body.zijbalk-in .nav-merk-tekst { display: none; }
-  body.zijbalk-in .nav-inklap { margin-left: 0; }
-  body.energie-app #screen-app .app-main { max-width: 1040px; padding-top: calc(16px + var(--safe-top)); padding-bottom: 32px; }
-  body.energie-app #screen-app .app-header-inner { max-width: 1008px; }
-  /* Geen aparte kopbalk op de laptop: synchroniseren en vergrendelen staan rechts op de titelregel (app.js) */
-  body.energie-app #screen-app .app-header { display: none; }
-  body.energie-app .settings-panel .settings-section { scroll-margin-top: calc(16px + var(--safe-top)); }
+/* ---------- Indeling ----------
+   De navigatie (tabbalk, tabbladen, zijbalk), de kopbalk en het scherm Instellingen komen uit de kern
+   (base.css, core/nav.js). Hier alleen de breedte van de inhoud naast de zijbalk. */
+@media (min-width: 1000px) {
+  body.energie-app #screen-app .app-main { max-width: calc(1040px + var(--rail)); }
 }
 
 /* ---------- Kaarten en kerncijfers ---------- */
@@ -316,45 +226,15 @@ input[type="month"] {
 .tabel-dagen .jaar-rij th { text-align: left; }
 .tabel-maanden td.is-onvolledig { color: var(--warn); }
 
-/* Meldingen boven de tabbalk houden */
-@media (max-width: 899px) {
-  body.energie-app .toast { bottom: calc(var(--nav-h) + 16px + var(--safe-bottom)); }
-}
+/* Eigen instellingenpagina's (tarieven, gegevens, weergave) in het instellingenscherm van de schil */
+.app-settings { gap: 16px; }
+dialog.sheet.settings[data-mode="page"]:has(.app-settings:not([hidden])) { max-width: 1100px; }
 
-/* Instellingen van de schil (sync, beveiliging, back-up) als kaarten onder het scherm Instellingen */
-.settings-panel { display: grid; gap: 16px; min-width: 0; }
-.settings-panel .settings-section { padding: 16px; position: relative; overflow: hidden; scroll-margin-top: 76px; }
-.settings-panel .settings-section + .settings-section { border-top: 1px solid var(--border); }
-.settings-panel h3 { font-size: 1.05rem; margin: 0; }
-
-/* ---------- Analyse ---------- */
-.analyse-keuzes { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-.analyse-keuzes select, .analyse-keuzes input { width: 100%; }
-.snelknoppen { display: flex; flex-wrap: wrap; gap: 6px; }
-.snelknoppen .btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
-.favorieten { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.favoriet { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
-.favoriet button { background: none; border: 0; color: var(--text); font: inherit; font-size: 0.85rem; padding: 6px 10px; cursor: pointer; min-height: 32px; }
-.favoriet button + button { color: var(--muted); padding-left: 4px; }
-.favoriet.is-actief { border-color: var(--accent); }
-.favoriet.is-actief button:first-child { color: var(--accent); font-weight: 600; }
-.tabel-analyse .jaar-rij th, .tabel-analyse .jaar-rij td {
-  font-size: 0.875rem; font-weight: 700; color: var(--text); background: var(--surface-2); border-bottom: 1px solid var(--border); padding: 8px 6px;
-}
-.tabel-analyse .jaar-rij th { text-align: left; }
-.tabel-analyse td.is-geschat { font-style: italic; }
-.tabel-analyse tr.is-vandaag td { font-weight: 600; }
-.tabel-analyse tr.extra-rij th, .tabel-analyse tr.extra-rij td { font-weight: 500; color: var(--muted); }
-.tabel-analyse td.plus { color: var(--danger); }
-.tabel-analyse td.min { color: var(--ok); }
-/* Verschilkolommen: groen = gunstig, rood = ongunstig (ook in de vette totaalregel). */
-.tabel td.is-goed, .tabel-analyse .jaar-rij td.is-goed { color: var(--ok); }
 .tabel td.is-slecht, .tabel-analyse .jaar-rij td.is-slecht { color: var(--danger); }
 
 /* ---------- Brede indeling van het Overzicht (laptop, zie Instellingen → App en sync) ---------- */
 @media (min-width: 1200px) {
-  body.energie-app:not([data-indeling="standaard"]) #screen-app .app-main { max-width: 1640px; }
-  body.energie-app:not([data-indeling="standaard"]) #screen-app .app-header-inner { max-width: 1608px; }
+  body.energie-app:not([data-indeling="standaard"]) #screen-app .app-main { max-width: calc(1640px + var(--rail)); }
   .overzicht-raster { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 16px; row-gap: 0; align-items: stretch; }
   /* Ruimte tussen de rijen kaarten via een marge, niet via row-gap: die zou ook tussen de vakken binnen een kaart vallen */
   .overzicht-raster > .kaart-vakken:nth-child(n+3) { margin-top: 16px; }
@@ -387,11 +267,10 @@ input[type="month"] {
 .kaart-leeg { display: none; }
 .overzicht-raster .kaart-leeg { display: block; }
 
-/* Titelregel van een scherm (titel links, knoppen synchroniseren/vergrendelen rechts op de laptop) */
+/* Regel boven de inhoud voor wat een scherm rechtsboven zet (staat.titelExtra) */
 .scherm-kop { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .scherm-kop-rechts { display: flex; align-items: center; gap: 16px; margin-left: auto; }
 .scherm-kop-rechts:empty { display: none; }
-.scherm-kop-rechts .header-actions { margin-top: 4px; }
 
 /* Heatmap (Analyse): stoplichtkleuren, groen = gewenst, rood = ongewenst (kleuren staan in grafiek.js). */
 .hm-cel { cursor: pointer; }
@@ -519,8 +398,7 @@ input[type="month"] {
    Smaller vallen de kolommen weg (display: contents) en staat alles onder elkaar zoals altijd. */
 .kolommen, .kolom { display: contents; }
 @media (min-width: 1200px) {
-  body.energie-app:not([data-scherm="overzicht"]) #screen-app .app-main { max-width: 1640px; }
-  body.energie-app:not([data-scherm="overzicht"]) #screen-app .app-header-inner { max-width: 1608px; }
+  body.energie-app:not([data-scherm="overzicht"]) #screen-app .app-main { max-width: calc(1640px + var(--rail)); }
   .kolommen { display: grid; gap: 16px; align-items: start; }
   .kolommen-gelijk { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .kolommen-paneel-rechts { grid-template-columns: minmax(0, 1fr) minmax(360px, 480px); }
@@ -555,8 +433,4 @@ input[type="month"] {
   /* Instellingen → Tarieven: prijzen in vier kolommen in plaats van twee */
   .prijs-raster { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
-  /* Instellingen → App en sync: de kaarten van synchroniseren, beveiliging, versie en wissen twee aan twee */
-  .settings-panel { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .settings-panel .settings-section + .settings-section { border-top: 0; }
-  #settings-backup { grid-column: 1 / -1; }
 }

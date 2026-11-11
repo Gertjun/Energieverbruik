@@ -1,8 +1,8 @@
-// Instellingen: één scherm met drie onderdelen.
-//   Tarieven  – contracten met tarieven per tijdvak
-//   Gegevens  – export (CSV/JSON), temperatuurlocatie, en de back-up van de schil
-//   App       – weergave (kleurthema, licht/donker), synchronisatie, beveiliging, versie/updates en wissen (secties van de schil)
-// De secties van de schil staan in index.html (#settings-panel); dit scherm zet ze aan via ctx.showShellSettings().
+// Eigen instellingenpagina's van Energieverbruik, in het instellingenscherm van de schil:
+//   tarieven  – contracten met tarieven per tijdvak
+//   gegevens  – export (CSV/JSON) en temperatuurlocatie
+//   weergave  – kleurthema en licht/donker
+// Synchronisatie, beveiliging, back-up, versie en wissen zijn van de schil (zoals in de andere apps).
 // Bestanden inlezen (ook Excel) gebeurt bij Invoer.
 
 import { h, saveFile, today } from '../core/dom.js';
@@ -10,8 +10,6 @@ import { newRecord, updateById, removeById } from '../core/records.js';
 import { TIJDVAKKEN } from './tarief.js';
 import { fmtDatumKort } from './tijd.js';
 import { kaart, kolommen, veld, leesGetal, toonGetal, fmtGetal, segmented } from './ui.js';
-
-const ONDERDELEN = [['tarieven', 'Tarieven'], ['gegevens', 'Gegevens'], ['app', 'App en sync']];
 
 const PRIJS_VELDEN = [
   ...TIJDVAKKEN.map((t) => [`stroomLevering.${t.key}`, `${t.label} (${t.uren})`, 'levering per kWh']),
@@ -36,21 +34,11 @@ function zet(obj, pad, v) {
   o[delen[delen.length - 1]] = v;
 }
 
-export function renderInstellingen(a, staat, opnieuw, ctx) {
-  staat.instellingenDeel ??= 'tarieven';
-  const deel = staat.instellingenDeel;
-  const keuze = h('div', { class: 'weergave-keuze' }, segmented(ONDERDELEN, deel, (k) => {
-    staat.instellingenDeel = k; opnieuw(); window.scrollTo({ top: 0 });
-  }, 'Onderdeel van de instellingen'));
-  if (deel === 'gegevens') return [keuze, kolommen('gelijk', exportKaart(a, ctx), weerKaart(ctx))];
-  if (deel === 'app') return [keuze, weergaveKaart(opnieuw)];
-  return [keuze, contractenKaart(a, staat, opnieuw, ctx)];
-}
-
-/** Welke secties van de schil (#settings-panel) bij dit scherm horen; null = geen. */
-export function schilGroep(staat) {
-  if (staat.tab !== 'instellingen') return null;
-  return { gegevens: 'gegevens', app: 'app' }[staat.instellingenDeel] ?? null;
+/** Inhoud van één instellingenpagina (zie app.renderSettings in app.js). */
+export function renderInstellingen(pagina, a, staat, opnieuw, ctx) {
+  if (pagina === 'gegevens') return [exportKaart(a, ctx), weerKaart(ctx)];
+  if (pagina === 'weergave') return [weergaveKaart(opnieuw)];
+  return [contractenKaart(a, staat, opnieuw, ctx)];
 }
 
 function contractenKaart(a, staat, opnieuw, ctx) {

@@ -194,7 +194,7 @@ export function actieveIndeling() {
  */
 function breedtes(indeling, zijbalkIn) {
   if (indeling === 'standaard') return { heel: null, half: null, naastLijst: null };
-  const inhoud = Math.min(MAX_BREED, (window.innerWidth || 1200) - (zijbalkIn ? 68 : 256)) - 32; // min. marge .app-main
+  const inhoud = Math.min(MAX_BREED, (window.innerWidth || 1200) - (zijbalkIn ? 68 : 236)) - 32; // min. marge .app-main
   const kaartIn = inhoud - 34; // min. padding en rand van de kaart
   const halfIn = (inhoud - 16) / 2 - 34; // twee kolommen met 16 px tussenruimte
   return { heel: kaartIn, half: halfIn, naastLijst: kaartIn - 24 - LIJST_BREEDTE };

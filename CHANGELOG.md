@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.45.0 – 2026-11-11
+
+Dezelfde indeling als je andere apps.
+
+**Gewijzigd**
+- **Navigatie**: tabbalk onderin op de iPhone, tabbladen onder de kopbalk op de iPad rechtop, inklapbare zijbalk op de laptop en de iPad liggend (vanaf 1000 px breed, was 900).
+- **Kopbalk op de laptop**: de titel van het scherm staat nu in een balk bovenaan, met synchroniseren en vergrendelen rechts, zoals in je andere apps.
+- **Instellingen** opent met een overzicht: Synchronisatie, Beveiliging, Back-up, Over deze app en Dit apparaat wissen, en daaronder **Tarieven**, **Gegevens** (export en temperatuurlocatie) en **Weergave** (kleurthema, licht of donker). Tik op een regel voor dat onderdeel. De drie knoppen Tarieven / Gegevens / App en sync zijn daarmee vervallen.
+
+**Toegevoegd**
+- **Ander apparaat koppelen** met een koppelcode en pincode (Instellingen → Synchronisatie), zodat je repo en token niet hoeft over te typen.
+
+Je gegevens, tarieven en je Face ID-instelling veranderen niet.
+
 ## 1.44.0 – 2026-11-10
 
 **Gewijzigd** (Face ID / passkey, uit de gedeelde kern)
