@@ -35,13 +35,14 @@ test('SolarEdge dagbestand telt Wh per dag op en houdt de onderste dubbele regel
     '"1 okt. 2026 08:00",1500,0',
     '"1 okt. 2026 09:00",500,0',
     '"2 okt. 2026 00:00",2000,0',
+    '"2 okt. 2026 01:00",500,0',
   ].join('\n');
   const result = leesSolarEdge(csv, '2026-11-12');
   assert.equal(result.soort, 'dag');
   assert.equal(result.interval, 'uur');
   assert.deepEqual(result.dagen, [
     { datum: '2026-10-01', zon: 2 },
-    { datum: '2026-10-02', zon: 2 },
+    { datum: '2026-10-02', zon: 2.5 },
   ]);
   assert.equal(result.vanaf, '2026-10-01');
   assert.equal(result.tot, '2026-10-02');
