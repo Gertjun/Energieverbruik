@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dagId, maandId, weerId, zonId, merge, upsert } from '../../js/energie/model.js';
-import { alive, mergeCollections, purgeTombstones, removeById } from '../../js/core/records.js';
+import { dagId, maandId, weerId, zonId, merge, migrate, upsert } from '../../js/energie/model.js';
+import { alive, mergeCollections, removeById } from '../../js/core/records.js';
+import { SYSTEM_KEY, reconcileData } from '../../js/core/deletions.js';
 
 test('datumgebonden records hebben stabiele ids', () => {
   assert.equal(dagId('2026-11-11'), 'd:2026-11-11');
@@ -46,12 +47,30 @@ test('model merge behoudt collecties en de nieuwste instellingen', () => {
   assert.equal(merged.instellingen.plaats, 'Oss');
 });
 
-test('oude tombstones worden opgeschoond, recente blijven behouden', () => {
+test('migrate behoudt oude tombstones zodat Core de verwijdering kan vastleggen', () => {
   const now = Date.now();
-  const records = [
-    { id: 'oud', deleted: true, updatedAt: now - 181 * 86_400_000 },
-    { id: 'recent', deleted: true, updatedAt: now - 2 * 86_400_000 },
-    { id: 'actief', updatedAt: now - 300 * 86_400_000 },
-  ];
-  assert.deepEqual(purgeTombstones(records, 180).map((r) => r.id), ['recent', 'actief']);
+  const deletedAt = now - 181 * 86_400_000;
+  const syncState = {
+    version: 1,
+    devices: { 'synthetic-offline-device': { createdAt: 1, lastSeenAt: 2, acknowledged: {} } },
+    deletions: {},
+  };
+  const migrated = migrate({
+    schema: 5,
+    dagen: [{ id: 'synthetic-old-day', deleted: true, updatedAt: deletedAt }],
+    [SYSTEM_KEY]: syncState,
+  });
+
+  assert.equal(migrated.schema, 5);
+  assert.equal(migrated.dagen.length, 1);
+  assert.equal(migrated.dagen[0].deleted, true);
+  assert.deepEqual(migrated[SYSTEM_KEY], syncState);
+
+  const reconciled = reconcileData(migrated, {
+    schema: 5,
+    dagen: [],
+    [SYSTEM_KEY]: syncState,
+  }, merge);
+  assert.equal(reconciled[SYSTEM_KEY].deletions['dagen:synthetic-old-day'], deletedAt);
+  assert.equal(reconciled.dagen.length, 1, 'offline apparaat heeft de verwijdering nog niet bevestigd');
 });
