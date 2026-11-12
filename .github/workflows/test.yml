@@ -6,6 +6,7 @@ on:
       - main
       - 'test/**'
       - 'fix/**'
+      - 'feature/**'
   pull_request:
     branches:
       - main
@@ -38,6 +39,12 @@ jobs:
 
       - name: Run unit tests
         run: npm run test:unit
+
+      - name: Validate PWA-Core release pin
+        run: node tools/pin.mjs verify
+
+      - name: Validate PWA-Core service-worker precache
+        run: node tools/precache.mjs
 
   e2e:
     name: Playwright E2E
