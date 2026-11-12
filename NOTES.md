@@ -1,5 +1,9 @@
 # Notities – stand van zaken
 
+## Stand (12 november 2026) – versie 1.45.1
+- Automatische unit-tests toegevoegd voor de centrale gegevenscontrole: negatieve waarden, afwijkende uursommen, nachtelijke teruglevering en foutloze dagen.
+- Validatie loopt via GitHub Actions; controle op de merge-commit volgt na samenvoegen.
+
 ## Stand (5 november 2026) – versie 1.0.0
 - Eerste versie gebouwd en live op GitHub Pages: Overzicht, Invoer, Historie, Instellingen.
 - Getest met Geerts echte bestanden: HomeWizard-export 4-11-2025 t/m 4-11-2026 (data vanaf 20-11-2025,
