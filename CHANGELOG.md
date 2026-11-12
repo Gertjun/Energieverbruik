@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.45.1 – 2026-11-12
+
+**Verbeterd**
+- Uitgebreide automatische tests voor de centrale gegevenscontrole: negatieve meetwaarden, onjuiste uursommen, nachtelijke teruglevering en normale dagen.
+
 ## 1.45.0 – 2026-11-11
 
 Dezelfde indeling als je andere apps.
