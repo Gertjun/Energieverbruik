@@ -5,19 +5,25 @@ on:
     branches:
       - main
       - 'test/**'
+      - 'fix/**'
   pull_request:
     branches:
       - main
+      - 'test/**'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
-    name: Unit tests and Playwright
+  unit:
+    name: Unit tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -28,19 +34,41 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
 
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Run unit tests
+        run: npm run test:unit
 
-      - name: Run complete test suite
-        run: npm run test:all
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-      - name: Upload Playwright report on failure
-        if: failure()
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run Playwright tests
+        run: npm run test:e2e -- --reporter=list,html
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
+
+      - name: Upload Playwright reports and traces
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            test-results/
           if-no-files-found: ignore
           retention-days: 7
