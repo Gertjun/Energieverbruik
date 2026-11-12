@@ -24,7 +24,7 @@ test('prijsSleutel gebruikt een tweecijferig uur', () => {
 
 test('uurTarief telt levering en energiebelasting op en behandelt ontbrekende tarieven als nul', () => {
   const contract = { stroomLevering: { winterNormaal: 0.2 }, stroomEb: 0.1 };
-  assert.equal(uurTarief(contract, '2026-01-05', 0), 0.3);
+  assert.ok(Math.abs(uurTarief(contract, '2026-01-05', 0) - 0.3) < 1e-12);
   assert.equal(uurTarief(null, '2026-01-05', 0), 0);
   assert.equal(uurTarief({}, '2026-01-05', 0), 0);
 });
