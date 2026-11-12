@@ -1,6 +1,6 @@
 // Datamodel, samenvoegen en berekeningen over perioden.
 
-import { alive, mergeCollections, purgeTombstones } from '../core/records.js';
+import { alive, mergeCollections } from '../core/records.js';
 import { contractOp, kostenDag, maakProfielen, graaddag, standaardContracten } from './tarief.js';
 import { monthKey, eachDay, maandStart, maandEinde } from './tijd.js';
 
@@ -11,7 +11,6 @@ import { monthKey, eachDay, maandStart, maandEinde } from './tijd.js';
 // Schema 4 (versie 1.22.0): collectie `uitgesloten` (perioden die Analyse buiten beschouwing laat).
 // Schema 5 (versie 1.26.0): collectie `zon` (zonne-opbrengst per dag uit een SolarEdge-dagexport).
 export const SCHEMA = 5;
-const TOMBSTONE_DAYS = 180;
 const COLLECTIES = ['dagen', 'weer', 'maanden', 'contracten', 'importen', 'analyses', 'uitgesloten', 'zon'];
 
 const STANDAARD_INSTELLINGEN = { plaats: 'Eindhoven', lat: 51.44, lon: 5.48, updatedAt: 0 };
@@ -27,7 +26,7 @@ export function initialData() {
 }
 
 export function migrate(data) {
-  for (const k of COLLECTIES) data[k] = purgeTombstones(data[k] ?? [], TOMBSTONE_DAYS);
+  for (const k of COLLECTIES) data[k] ??= [];
   data.instellingen ??= { ...STANDAARD_INSTELLINGEN };
   // Schema 1 → 2 … 4 → 5: alleen een lege collectie erbij; bestaande gegevens blijven gelijk.
   data.schema = Math.max(data.schema ?? SCHEMA, SCHEMA);
