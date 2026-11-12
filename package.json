@@ -8,6 +8,6 @@
     "test:all": "npm run test:unit && npm run test:e2e"
   },
   "devDependencies": {
-    "@playwright/test": "^1.56.1"
+    "@playwright/test": "1.56.1"
   }
 }
