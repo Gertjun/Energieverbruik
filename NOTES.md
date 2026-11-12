@@ -1,5 +1,11 @@
 # Notities – stand van zaken
 
+## Stand (12 november 2026) – migratiebranch PWA-Core v1.0.0
+- Featurebranch `feature/migrate-pwa-core-v1.0.0` aangemaakt vanaf main.
+- PWA-Core v1.0.0 exact gepind; bestaande storagePrefix, datapad en schema 5 blijven behouden.
+- Legacy tombstone-opruiming uit de modelmigratie gehaald zodat de Core eerst verwijderingen en offline apparaten kan registreren.
+- Nog niet gemerged; praktijkacceptatie en PR-beoordeling volgen.
+
 ## Stand (12 november 2026) – versie 1.45.1
 - Automatische unit-tests toegevoegd voor de centrale gegevenscontrole: negatieve waarden, afwijkende uursommen, nachtelijke teruglevering en foutloze dagen.
 - Validatie loopt via GitHub Actions; controle op de merge-commit volgt na samenvoegen.

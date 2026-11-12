@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.45.2 – 2026-11-12
+
+**Technisch**
+- Migratie naar de vastgepinde PWA-Core v1.0.0 voorbereid.
+- Bestaande tombstones blijven behouden totdat de Core-verwijderadministratie ze veilig kan opruimen.
+
 ## 1.45.1 – 2026-11-12
 
 **Verbeterd**
