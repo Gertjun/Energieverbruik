@@ -1,3 +1,9 @@
+## 1.45.3 – 2026-11-17
+
+**Technisch**
+- PWA-Core bijgewerkt naar v1.2.2. Herstelde vaste-ID-records blijven na import ongedaan maken, opnieuw importeren en synchroniseren behouden.
+- Regressietest toegevoegd voor dagen, weer, maanden en zonne-opbrengst.
+
 # Changelog
 
 ## 1.45.2 – 2026-11-12
