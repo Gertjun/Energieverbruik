@@ -1,3 +1,10 @@
+## 2026-11-17 – PWA-Core v1.2.2 (appversie 1.45.3)
+- Energieverbruik pint exact PWA-Core v1.2.2 via tag, commit en SHA-256 van het Core-manifest.
+- De Core-kopie in de app is een exacte distributiekopie volgens de v1.2.2-allowlist; de vaste storagePrefix, dataPath en schema 5 blijven ongewijzigd.
+- De deletion-ledger laat een vaste-ID-record alleen herleven als de recordtimestamp strikt nieuwer is dan de tombstone. Gelijke, oudere of ontbrekende timestamps blijven fail-closed.
+- Regressiecontract: import ongedaan maken, dezelfde vaste IDs opnieuw importeren en synchroniseren tussen twee apparaten voor dagen, weer, maanden en zon.
+- Praktijkacceptatie op bestaande apparaten blijft vereist; geen merge zonder expliciet akkoord.
+
 # Beslissingen
 
 ## 2026-11-11 – Navigatie en Instellingen uit de kern (versie 1.45.0)

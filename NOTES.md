@@ -1,3 +1,10 @@
+## Stand (17 november 2026) – PWA-Core v1.2.2-integratie voorbereid
+- PWA-Core v1.2.2 is gepubliceerd als immutable GitHub Release; releaseworkflow #44191315012 is geslaagd.
+- Deze branch werkt de lokale Core-kopie en lockfile bij naar tag v1.2.2; appversie wordt 1.45.3. Storageprefix, datalocatie en schema 5 blijven ongewijzigd.
+- Regressietest toegevoegd voor import ongedaan maken → herimport → synchroniseren met vaste IDs in dagen, weer, maanden en zon, op twee apparaten.
+- Geen productiekluis, data-repository of persoonlijke tokens geopend of gewijzigd. Praktijktest op apparaten volgt na merge/deployment.
+- Open: CI-resultaten beoordelen; daarna app-update pas samenvoegen na expliciet akkoord.
+
 # Notities – stand van zaken
 
 ## Stand (12 november 2026) – migratiebranch PWA-Core v1.0.0
