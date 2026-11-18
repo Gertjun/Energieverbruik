@@ -1,7 +1,8 @@
-## Actuele stand (18 november 2026) – PWA-Core v1.2.2 geïntegreerd
+## Actuele stand (18 november 2026) – PR #10 bereidt PWA-Core v1.3.0 voor
 
-- Energieverbruik staat op `main` met appversie **1.45.3** en de officiële, immutable PWA-Core **v1.2.2**.
-- PR #8 (`chore: update PWA-Core to v1.2.2`) is gemerged. De lockfile pint tag `v1.2.2`, commit `14dc3ad12c56a448f7de47e2c4c39347475355f6` en manifest-SHA256 `702f8394d4ffd87072b33d6a1a6a3aa59b6124253334aef08772385037dc7616`.
+- `main` blijft op appversie **1.45.3** en immutable PWA-Core **v1.2.2**. PR #10 bereidt appversie **1.45.4** met PWA-Core **v1.3.0** voor.
+- PR #8 (`chore: update PWA-Core to v1.2.2`) is gemerged.
+- PR #10 werkt de drie gewijzigde Core-modules bij en activeert PAIR-2. Alleen owner/repo/branch/path/token worden overgedragen; het kluiswachtwoord blijft lokaal. CI op de PR-branch is geslaagd; nog niet gemerged of praktisch getest. De lockfile pint tag `v1.2.2`, commit `14dc3ad12c56a448f7de47e2c4c39347475355f6` en manifest-SHA256 `702f8394d4ffd87072b33d6a1a6a3aa59b6124253334aef08772385037dc7616`.
 - De migratie behoudt storageprefix, datalocatie en schema 5. De regressietest voor import ongedaan maken → herimport → synchroniseren gebruikt vaste IDs.
 - De eerdere migratiestatus “voorbereid / nog niet mergen” is achterhaald. Praktische acceptatie op apparaten moet apart worden geregistreerd; dit document claimt daarvoor geen niet-bevestigde test.
 - Geen productiekluis, datarepository of persoonlijke tokens geopend of gewijzigd.
