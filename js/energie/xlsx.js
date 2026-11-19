@@ -111,6 +111,10 @@ async function leesZip(buffer) {
       if (raw.byteLength !== f.uncomp || raw.byteLength > MAX_XML_BYTES) throw new Error('ZIP-uitpaklengte is ongeldig.');
       const xml = decoder.decode(raw);
       if (/<!DOCTYPE|<!ENTITY/i.test(xml)) throw new Error('XML DTD/entities zijn niet toegestaan.');
+      if (typeof DOMParser === 'function') {
+        const document = new DOMParser().parseFromString(xml, 'application/xml');
+        if (document.querySelector('parsererror')) throw new Error('Excel bevat ongeldige XML.');
+      }
       return xml;
     },
   };
