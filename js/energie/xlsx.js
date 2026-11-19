@@ -86,7 +86,7 @@ async function leesZip(buffer) {
     total += uncomp;
     if (total > MAX_TOTAL_BYTES) throw new Error('Excel bevat te veel uitgepakte gegevens.');
     const name = decoder.decode(bytes.subarray(p + 46, p + 46 + nl));
-    if (!name || name.startsWith('/') || name.includes('\\\\') || name.split('/').includes('..')) throw new Error('Ongeldige ZIP-bestandsnaam.');
+    if (!name || name.startsWith('/') || name.includes(String.fromCharCode(92)) || name.split('/').includes('..')) throw new Error('Ongeldige ZIP-bestandsnaam.');
     if (files.has(name)) throw new Error('Dubbele ZIP-onderdelen zijn niet toegestaan.');
     files.set(name, { method, comp, uncomp, local, flags });
     p += len;
@@ -156,7 +156,7 @@ export async function leesXlsx(buffer) {
   for (const r of rels.match(/<Relationship\b[^>]*>/g) || []) {
     if (attr(r, 'TargetMode') === 'External') throw new Error('Externe Excel-verwijzingen worden niet ondersteund.');
     const id = attr(r, 'Id'), target = attr(r, 'Target');
-    if (!id || !target || target.includes('://') || target.startsWith('\\\\')) throw new Error('Excel bevat een ongeldige bladverwijzing.');
+    if (!id || !target || target.includes('://') || target.includes(String.fromCharCode(92))) throw new Error('Excel bevat een ongeldige bladverwijzing.');
     relDoel.set(id, target);
   }
   const bladen = Object.create(null);

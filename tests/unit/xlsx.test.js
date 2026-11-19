@@ -92,3 +92,8 @@ test('weigert entries met een te grote gedeclareerde uitpakgrootte', async () =>
   bytes[central + 27] = 0x01;
   await assert.rejects(() => leesXlsx(bytes.buffer), /te groot/);
 });
+
+test('weigert ZIP-entry met path traversal', async () => {
+  await assert.rejects(() => leesXlsx(zipStored([['xl/../evil.xml', '<evil/>']])), /ZIP-bestandsnaam/);
+  await assert.rejects(() => leesXlsx(zipStored([['xl\\\\evil.xml', '<evil/>']])), /ZIP-bestandsnaam/);
+});
