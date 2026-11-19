@@ -36,7 +36,10 @@ async function verwerkBestanden(files, staat, opnieuw, ctx) {
   const resultaten = [];
   for (const f of files) {
     try {
-      if (await isXlsx(f)) { resultaten.push({ res: await leesExcel(await f.arrayBuffer()), naam: f.name, bron: 'excel' }); continue; }
+      if (await isXlsx(f)) {
+        if (f.size > 25 * 1024 * 1024) throw new Error('Excel-bestand is groter dan 25 MB.');
+        resultaten.push({ res: await leesExcel(await f.arrayBuffer()), naam: f.name, bron: 'excel' }); continue;
+      }
       const tekst = await f.text();
       if (isSolarEdge(tekst)) resultaten.push({ res: leesSolarEdge(tekst, today()), naam: f.name, bron: 'solaredge' });
       else if (isVattenfall(tekst)) resultaten.push({ res: leesVattenfall(tekst), naam: f.name, bron: 'vattenfall' });
