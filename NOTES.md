@@ -1,11 +1,13 @@
-## Actuele stand (18 november 2026) – PR #10 bereidt PWA-Core v1.3.0 voor
+## Actuele stand (19 november 2026) – appversie 1.45.4, PWA-Core v1.3.0
 
-- `main` blijft op appversie **1.45.3** en immutable PWA-Core **v1.2.2**. PR #10 bereidt appversie **1.45.4** met PWA-Core **v1.3.0** voor.
-- PR #8 (`chore: update PWA-Core to v1.2.2`) is gemerged.
-- PR #10 werkt de drie gewijzigde Core-modules bij en activeert PAIR-2. Alleen owner/repo/branch/path/token worden overgedragen; het kluiswachtwoord blijft lokaal. CI op de PR-branch is geslaagd; nog niet gemerged of praktisch getest. De lockfile pint tag `v1.2.2`, commit `14dc3ad12c56a448f7de47e2c4c39347475355f6` en manifest-SHA256 `702f8394d4ffd87072b33d6a1a6a3aa59b6124253334aef08772385037dc7616`.
-- De migratie behoudt storageprefix, datalocatie en schema 5. De regressietest voor import ongedaan maken → herimport → synchroniseren gebruikt vaste IDs.
-- De eerdere migratiestatus “voorbereid / nog niet mergen” is achterhaald. Praktische acceptatie op apparaten moet apart worden geregistreerd; dit document claimt daarvoor geen niet-bevestigde test.
+- `main` staat op commit `8189e9fcbfcce5906ce2558e2a72c41156e844ca`, appversie **1.45.4**, PWA-Core **v1.3.0**.
+- PR #10 (Core v1.3.0 en apparaatkoppeling) en PR #11 (beveiligde XLSX-import) zijn gemerged.
+- PR #11: 123/123 unit tests, Playwright E2E, build en deploy zijn geslaagd. De importlimieten zijn 25 MB input, 200 ZIP-entries, 20 MB per uitgepakte entry en 50 MB totaal.
+- De service-worker-versie was na PR #11 nog 1.45.4; bestaande installaties konden daardoor de gewijzigde bestanden blijven cachen. PR voor versie 1.45.5 verhoogt app- en SW-versie en documenteert de beveiligingsfix.
+- Core-lock pin: v1.3.0, commit `fd47638355d975d85dfc376b07810b4b0e4b2a63`, manifest-SHA256 `141e78258aaa54dce8778f7b0c2344ca2375a41568bbbfd4a6138551432abac3`.
+- Praktische acceptatie op echte apparaten moet afzonderlijk worden geregistreerd; CI is geen apparaatacceptatie.
 - Geen productiekluis, datarepository of persoonlijke tokens geopend of gewijzigd.
+
 # Notities – stand van zaken
 
 ## Stand (12 november 2026) – migratiebranch PWA-Core v1.0.0

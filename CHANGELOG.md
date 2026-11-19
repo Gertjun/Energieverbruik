@@ -1,3 +1,16 @@
+## 1.45.5 – 2026-11-19
+
+**Beveiliging**
+- De Excel-import behandelt XLSX als onbetrouwbare ZIP/XML-input: begrensde bestandsgrootte en decompressie, ZIP-structuurvalidatie, afwijzen van path traversal, DTD/entities en externe relaties, en XML-validatie in browsers.
+
+**Technisch**
+- Service-worker-cacheversie verhoogd zodat bestaande installaties de beveiligingsfix kunnen ophalen.
+
+## 1.45.4 – 2026-11-19
+
+**Technisch**
+- PWA-Core bijgewerkt naar v1.3.0 en apparaatkoppeling via het gedeelde Core-protocol geïntegreerd.
+
 ## 1.45.3 – 2026-11-17
 
 **Technisch**
