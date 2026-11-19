@@ -115,10 +115,17 @@ async function leesZip(buffer) {
     },
   };
 }
-const entities = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
-const decode = (s) => s.replace(/&(#x?[0-9a-f]+|\w+);/gi, (m, e) => {
-  if (e[0] === '#') return String.fromCodePoint(e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : Number(e.slice(1)));
-  return entities[e] ?? m;
+const entities = Object.freeze({ amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" });
+const decode = (s) => s.replace(/&(#x[0-9a-f]+|#\\d+|[a-z]+);/gi, (m, entity) => {
+  if (entity.startsWith('#')) {
+    const cp = entity.toLowerCase().startsWith('#x') ? parseInt(entity.slice(2), 16) : Number(entity.slice(1));
+    if (!Number.isInteger(cp) || cp < 1 || cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff)) {
+      throw new Error('Excel bevat een ongeldige XML-entiteit.');
+    }
+    return String.fromCodePoint(cp);
+  }
+  if (!(entity in entities)) throw new Error('Excel bevat een niet-ondersteunde XML-entiteit.');
+  return entities[entity];
 });
 const attr = (tag, naam) => (tag.match(new RegExp(`\\s${naam}="([^"]*)"`)) || [])[1];
 
@@ -146,24 +153,33 @@ export async function leesXlsx(buffer) {
   const rels = await zip.tekst('xl/_rels/workbook.xml.rels');
   if (!wb || !rels) throw new Error('Dit is geen geldig Excel-bestand (.xlsx).');
   const relDoel = new Map();
-  for (const r of rels.match(/<Relationship\b[^>]*>/g) || []) relDoel.set(attr(r, 'Id'), attr(r, 'Target'));
-
-  const bladen = {};
+  for (const r of rels.match(/<Relationship\\b[^>]*>/g) || []) {
+    if (attr(r, 'TargetMode') === 'External') throw new Error('Externe Excel-verwijzingen worden niet ondersteund.');
+    const id = attr(r, 'Id'), target = attr(r, 'Target');
+    if (!id || !target || target.includes('://') || target.startsWith('\\\\')) throw new Error('Excel bevat een ongeldige bladverwijzing.');
+    relDoel.set(id, target);
+  }
+  const bladen = Object.create(null);
   for (const s of wb.match(/<sheet\b[^>]*>/g) || []) {
     const naam = decode(attr(s, 'name') || '');
     let doel = relDoel.get(attr(s, 'r:id'));
     if (!doel) continue;
     doel = doel.startsWith('/') ? doel.slice(1) : `xl/${doel}`;
+    if (doel.split('/').some((part) => part === '..') || !doel.startsWith('xl/')) throw new Error('Excel bevat een ongeldige bladlocatie.');
+    if (!naam || naam.length > 128 || Object.hasOwn(bladen, naam)) throw new Error('Excel bevat een ongeldige bladnaam.');
     const xml = await zip.tekst(doel);
     if (!xml) continue;
     const rijen = [];
     for (const rij of xml.match(/<row\b[\s\S]*?<\/row>/g) || []) {
       const rijNr = Number(attr(rij.slice(0, rij.indexOf('>') + 1), 'r')) - 1;
+      if (!Number.isInteger(rijNr) || rijNr < 0 || rijNr >= 1_048_576) throw new Error('Excel bevat een ongeldige rijnummering.');
       const cellen = [];
       for (const c of rij.match(/<c\b[^>]*?(?:\/>|>[\s\S]*?<\/c>)/g) || []) {
         const open = c.slice(0, c.indexOf('>') + 1);
         const ref = attr(open, 'r');
         if (!ref) continue;
+        const columnIndex = kolomIndex(ref);
+        if (columnIndex < 0 || columnIndex >= 16_384) throw new Error('Excel bevat een ongeldige kolomverwijzing.');
         const type = attr(open, 't');
         let waarde = null;
         const v = c.match(/<v>([\s\S]*?)<\/v>/);
@@ -174,7 +190,7 @@ export async function leesXlsx(buffer) {
           else if (type === 'b') waarde = v[1] === '1';
           else waarde = Number(v[1]);
         }
-        cellen[kolomIndex(ref)] = waarde;
+        cellen[columnIndex] = waarde;
       }
       rijen[rijNr] = cellen;
     }

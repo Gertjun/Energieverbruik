@@ -70,3 +70,25 @@ test('weigert een ongeldige ZIP-index', async () => {
   invalid[eocd + 19] = 0x7f;
   await assert.rejects(() => leesXlsx(invalid.buffer), /centrale ZIP-index/);
 });
+
+test('weigert onbekende XML-entiteiten', async () => {
+  await assert.rejects(() => leesXlsx(workbook('<worksheet><row r="1"><c r="A1" t="inlineStr"><is><t>&evil;</t></is></c></row></worksheet>')), /niet-ondersteunde XML-entiteit/);
+});
+
+test('weigert externe workbook-relaties', async () => {
+  const external = zipStored([
+    ['xl/workbook.xml', '<workbook><sheets><sheet name="DATA" r:id="rId1"/></sheets></workbook>'],
+    ['xl/_rels/workbook.xml.rels', '<Relationships><Relationship Id="rId1" Target="https://example.invalid/sheet.xml" TargetMode="External"/></Relationships>'],
+  ]);
+  await assert.rejects(() => leesXlsx(external), /Externe Excel-verwijzingen/);
+});
+
+test('weigert entries met een te grote gedeclareerde uitpakgrootte', async () => {
+  const bytes = new Uint8Array(zipStored([['xl/workbook.xml', '<workbook/>']]));
+  const central = bytes.length - 22 - (46 + 'xl/workbook.xml'.length);
+  bytes[central + 24] = 0x01;
+  bytes[central + 25] = 0x00;
+  bytes[central + 26] = 0x40;
+  bytes[central + 27] = 0x01;
+  await assert.rejects(() => leesXlsx(bytes.buffer), /te groot/);
+});
