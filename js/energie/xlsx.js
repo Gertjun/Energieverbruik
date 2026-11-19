@@ -153,7 +153,7 @@ export async function leesXlsx(buffer) {
   const rels = await zip.tekst('xl/_rels/workbook.xml.rels');
   if (!wb || !rels) throw new Error('Dit is geen geldig Excel-bestand (.xlsx).');
   const relDoel = new Map();
-  for (const r of rels.match(/<Relationship\\b[^>]*>/g) || []) {
+  for (const r of rels.match(/<Relationship\b[^>]*>/g) || []) {
     if (attr(r, 'TargetMode') === 'External') throw new Error('Externe Excel-verwijzingen worden niet ondersteund.');
     const id = attr(r, 'Id'), target = attr(r, 'Target');
     if (!id || !target || target.includes('://') || target.startsWith('\\\\')) throw new Error('Excel bevat een ongeldige bladverwijzing.');
