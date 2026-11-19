@@ -3,51 +3,118 @@
 // bestanden uit met de ingebouwde DecompressionStream en halen de cellen uit de XML.
 // Alleen waarden worden gelezen (bij formules de laatst berekende waarde).
 
-async function inflate(bytes) {
+const MAX_INPUT_BYTES = 25 * 1024 * 1024;
+const MAX_ENTRIES = 200;
+const MAX_ENTRY_BYTES = 20 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 50 * 1024 * 1024;
+const MAX_XML_BYTES = 20 * 1024 * 1024;
+const decoder = new TextDecoder('utf-8', { fatal: true });
+
+function checkRange(view, offset, length, label) {
+  if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(length) ||
+      offset < 0 || length < 0 || offset + length > view.byteLength) {
+    throw new Error(`Ongeldige Excel: ${label} valt buiten het bestand.`);
+  }
+}
+function u16(view, offset, label) { checkRange(view, offset, 2, label); return view.getUint16(offset, true); }
+function u32(view, offset, label) { checkRange(view, offset, 4, label); return view.getUint32(offset, true); }
+
+async function inflateBounded(bytes, limit) {
   const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+  const reader = stream.getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > limit) {
+        await reader.cancel();
+        throw new Error('Excel bevat te veel uitgepakte gegevens.');
+      }
+      chunks.push(value);
+    }
+  } finally { reader.releaseLock(); }
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { out.set(chunk, offset); offset += chunk.byteLength; }
+  return out;
 }
 
 async function leesZip(buffer) {
-  const view = new DataView(buffer);
-  const bytes = new Uint8Array(buffer);
-  // Einde van de centrale index zoeken.
+  if (!(buffer instanceof ArrayBuffer) || buffer.byteLength === 0 || buffer.byteLength > MAX_INPUT_BYTES) {
+    throw new Error('Excel-bestand is leeg of groter dan 25 MB.');
+  }
+  const view = new DataView(buffer), bytes = new Uint8Array(buffer);
   let eocd = -1;
-  for (let i = buffer.byteLength - 22; i >= Math.max(0, buffer.byteLength - 66_000); i--) {
-    if (view.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  const start = Math.max(0, buffer.byteLength - 65_557);
+  for (let i = buffer.byteLength - 22; i >= start; i--) {
+    if (u32(view, i, 'ZIP-einde') === 0x06054b50) { eocd = i; break; }
   }
   if (eocd < 0) throw new Error('Dit is geen geldig Excel-bestand (.xlsx).');
-  const aantal = view.getUint16(eocd + 10, true);
-  let p = view.getUint32(eocd + 16, true);
-  const dec = new TextDecoder();
-  const bestanden = new Map();
-  for (let n = 0; n < aantal; n++) {
-    if (view.getUint32(p, true) !== 0x02014b50) break;
-    const methode = view.getUint16(p + 10, true);
-    const compSize = view.getUint32(p + 20, true);
-    const naamLen = view.getUint16(p + 28, true);
-    const extraLen = view.getUint16(p + 30, true);
-    const commentLen = view.getUint16(p + 32, true);
-    const offset = view.getUint32(p + 42, true);
-    const naam = dec.decode(bytes.subarray(p + 46, p + 46 + naamLen));
-    bestanden.set(naam, { methode, compSize, offset });
-    p += 46 + naamLen + extraLen + commentLen;
+  const disk = u16(view, eocd + 4, 'ZIP-einde');
+  const cdDisk = u16(view, eocd + 6, 'ZIP-einde');
+  const diskCount = u16(view, eocd + 8, 'ZIP-einde');
+  const count = u16(view, eocd + 10, 'ZIP-einde');
+  const cdSize = u32(view, eocd + 12, 'ZIP-einde');
+  const cdOffset = u32(view, eocd + 16, 'ZIP-einde');
+  const comment = u16(view, eocd + 20, 'ZIP-einde');
+  checkRange(view, eocd, 22 + comment, 'ZIP-einde');
+  if (disk || cdDisk || diskCount !== count || count === 0xffff || cdSize === 0xffffffff || cdOffset === 0xffffffff) {
+    throw new Error('Dit ZIP-formaat wordt niet ondersteund (multi-disk/ZIP64).');
   }
+  if (count > MAX_ENTRIES) throw new Error('Excel bevat te veel ZIP-onderdelen.');
+  checkRange(view, cdOffset, cdSize, 'centrale ZIP-index');
+  if (cdOffset + cdSize > eocd) throw new Error('Ongeldige ZIP-index.');
+  const files = new Map();
+  let p = cdOffset, total = 0;
+  for (let n = 0; n < count; n++) {
+    checkRange(view, p, 46, 'ZIP-index');
+    if (u32(view, p, 'ZIP-index') !== 0x02014b50) throw new Error('Ongeldige ZIP-index.');
+    const flags = u16(view, p + 8, 'ZIP-index'), method = u16(view, p + 10, 'ZIP-index');
+    const comp = u32(view, p + 20, 'ZIP-index'), uncomp = u32(view, p + 24, 'ZIP-index');
+    const nl = u16(view, p + 28, 'ZIP-index'), el = u16(view, p + 30, 'ZIP-index'), cl = u16(view, p + 32, 'ZIP-index');
+    const local = u32(view, p + 42, 'ZIP-index'), len = 46 + nl + el + cl;
+    checkRange(view, p, len, 'ZIP-index');
+    if (flags & 1) throw new Error('Versleutelde Excel-bestanden worden niet ondersteund.');
+    if (flags & ~0x800) throw new Error('ZIP gebruikt niet-ondersteunde flags.');
+    if (flags & 8) throw new Error('ZIP-data-descriptors worden niet ondersteund.');
+    if (method !== 0 && method !== 8) throw new Error('Niet-ondersteunde ZIP-compressiemethode.');
+    if (comp === 0xffffffff || uncomp === 0xffffffff || local === 0xffffffff) throw new Error('ZIP64 wordt niet ondersteund.');
+    if (uncomp > MAX_ENTRY_BYTES) throw new Error('Een Excel-onderdeel is te groot.');
+    total += uncomp;
+    if (total > MAX_TOTAL_BYTES) throw new Error('Excel bevat te veel uitgepakte gegevens.');
+    const name = decoder.decode(bytes.subarray(p + 46, p + 46 + nl));
+    if (!name || name.startsWith('/') || name.includes('\\\\') || name.split('/').includes('..')) throw new Error('Ongeldige ZIP-bestandsnaam.');
+    if (files.has(name)) throw new Error('Dubbele ZIP-onderdelen zijn niet toegestaan.');
+    files.set(name, { method, comp, uncomp, local, flags });
+    p += len;
+  }
+  if (p !== cdOffset + cdSize) throw new Error('ZIP-indexlengte klopt niet.');
   return {
-    namen: [...bestanden.keys()],
-    async tekst(naam) {
-      const f = bestanden.get(naam);
+    namen: [...files.keys()],
+    async tekst(name) {
+      const f = files.get(name);
       if (!f) return null;
-      const lnaam = view.getUint16(f.offset + 26, true);
-      const lextra = view.getUint16(f.offset + 28, true);
-      const start = f.offset + 30 + lnaam + lextra;
-      const data = bytes.subarray(start, start + f.compSize);
-      const raw = f.methode === 0 ? data : await inflate(data);
-      return dec.decode(raw);
+      checkRange(view, f.local, 30, 'lokale ZIP-header');
+      if (u32(view, f.local, 'lokale ZIP-header') !== 0x04034b50) throw new Error('Ongeldige lokale ZIP-header.');
+      const flags = u16(view, f.local + 6, 'lokale ZIP-header'), method = u16(view, f.local + 8, 'lokale ZIP-header');
+      const nl = u16(view, f.local + 26, 'lokale ZIP-header'), el = u16(view, f.local + 28, 'lokale ZIP-header');
+      if (flags !== f.flags || (flags & ~0x800) !== 0 || method !== f.method) throw new Error('ZIP-header komt niet overeen met de index.');
+      const dataStart = f.local + 30 + nl + el;
+      checkRange(view, dataStart, f.comp, 'ZIP-data');
+      const localName = decoder.decode(bytes.subarray(f.local + 30, f.local + 30 + nl));
+      if (localName !== name) throw new Error('ZIP-bestandsnaam komt niet overeen.');
+      const compressed = bytes.subarray(dataStart, dataStart + f.comp);
+      const raw = f.method === 0 ? compressed : await inflateBounded(compressed, Math.min(MAX_ENTRY_BYTES, f.uncomp));
+      if (raw.byteLength !== f.uncomp || raw.byteLength > MAX_XML_BYTES) throw new Error('ZIP-uitpaklengte is ongeldig.');
+      const xml = decoder.decode(raw);
+      if (/<!DOCTYPE|<!ENTITY/i.test(xml)) throw new Error('XML DTD/entities zijn niet toegestaan.');
+      return xml;
     },
   };
 }
-
 const entities = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
 const decode = (s) => s.replace(/&(#x?[0-9a-f]+|\w+);/gi, (m, e) => {
   if (e[0] === '#') return String.fromCodePoint(e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : Number(e.slice(1)));
