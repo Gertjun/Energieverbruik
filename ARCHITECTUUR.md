@@ -158,7 +158,12 @@ Back-up en export (CSV, JSON) gaan altijd via `saveFile(naam, inhoud, type)` uit
 - **Mobiel eerst:** knoppen minimaal 44 px, invoervelden met 16 px tekst, safe areas via `env(safe-area-inset-*)` en `--safe-top` (minstens 24 px bovenin op de iPad, D42).
 - **Kleuren:** alleen CSS-variabelen (`--accent`, `--ok`, …) met `light-dark()`; kleurthema's en licht/donker/Zwart via `js/thema.js` (D22, D23). Geen vaste kleuren.
 - **Indeling:** iPhone tabbalk onderin; iPad rechtop tabbladen; laptop en iPad liggend een inklapbare zijbalk links. Tabellen en grafieken passen zonder schuifbalk opzij; grafieken rekenen hun breedte uit met scherm en zijbalk (`grafiek.js`). Brede schermen vanaf 1200 px (D35).
-- **Toegankelijkheid (WCAG 2.2 AA):** knoppen met alleen een icoon krijgen een `aria-label`, formulieren hebben zichtbare labels. Verder gelden de regels in `html-best-practices.md` (projectkennis).
+- **Toegankelijkheid (WCAG 2.2 AA):** knoppen met alleen een icoon krijgen een `aria-label`, formulieren hebben zichtbare labels.
+- **Richtlijnen in de projectkennis:** `ui-ux-richtlijnen.md` (ontwerp: raster, kleur, typografie, interactie, statussen, checklist per scherm) en `html-best-practices.md` (HTML en CSS) gelden bij elk nieuw scherm of elke wijziging. Bewuste afwijkingen van de UI/UX-richtlijnen (D53):
+  - **Namen van de kleurvariabelen**: de app houdt haar eigen namen (`--accent`, `--ok`, `--warn`, `--danger`, `--kleur-*`, `--jaar-*`) in plaats van `--color-*`; hernoemen zou alle CSS raken zonder zichtbaar verschil.
+  - **Licht/donker via `light-dark()`** met `color-scheme` in plaats van losse `prefers-color-scheme`-blokken, zodat vast licht of donker per apparaat kan (D22).
+  - **Weergave Zwart gebruikt echt #000** voor OLED-schermen (D23); de gewone donkere modus volgt wel de richtlijn (donkergrijs, lichtere kaarten).
+  - **Breekpunten** volgen de kern en eerdere keuzes (zijbalk vanaf 1000 px, brede schermen vanaf 1200 px; D35, D49), niet 600/840 px.
 
 ## Testen
 

@@ -24,6 +24,7 @@ Werkafspraken voor Claude: [`CLAUDE.md`](CLAUDE.md).
 Bijgewerkt: 20 november 2026 · `main` **1.45.5** met PWA-Core v1.3.0. Dit blok wordt aan het eind van elke sessie overschreven.
 
 - De documenten zijn omgezet naar de uniforme opbouw van al Geerts apps: `ARCHITECTUUR.md` is nieuw, de roadmap gebruikt W-nummers, de besluiten D-nummers en `CLAUDE.md` volgt de werkwijze met branch en pull request. Geen nieuwe appversie (alleen documenten).
+- Nieuwe ontwerpregels in de projectkennis: `ui-ux-richtlijnen.md`. ARCHITECTUUR.md verwijst ernaar en noemt de bewuste afwijkingen (D53). Nog niet nagelopen of de bestaande schermen aan de checklist voldoen (ROADMAP W38).
 - PWA-Core v1.3.0 met apparaatkoppeling (PR #10), beveiligde XLSX-import (PR #11) en versie 1.45.5 (PR #12) zijn gemerged. Bij PR #11 slaagden 123 unit tests, de Playwright-test, build en deploy.
 - Praktijktests op echte apparaten na deze versies zijn nog niet vastgelegd; groene tests zijn geen apparaattest.
 - Automatische zonne-opbrengst via SolarEdge doet nog niets: er is nog geen API-sleutel (ROADMAP W7 en W8).

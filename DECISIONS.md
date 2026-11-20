@@ -679,3 +679,11 @@ favorieten (getallen als tekst met komma, zoals in een invoerveld).
 - **Kopie in de projectkennis**: README, ARCHITECTUUR, ROADMAP en DECISIONS staan ook als `claude/*.md` in het
   Claude-project, zodat een nieuwe chat ze zonder de code kan lezen.
 - **W32 vervallen** (template-afwijking shell.js/index.html): `js/core/` is sinds D49/D50 een exacte kopie van PWA-Core.
+
+## D53 – UI/UX-richtlijnen in de projectkennis (20 november 2026, geen appversie)
+- **`ui-ux-richtlijnen.md` geldt naast `html-best-practices.md`** voor elk nieuw scherm of elke wijziging; ARCHITECTUUR.md
+  (Stijl) verwijst ernaar. De checklist uit de richtlijnen hoort bij het testen van een scherm.
+- **Bestaande keuzes blijven waar ze afwijken**, met reden in ARCHITECTUUR.md: eigen namen van de kleurvariabelen
+  (hernoemen raakt alle CSS zonder zichtbaar verschil), `light-dark()` voor licht/donker per apparaat (D22), echt zwart
+  bij de weergave Zwart (D23) en de breekpunten van de kern (D35, D49). Wordt een van deze punten later toch
+  aangepast, dan met een nieuw besluit.
