@@ -665,6 +665,7 @@ favorieten (getallen als tekst met komma, zoals in een invoerveld).
 - Vier bestanden houden de app bij. Heden: `README.md`, met een blok "Stand" en de importformaten (vervangt `NOTES.md`; geen sessielog en geen stand per versie meer). Toekomst: `ROADMAP.md`, de enige takenlijst met genummerde punten (vervangt `WISHLIST.md` en de openstaande punten uit NOTES). Verleden: `CHANGELOG.md` (wat) en `DECISIONS.md` (waarom).
 - Een wijziging alleen aan deze documenten krijgt geen nieuwe appversie.
 - Waarom: NOTES was uitgegroeid tot een sessielog van ruim 450 regels dat de changelog herhaalde; open punten, wensen en stand stonden door elkaar. Dezelfde indeling geldt voor al Geerts projecten.
+
 ## D52 – Uniforme opbouw van de documenten (20 november 2026, geen appversie)
 - **Zes documenten, elk onderwerp op één plek**, zoals in al Geerts apps: `README.md` (wat de app doet, blok "Stand"),
   `ARCHITECTUUR.md` (nieuw: opbouw, aansluiting op PWA-Core, datamodel, conventies, stijl, importformaten),
