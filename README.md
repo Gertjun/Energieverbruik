@@ -1,9 +1,31 @@
 # Energieverbruik
 
 Installeerbare web-app (PWA) om dagelijks het verbruik en de kosten van stroom en gas bij te houden.
-Vervangt het Excel-bestand *Gasverbruik.xlsx*. Gebouwd op de eigen PWA-template.
+Vervangt het Excel-bestand *Gasverbruik.xlsx*. Gebouwd op PWA-Core (`Gertjun/PWA-Core`).
 
 **App:** https://gertjun.github.io/Energieverbruik/
+
+## Waar vind je wat
+
+Elk onderwerp staat op één plek.
+
+| | Vraag | Bestand |
+| --- | --- | --- |
+| Heden | Waar staan we nu, wat doet de app, hoe zit hij in elkaar? | dit bestand, `README.md` |
+| Toekomst | Wat moet of kan er nog gebeuren? | [`ROADMAP.md`](ROADMAP.md) |
+| Verleden | Wat is er per versie veranderd? | [`CHANGELOG.md`](CHANGELOG.md) |
+| Verleden | Waarom is iets zo gekozen? | [`DECISIONS.md`](DECISIONS.md) |
+
+Werkafspraken voor Claude: [`CLAUDE.md`](CLAUDE.md).
+
+## Stand
+
+Bijgewerkt: 20 november 2026 · `main` **1.45.5** met PWA-Core v1.3.0. Dit blok wordt aan het eind van elke sessie overschreven.
+
+- PWA-Core v1.3.0 met apparaatkoppeling (PR #10), beveiligde XLSX-import (PR #11) en de versie 1.45.5 die bestaande installaties de nieuwe bestanden laat ophalen (PR #12) zijn gemerged. Bij PR #11 slaagden 123 unit tests, de Playwright-test, build en deploy.
+- Praktijktests op echte apparaten na deze versies zijn nog niet vastgelegd; groene tests zijn geen apparaattest.
+- Automatische zonne-opbrengst via SolarEdge doet nog niets: er is nog geen API-sleutel (ROADMAP #7 en #8).
+- Afwijkingen van de gedeelde kern: zie "Structuur" hieronder.
 
 ## Wat de app doet
 
@@ -74,7 +96,23 @@ js/core/                      Template-kern (kluis, sync, Face ID) — niet aanp
                               shell.js: ctx.syncIngesteld en ctx.leesSyncBestand(pad); github.js: getText() (1.38.0)
 ```
 
-Zie `NOTES.md` (stand van zaken), `DECISIONS.md` (keuzes), `CHANGELOG.md` en `WISHLIST.md`.
+## Bronbestanden (importformaten)
+
+Voorbeelden van deze bestanden staan in het Claude-project, niet in deze publieke repo.
+
+- Vattenfall-downloads `E-<EAN>-Kwartier.csv` (stroom) en `G-<EAN>-Uur.csv` (gas): `Datum;Tijd;Meterstand levering;
+  Verbruik;(Stand teruglevering;Teruglevering)`, Nederlandse getallen, nieuwste regel bovenaan, gas in Windows-1252.
+- SolarEdge-dagexport `energy-chart-data_<datum>.csv`: `"Meettijd","Productie (kWh)","Verbruik (kWh)"`, één regel
+  per dag (`"1 okt. 2026 00:00","8.21","0"`); Verbruik is altijd 0 (geen verbruiksmeter).
+- SolarEdge-export `comparative-month-chart-data_<datum>.csv`: `"Meettijd","Energy (kWh)"`, één regel per maand
+  (`"jan. 2020","0"`), UTF-8 met BOM, komma als scheiding, punt als decimaalteken, alle jaren t/m december van
+  het huidige jaar (toekomstige maanden 0).
+- `Gasverbruik.xlsx`: blad DATA (per dag), blad Kosten (per maand: termijn €243, SolarEdge-opbrengst),
+  blad Blad1 (jaarafrekening-schatting per tijdvak).
+- `Energietarieven.png` en `Gastarieven.png`: Vattenfall-tarieven (6 tijdvakken).
+- HomeWizard-exports `P1e-…csv` (stroom) en `P1g-…csv` (gas): kolommen `time, Import T1 kWh, Import T2 kWh,
+  Export T1 kWh, Export T2 kWh, L1/L2/L3 max W` en `time, Total gas used`; meterstanden per kwartier,
+  lokale tijd (bij wintertijd komt 02:00–02:45 twee keer voor).
 
 ## Lokaal testen
 

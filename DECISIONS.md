@@ -1,3 +1,8 @@
+## 2026-11-20 – Documenten naar verleden, heden en toekomst
+- Vier bestanden houden de app bij. Heden: `README.md`, met een blok "Stand" en de importformaten (vervangt `NOTES.md`; geen sessielog en geen stand per versie meer). Toekomst: `ROADMAP.md`, de enige takenlijst met genummerde punten (vervangt `WISHLIST.md` en de openstaande punten uit NOTES). Verleden: `CHANGELOG.md` (wat) en `DECISIONS.md` (waarom).
+- Een wijziging alleen aan deze documenten krijgt geen nieuwe appversie.
+- Waarom: NOTES was uitgegroeid tot een sessielog van ruim 450 regels dat de changelog herhaalde; open punten, wensen en stand stonden door elkaar. Dezelfde indeling geldt voor al Geerts projecten.
+
 ## 2026-11-17 – PWA-Core v1.2.2 (appversie 1.45.3)
 - Energieverbruik pint exact PWA-Core v1.2.2 via tag, commit en SHA-256 van het Core-manifest.
 - De Core-kopie in de app is een exacte distributiekopie volgens de v1.2.2-allowlist; de vaste storagePrefix, dataPath en schema 5 blijven ongewijzigd.
