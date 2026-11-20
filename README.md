@@ -11,7 +11,8 @@ Elk onderwerp staat op één plek.
 
 | | Vraag | Bestand |
 | --- | --- | --- |
-| Heden | Waar staan we nu, wat doet de app, hoe zit hij in elkaar? | dit bestand, `README.md` |
+| Heden | Waar staan we nu, wat doet de app? | dit bestand, `README.md` |
+| Heden | Hoe zit de app in elkaar (opbouw, datamodel, conventies, stijl)? | [`ARCHITECTUUR.md`](ARCHITECTUUR.md) |
 | Toekomst | Wat moet of kan er nog gebeuren? | [`ROADMAP.md`](ROADMAP.md) |
 | Verleden | Wat is er per versie veranderd? | [`CHANGELOG.md`](CHANGELOG.md) |
 | Verleden | Waarom is iets zo gekozen? | [`DECISIONS.md`](DECISIONS.md) |
@@ -22,10 +23,11 @@ Werkafspraken voor Claude: [`CLAUDE.md`](CLAUDE.md).
 
 Bijgewerkt: 20 november 2026 · `main` **1.45.5** met PWA-Core v1.3.0. Dit blok wordt aan het eind van elke sessie overschreven.
 
-- PWA-Core v1.3.0 met apparaatkoppeling (PR #10), beveiligde XLSX-import (PR #11) en de versie 1.45.5 die bestaande installaties de nieuwe bestanden laat ophalen (PR #12) zijn gemerged. Bij PR #11 slaagden 123 unit tests, de Playwright-test, build en deploy.
+- De documenten zijn omgezet naar de uniforme opbouw van al Geerts apps: `ARCHITECTUUR.md` is nieuw, de roadmap gebruikt W-nummers, de besluiten D-nummers en `CLAUDE.md` volgt de werkwijze met branch en pull request. Geen nieuwe appversie (alleen documenten).
+- PWA-Core v1.3.0 met apparaatkoppeling (PR #10), beveiligde XLSX-import (PR #11) en versie 1.45.5 (PR #12) zijn gemerged. Bij PR #11 slaagden 123 unit tests, de Playwright-test, build en deploy.
 - Praktijktests op echte apparaten na deze versies zijn nog niet vastgelegd; groene tests zijn geen apparaattest.
-- Automatische zonne-opbrengst via SolarEdge doet nog niets: er is nog geen API-sleutel (ROADMAP #7 en #8).
-- Afwijkingen van de gedeelde kern: zie "Structuur" hieronder.
+- Automatische zonne-opbrengst via SolarEdge doet nog niets: er is nog geen API-sleutel (ROADMAP W7 en W8).
+- Afwijkingen van de gedeelde kern: geen (zie `ARCHITECTUUR.md`).
 
 ## Wat de app doet
 
@@ -64,58 +66,5 @@ Bijgewerkt: 20 november 2026 · `main` **1.45.5** met PWA-Core v1.3.0. Dit blok 
 Alle gegevens staan versleuteld op het apparaat en synchroniseren als één versleuteld bestand naar de
 private repo `gertjun/SyncData` (pad `energieverbruik/vault.json`). Deze code-repo bevat geen gegevens.
 
-De zonne-opbrengst kan automatisch komen: een GitHub Action in SyncData (`.github/workflows/solaredge.yml`
-en `.github/scripts/solaredge.mjs`) haalt elke nacht de opbrengst per dag op bij de SolarEdge-API en schrijft
-`energieverbruik/solaredge-dag.csv`. De API-sleutel staat alleen als geheim `SOLAREDGE_API_KEY` in SyncData,
-nooit in deze publieke repo. De app leest het bestand met het sync-token (`js/energie/solaredge-auto.js`).
-
-## Structuur
-
-```
-js/app.js                     Navigatie en schermkeuze
-js/energie/model.js           Datamodel, samenvoegen, totalen per periode
-js/energie/tarief.js          Tijdvakken, contracten, kosten, graaddagen
-js/energie/import-homewizard.js  HomeWizard CSV → verbruik per uur en per dag
-js/energie/import-vattenfall.js  Vattenfall CSV (kwartier/uur/dag) → zelfde omrekening
-js/energie/import-solaredge.js SolarEdge CSV (opbrengst per dag of per maand)
-js/energie/solaredge-auto.js  Opbrengst automatisch inlezen uit SyncData (bestand van de GitHub Action)
-js/energie/import-excel.js    Oude Excel inlezen (via xlsx.js, zonder library)
-js/energie/importeren.js      Imports in de kluis zetten, importlogboek, ongedaan maken
-js/energie/controle.js        Controles: verdachte waarden, ontbrekende dagen, steekproef
-js/energie/scherm-controle.js Historie → Maanden en Controle, importrapport
-js/energie/weer.js            Temperaturen bij Open-Meteo
-js/energie/grafiek.js         Grafieken in SVG: staven (optioneel lijn/grenslijn), heatmap, puntenwolk, jaarlijnen
-js/energie/analyse.js         Rekenwerk voor Analyse (indelingen, vergelijkingen, stooklijn, prognose, uitsluiten)
-js/energie/analyse-soorten.js De kant-en-klare soorten analyse (keuzes en resultaat per soort), groepen voor de tegels
-js/energie/analyse-watals.js  Rekenwerk voor de soorten van 1.29–1.37 (batterij, dynamisch, warmtepomp, CO₂, …)
-js/energie/analyse-watals-soorten.js  Keuzes en resultaat van die soorten
-js/energie/extern.js          Zoninstraling (Open-Meteo) en beursprijzen (EnergyZero), bewaard op het apparaat
-js/energie/scherm-*.js        De vijf schermen
-js/core/                      Template-kern (kluis, sync, Face ID) — niet aanpassen, behalve:
-                              shell.js toont de instellingen als paneel (#settings-panel) i.p.v. venster (1.6.0)
-                              shell.js: ctx.syncIngesteld en ctx.leesSyncBestand(pad); github.js: getText() (1.38.0)
-```
-
-## Bronbestanden (importformaten)
-
-Voorbeelden van deze bestanden staan in het Claude-project, niet in deze publieke repo.
-
-- Vattenfall-downloads `E-<EAN>-Kwartier.csv` (stroom) en `G-<EAN>-Uur.csv` (gas): `Datum;Tijd;Meterstand levering;
-  Verbruik;(Stand teruglevering;Teruglevering)`, Nederlandse getallen, nieuwste regel bovenaan, gas in Windows-1252.
-- SolarEdge-dagexport `energy-chart-data_<datum>.csv`: `"Meettijd","Productie (kWh)","Verbruik (kWh)"`, één regel
-  per dag (`"1 okt. 2026 00:00","8.21","0"`); Verbruik is altijd 0 (geen verbruiksmeter).
-- SolarEdge-export `comparative-month-chart-data_<datum>.csv`: `"Meettijd","Energy (kWh)"`, één regel per maand
-  (`"jan. 2020","0"`), UTF-8 met BOM, komma als scheiding, punt als decimaalteken, alle jaren t/m december van
-  het huidige jaar (toekomstige maanden 0).
-- `Gasverbruik.xlsx`: blad DATA (per dag), blad Kosten (per maand: termijn €243, SolarEdge-opbrengst),
-  blad Blad1 (jaarafrekening-schatting per tijdvak).
-- `Energietarieven.png` en `Gastarieven.png`: Vattenfall-tarieven (6 tijdvakken).
-- HomeWizard-exports `P1e-…csv` (stroom) en `P1g-…csv` (gas): kolommen `time, Import T1 kWh, Import T2 kWh,
-  Export T1 kWh, Export T2 kWh, L1/L2/L3 max W` en `time, Total gas used`; meterstanden per kwartier,
-  lokale tijd (bij wintertijd komt 02:00–02:45 twee keer voor).
-
-## Lokaal testen
-
-```bash
-python3 -m http.server 8080   # open http://localhost:8080
-```
+De zonne-opbrengst kan automatisch komen via een GitHub Action in SyncData; de API-sleutel staat alleen als
+geheim in SyncData, nooit in deze publieke repo. Hoe dat werkt staat in `ARCHITECTUUR.md`.

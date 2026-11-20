@@ -1,3 +1,8 @@
+# Changelog – wat er per versie veranderde
+
+> **Dit bestand (verleden):** per versie in gewone taal wat er voor Geert veranderde, met de W-nummers uit de roadmap. Nieuwste bovenaan.
+> **Niet hier:** waarom → [`DECISIONS.md`](DECISIONS.md); wat nog moet → [`ROADMAP.md`](ROADMAP.md).
+
 ## 1.45.5 – 2026-11-19
 
 **Beveiliging**
@@ -17,7 +22,6 @@
 - PWA-Core bijgewerkt naar v1.2.2. Herstelde vaste-ID-records blijven na import ongedaan maken, opnieuw importeren en synchroniseren behouden.
 - Regressietest toegevoegd voor dagen, weer, maanden en zonne-opbrengst.
 
-# Changelog
 
 ## 1.45.2 – 2026-11-12
 

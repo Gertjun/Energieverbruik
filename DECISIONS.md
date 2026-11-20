@@ -1,168 +1,256 @@
-## 2026-11-20 – Documenten naar verleden, heden en toekomst
-- Vier bestanden houden de app bij. Heden: `README.md`, met een blok "Stand" en de importformaten (vervangt `NOTES.md`; geen sessielog en geen stand per versie meer). Toekomst: `ROADMAP.md`, de enige takenlijst met genummerde punten (vervangt `WISHLIST.md` en de openstaande punten uit NOTES). Verleden: `CHANGELOG.md` (wat) en `DECISIONS.md` (waarom).
-- Een wijziging alleen aan deze documenten krijgt geen nieuwe appversie.
-- Waarom: NOTES was uitgegroeid tot een sessielog van ruim 450 regels dat de changelog herhaalde; open punten, wensen en stand stonden door elkaar. Dezelfde indeling geldt voor al Geerts projecten.
+# Beslissingen – waarom is iets zo gekozen
 
-## 2026-11-17 – PWA-Core v1.2.2 (appversie 1.45.3)
-- Energieverbruik pint exact PWA-Core v1.2.2 via tag, commit en SHA-256 van het Core-manifest.
-- De Core-kopie in de app is een exacte distributiekopie volgens de v1.2.2-allowlist; de vaste storagePrefix, dataPath en schema 5 blijven ongewijzigd.
-- De deletion-ledger laat een vaste-ID-record alleen herleven als de recordtimestamp strikt nieuwer is dan de tombstone. Gelijke, oudere of ontbrekende timestamps blijven fail-closed.
-- Regressiecontract: import ongedaan maken, dezelfde vaste IDs opnieuw importeren en synchroniseren tussen twee apparaten voor dagen, weer, maanden en zon.
-- Praktijkacceptatie op bestaande apparaten blijft vereist; geen merge zonder expliciet akkoord.
+> **Dit bestand (verleden):** waarom iets zo is gekozen. Elk besluit heeft een vast nummer (D1, D2, …), het oudste bovenaan.
+> Oude besluiten pas je niet aan; een nieuw besluit komt onderaan en kan een oud besluit vervangen ("vervangt D12").
+> **Niet hier:** wat er per versie veranderde → [`CHANGELOG.md`](CHANGELOG.md); hoe de app in elkaar zit → [`ARCHITECTUUR.md`](ARCHITECTUUR.md); wat nog moet → [`ROADMAP.md`](ROADMAP.md).
 
-# Beslissingen
+## D1 – 2026-11-05 – Uitgangspunten (versie 1.0.0)
+- **Invoer via HomeWizard CSV-export** (hoofdroute), handmatig als reserve. Geert tikte de dagwaarden
+  eerst over van de Vattenfall-website; de export is nauwkeuriger en levert kwartierdata.
+- **Per dag 24 uurwaarden** (afname en teruglevering) opslaan. Alle tijdvakgrenzen vallen op hele uren;
+  zo blijft de kluis klein (~110 kB per jaar) en kunnen kosten met een ander contract opnieuw berekend worden.
+  Een dag = 00:00 tot 00:00 lokale tijd. Gaten in de metingen worden gelijk over de uren verdeeld.
+- **Vaste id's per datum** (`d:yyyy-mm-dd`, `w:…`, `m:yyyy-mm`), zodat dezelfde dag op twee apparaten
+  bij het synchroniseren één record wordt.
+- **Voorrang bij import**: HomeWizard overschrijft Excel; Excel vult alleen aan. Opmerkingen blijven staan.
+- **Kosten per tijdvak**: exact met uurdata; zonder uurdata verdeeld volgens het gemiddelde uurprofiel
+  (seizoen × week/weekend) en gemarkeerd als schatting.
+- **Seizoenen**: zomer 1 april t/m 30 september, winter 1 oktober t/m 31 maart.
+- **Tijdvakken stroom** (Vattenfall): zomer normaal 00–12 en 16–24; zomer dal week/weekend 12–16;
+  winter normaal 06–12 en 16–01; winter dal dag 12–16; winter dal nacht 01–06.
+- **Saldering (aanname)**: teruggeleverde kWh worden verrekend tegen levering + energiebelasting van
+  hetzelfde tijdvak; vaste terugleverkosten (€462/jaar) per dag verdeeld. Een jaaroverschot (meer terug dan
+  afgenomen) wordt nog niet apart tegen de terugleververgoeding verrekend — bij Geert niet aan de orde.
+- **Na saldering (vanaf 1-1-2027)**: teruglevering × (terugleverkosten − vergoeding) per kWh.
+- **Energiebelasting-staffels** worden niet apart berekend: het tarief is gelijk tot 10.000 kWh / 170.000 m³.
+- **Tarieven als getal in euro's met 6 decimalen** (centen zijn niet precies genoeg); kosten worden pas bij
+  het tonen afgerond. Termijnbedragen staan wel in centen (template-regel).
+- **Temperatuur via Open-Meteo** (geen sleutel nodig; KNMI vereist een API-sleutel). Temperaturen uit de
+  Excel (KNMI) blijven staan. Graaddag: (18 − Tgem) × weging 1,1 (nov–feb) / 1,0 (mrt, okt) / 0,8 (apr–sep).
+- **Excel-import zonder library**: eigen .xlsx-lezer (zip via DecompressionStream), conform de template-regel
+  "geen externe scripts".
+- **Termijnen vs kosten**: over de laatste 12 maanden; schatting. Sinds 1.27.1 krijgt een maand zonder bedrag
+  het laatst bekende bedrag (een termijn geldt tot hij verandert; bij een tussentijdse aanpassing hoeft Geert
+  alleen de maand van de wijziging in te vullen). Maanden vóór het eerste bekende bedrag tellen niet mee.
+  Zo rekenen Overzicht en jaarprognose op dezelfde manier.
+- **Zelfvoorzienendheid**: zelf gebruikt = zonne-opbrengst − teruglevering; aandeel = zelf gebruikt /
+  (afname + zelf gebruikt).
+- **Ingeklapte zijbalk** wordt als weergavevoorkeur in localStorage bewaard (geen gegevens).
+- **P1 automatisch uitlezen staat op de wishlist**: vanaf een https-site blokkeert de browser
+  waarschijnlijk het contact met de dongle op het thuisnetwerk.
 
-## 2026-11-11 – Navigatie en Instellingen uit de kern (versie 1.45.0)
-- **Geen eigen navigatie en instellingenpaneel meer.** Schermen staan in `app.screens`; de schil tekent tabbalk,
-  tabbladen (iPad rechtop) of zijbalk en het scherm Instellingen met het vaste overzicht (template D6). Geert wil
-  al zijn apps dezelfde indeling geven. Vervangt "instellingen als paneel" (1.6.0) en de kopknoppen op de titelregel.
-- **Eigen instellingen als pagina's van de schil**: Tarieven, Gegevens en Weergave via `app.renderSettings()`.
-- **`js/core/` is weer een exacte kopie van de template** (ook `findById` en `isSyncing`); vervangt de uitzondering
-  van 1.38.2. Zo blijft de kern in alle apps gelijk.
+## D2 – 2026-11-05 – Importcontrole (versie 1.1.0)
+- **Schema 2**: nieuwe collectie `importen` (logboek met rapport en herstelgegevens), op dagen `imp`
+  (per groep stroom `s`, gas `g`, opmerking `o`: welke import de waarde het laatst zette) en `gecontroleerd`.
+  Migratie voegt alleen een lege lijst toe. Gekozen voor MINOR (1.1.0): er hoeft niets opnieuw gekoppeld te
+  worden; een ander apparaat moet alleen bijgewerkt worden voordat daar iets gewijzigd kan worden.
+- **Ongedaan maken per groep velden**: een import bewaart hoe elke groep er vóór de import uitzag. Terugzetten
+  gebeurt alleen als `imp` nog naar deze import wijst, zodat latere imports en handmatige correcties blijven staan.
+  Handmatig wijzigen wist de `imp`-merker van die groep.
+- **Alleen de laatste 10 imports terug te draaien**: oudere herstelgegevens worden gewist, zodat de kluis klein blijft.
+  Ongewijzigde waarden worden niet opgeslagen, dus een overlappende export kost bijna niets.
+- **Overlap vergelijken**: bestaande waarde tegenover de nieuwe; afwijkend bij meer dan 0,1 kWh / 0,05 m³ én meer
+  dan 2%. Bij Excel na HomeWizard blijft de HomeWizard-waarde staan, maar het verschil wordt wel getoond.
+- **Controles worden berekend, niet opgeslagen**: "normaal" = mediaan van ±15 dagen (minimaal 7 waarden);
+  uitschieter bij meer dan 3× normaal én een minimaal verschil (stroom 5 kWh, teruglevering 10 kWh, gas 3 m³);
+  ≥300× wijst op komma/punt of eenheid. Gas per graaddag tegenover de mediaan van ±30 dagen. Teruglevering
+  tussen 23 en 05 uur > 0,1 kWh. Reeksen nullen: gas ≥3 dagen in okt–mrt, teruglevering ≥3 dagen in apr–sep.
+- **Afvinken met vingerafdruk** (`afname|terug|gas`): verandert een waarde, dan komt de melding vanzelf terug.
+- **Vergelijking met de jaarafrekening wordt niet bewaard**: alleen voor dat moment.
 
-## 2026-11-09 – Template-restanten opgeruimd (versie 1.38.2)
-- **Setup-bestanden weg**: `docs/STARTPROMPT.md`, `docs/CLAUDE-INSTRUCTIES.md` en `tools/setup.mjs` dienden alleen om
-  een nieuwe app uit de template te maken. De werkinstructies staan in de projectinstructies; de template-repo houdt
-  de originelen.
-- **`js/core/` blijft een kopie van de template**, op twee ongebruikte functies na (`findById`, `isSyncing`). Bij
-  het overnemen van template-updates die twee niet terugzetten, tenzij er iets is dat ze gebruikt.
-- **Settings als venster (`dialog.sheet`) uit de CSS**: de instellingen zijn sinds 1.6.0 een paneel.
+## D3 – 2026-11-05 – Vattenfall-import (versie 1.2.0)
+- **Vattenfall is leidend** (keuze Geert): dat zijn de officiële meetgegevens waarop de rekening gebaseerd is.
+  Rangorde Vattenfall > HomeWizard > Excel > handmatig. Een import overschrijft alleen waarden van een bron met
+  gelijke of lagere rang; anders alleen vergelijken (`behouden: true` in het overlap-overzicht). Vervangt de
+  regel "HomeWizard overschrijft Excel" uit 1.0.0.
+- **Zelfde omrekening als HomeWizard**: kwartier- en uurbestanden worden omgezet naar de stand aan het begin van elk
+  uur en gaan door `standenNaarDagen`. Zo worden zomer-/wintertijd en gaten precies zo behandeld.
+  Getest met Geerts bestanden (5-5 t/m 4-11-2026): alle 33 stroomdagen en 62 gasdagen gelijk aan de Excel.
+- **Herkennen aan de kopregel** (`Datum;Tijd;…Meterstand levering…`), niet aan de bestandsnaam. Het gasbestand is
+  Windows-1252 (m³); alleen de kop raakt daardoor verminkt en die wordt niet op ³ gecontroleerd.
+- **Dagbestanden**: geen uurverdeling. Bestaat er al een HomeWizard-uurverdeling (of komt die later), dan wordt die
+  geschaald naar het Vattenfall-dagtotaal; de bron blijft `vattenfall`. Bij een keuze van meerdere bestanden
+  worden Vattenfall-bestanden eerst verwerkt. Maandbestanden worden geweigerd.
+- **MINOR (1.2.0)**: geen schemawijziging; alleen een nieuwe bronwaarde `vattenfall` en nieuwe importsoorten
+  `vattenfall-stroom`/`vattenfall-gas`. Een apparaat met 1.1.0 toont die als "onbekend" tot het is bijgewerkt.
 
-## 2026-11-09 – SolarEdge automatisch (versie 1.38.0)
-- **Ophalen door een GitHub Action in SyncData, niet door de app zelf.** Eis van Geert: de API-sleutel mag niet in
-  de publieke repo of code. In de app (kluis) zou hij wel privé zijn, maar SolarEdge staat browserverkeer vanaf een
-  andere site waarschijnlijk niet toe (CORS; niet te testen in de sandbox). De Action draait bij GitHub, heeft daar
-  geen last van en de sleutel staat als geheim `SOLAREDGE_API_KEY` (site-ID optioneel via `SOLAREDGE_SITE_ID`;
-  anders de eerste site van de sleutel). Elke nacht 04:17 UTC, en met de hand te starten.
-- **Onversleuteld CSV-bestand in de private repo** (`energieverbruik/solaredge-dag.csv`), in de opmaak van een
-  SolarEdge-dagexport. De Action kent het kluiswachtwoord niet, dus versleutelen kan niet; zonne-opbrengst is weinig
-  gevoelig en de repo is privé. Zelfde opmaak = dezelfde inleesroutine (`leesSolarEdge`), en het bestand is ook
-  met de hand in te lezen.
-- **Per dag, niet per kwartier**: past op wat de app nu bewaart (collectie `zon`). Kwartier blijft op de wishlist.
-- **Eerste keer alles vanaf de installatiedatum, daarna de laatste 14 dagen opnieuw** (SolarEdge vult soms later
-  aan). Per vraag maximaal een jaar (grens van de API). Alleen een commit als er iets veranderd is.
-- **App leest het bestand met het sync-token** (zelfde repo, zelfde rechten), via nieuwe `ctx.leesSyncBestand`
-  in shell.js (template-afwijking). Daarvoor eerst een sync, zodat een ander apparaat dat al heeft ingelezen niet
-  tot dubbele imports leidt. Hooguit eens per uur per sessie; sha van het verwerkte bestand per apparaat in
-  localStorage (`energieverbruik:solaredge-sha`), dus bij geen verandering ook geen werk.
-- **Alleen nieuwe of gewijzigde dagen als import** (`zetSolarEdge`, bestandsnaam "SolarEdge (automatisch)"), met
-  rapport en ongedaan maken zoals een gewone import. Geen verandering = geen importregel. Meldingen over reeksen
-  nullen alleen over die dagen (`nulReeksen` uit import-solaredge.js); "overgeslagen vóór installatie" alleen
-  bij de eerste keer.
-- **MINOR (1.38.0)**: geen schemawijziging; alleen een nieuwe bestandsnaam bij een bestaande importsoort.
+## D4 – 2026-11-05 – Gas per graaddag per dag (versie 1.3.0)
+- **Zelf berekend, niet uit de Excel**: gas ÷ gewogen graaddag, alleen als er gas is en de graaddag boven 0 ligt
+  (anders –; de Excel toont dan 0). Zelfde uitkomst als kolom O voor alle 268 vergeleken dagen.
+- **Afwijking van de Excel bij precies 0,0 °C**: de Excel laat de graaddag dan leeg (`IF(G=0,"",…)`); de app rekent
+  gewoon (18 × weegfactor). Komt voor op 18-1-2025.
+- **Maandwaarde = totaal gas ÷ totaal graaddagen** (alleen stookdagen), niet het gemiddelde van de dagwaarden:
+  zachte dagen met een kleine graaddag geven per dag grote uitschieters die een gemiddelde scheeftrekken.
+- **Kolom ook op de iPhone zichtbaar** (niet `verberg-smal`), omdat Geert dit dagelijks wil zien.
+- **MINOR**: nieuwe weergave, geen schemawijziging; de waarde wordt berekend, niet opgeslagen.
 
-## 2026-11-06 – Negen nieuwe analyses (versies 1.29.0 t/m 1.37.0)
-Geert vroeg om alle voorgestelde extra analyses. Zeven van de zestien voorstellen bestonden al (sluipverbruik, einde
-saldering, heatmap, stooklijn/weer-gecorrigeerd, eigen verbruik, piekvermogen, controle op afwijkende dagen); de negen
-nieuwe zijn elk een eigen soort met een eigen MINOR-versie. Rekenwerk in `analyse-watals.js` (geen DOM, met Node te
-testen), schermdeel in `analyse-watals-soorten.js`. Keuzes per soort staan in `WATALS_STANDAARD` en gaan mee in
-favorieten (getallen als tekst met komma, zoals in een invoerveld).
-- **Tegels in groepen** (`GROEPEN` in analyse-soorten.js, `groep` per soort): met 18 soorten werd één raster te lang.
-- **Opgehaalde gegevens alleen op het apparaat** (`extern.js`, localStorage `energieverbruik:straling` en
-  `energieverbruik:beursprijzen`): openbare gegevens die altijd opnieuw op te halen zijn, dus niet in de kluis en
-  niet gesynchroniseerd (scheelt honderden kB per sync). Pas ophalen bij het openen van de analyse; per sessie één
-  keer per maand/dag om een ophaal-lus te voorkomen. Resultaat wordt getekend zodra de gegevens binnen zijn
-  (`.analyse-laad` met `display: contents`).
-- **EnergyZero voor beursprijzen** (gratis, geen sleutel; ENTSO-E vraagt een sleutel). `connect-src` uitgebreid met
-  `https://api.energyzero.nl`. Kwartierprijzen en het dubbele uur bij wintertijd worden gemiddeld tot één uurprijs,
-  omdat de app per uur rekent. Niet getest tegen de echte dienst (geblokkeerd in de testomgeving): of EnergyZero
-  vanuit de browser (CORS) werkt, moet op de iPhone blijken.
-- **Opvallende dagen**: verwacht = mediaan van dezelfde weekdag in de 8 weken ervoor; drempel = max(minimum,
-  k × spreiding (MAD), percentage). Standaard "zonder grote verbruikers": uren met > 2 kWh afname tellen niet mee,
-  anders bestond de lijst vrijwel alleen uit laaddagen van de auto (77 van 321 dagen bij Geert).
-- **Goedkopere uren**: verschuiven binnen dezelfde dag naar het goedkoopste tijdvak; met en zonder saldering gelijk.
-- **Terugleverschaal**: grenzen als invoer (standaard 3.500–4.000, schaal 14) omdat de volledige tabel niet bekend is;
-  verwacht jaartotaal uit `jaarPrognose`. Bij Geerts data: verwacht ~2.860 kWh in 2026, dus onder schaal 14.
-- **Zon tegen weer**: instraling = shortwave_radiation_sum (horizontaal, MJ/m²). De verhouding opbrengst/instraling
-  verschilt per seizoen (hellende panelen), dus alleen vergelijken met dezelfde kalendermaand in andere jaren
-  (mediaan, minstens 2 jaren); onder 85% = gemarkeerd. Excel-november 2025 (35 kWh) komt er in de test meteen uit.
-- **Thuisbatterij**: per uur, laadt alleen met teruglevering, ontlaadt bij afname, vermogen min(5 kW, helft van de
-  capaciteit), 90% rendement heen en terug, leeg na een gat. Kosten via `kostenDag` met de uurwaarden, zonder vaste
-  kosten, met saldering en met het contract na saldering. Bij Geert (5 kWh): nu −€ 20, vanaf 2027 ~€ 370 per jaar.
-- **Dynamisch contract**: afname (beurs + inkoop) × 1,21 + energiebelasting; teruglevering beurs − opslag, zonder btw.
-  Vergeleken met het eigen contract na saldering; vaste kosten tellen niet mee (bij beide ongeveer gelijk).
-- **Warmtepomp**: vaste deel van de stooklijn = warm water/koken; 8,8 kWh warmte per m³; COP = 3,3 + 0,08 × T
-  (−0,6 bij gewone radiatoren, tussen 1,8 en 5); hybride tot vermogen × 20 uur per dag; volledig: ook warm water
-  (COP 2,5) en de vaste gaskosten vervallen. Stroom tegen het daggemiddelde van het tarief, zonder saldering.
-- **CO₂**: 0,20 kg/kWh (CBS 2024, integrale methode) en 1,78 kg/m³ aardgas, beide aan te passen; teruglevering telt als
-  vermeden.
-- **Gemiddeld huishouden**: CBS 2025 (voorlopig) per aantal personen en per woningtype, woningen met gasaansluiting;
-  vast in de code (`CBS_PERSONEN`, `CBS_WONING`). Bij Geert zowel afname van het net als totaal verbruik (met eigen
-  zonnestroom), omdat het CBS naar levering via het net kijkt.
+## D5 – 2026-11-05 – Gas per graaddag volgt de periode (versie 1.3.1)
+- **Zelfde perioden als de hoofdgrafiek** (31 dagen, 13 weken, 12 maanden, 5 jaar), met vorig jaar ter vergelijking.
+- **Minimum graaddagen per periode**: dag 1, week 3, maand en jaar 5. In de grafiek zouden zachte dagen met een
+  graaddag van bijv. 0,1 enorme staven geven en de rest platdrukken. In de dagtabel van Historie staat de
+  waarde wel bij elke graaddag boven 0 (zoals de Excel).
+- **PATCH**: verbetering van een bestaande grafiek.
 
-## 2026-11-06 – Heatmap stoplichtkleuren en gas (versie 1.28.0)
-- **Stoplichtkleuren** (keuze Geert): vaste schaal groen → lichtgroen → geel → oranje → rood (ColorBrewer RdYlGn),
-  in grafiek.js berekend, los van het kleurthema. Richting per grootheid: afname en gas laag = groen; teruglevering
-  hoog = groen; netto loopt symmetrisch van teruglevering (groen) via 0 (geel) naar afname (rood). De legenda loopt
-  altijd van groen (links) naar rood (rechts).
-- **Schaal tot het 95e percentiel** in plaats van het maximum: één uur auto laden zou anders alles groen maken.
-  Lineair in plaats van de wortelschaal van eerst; met het percentiel is die niet meer nodig.
-- **`uurGas` op de dag** (24 waarden, m³), in groep `g`. Zelfde aanpak als `uurAfname`: hogere bron met alleen een
-  dagtotaal krijgt de uurverdeling van de lagere bron geschaald; handmatig gas wijzigen wist `uurGas`. Excel zet
-  geen `uurGas` (zetGroep wist het bij overschrijven). Geen schemawijziging: oudere versies laten het veld staan
-  (zoals `piek`), dus MINOR.
+## D6 – 2026-11-05 – Logo en versienummer (versie 1.3.2)
+- **Zelfde opbouw als Vaste Lasten**: logo + naam + versie bovenin de zijbalk, inklapknop rechts ernaast.
+  Ingeklapt: alleen logo met de knop eronder.
+- **Logo = het app-icoon** (`icons/icon-192.png`), zodat het overeenkomt met het icoon op het beginscherm en al
+  offline in de cache staat.
+- **iPhone/iPad**: geen zijbalk, dus logo, naam en versie in de kopbalk. Op de laptop wordt dat deel van de kopbalk
+  verborgen (staat al in de zijbalk); de knoppen rechts blijven.
+- **Versie via `data-app-version`**, ingevuld vanuit `APP.version` in app.js; zo blijft config.js de enige plek
+  waar het nummer staat. Core-bestanden (shell.js) niet aangepast.
+- **Zijbalk 216 → 256 px**: anders werd "Energieverbruik" afgekapt.
+- **PATCH**: kleine verbetering, geen nieuwe functie.
 
-## 2026-11-06 – Zonne-opbrengst per dag (versie 1.26.0)
-- **Dagwaarden in een eigen collectie `zon`** (`{ id: 'z:yyyy-mm-dd', datum, zon, imp }`), niet als veld op `dagen`.
-  Een dag in `dagen` is een meetdag: hij krijgt vaste kosten, telt mee voor "ontbrekende dagen" en de eerste dag
-  bepaalt het begin van alle overzichten. Een dag met alleen zon (bijv. een SolarEdge-export vanaf 2020) zou dat
-  allemaal verstoren. **Schema 5**, MINOR (zoals 1.6.0 en 1.22.0): niets opnieuw koppelen, wel eerst andere
-  apparaten bijwerken voordat je daar iets wijzigt.
-- **Dag gaat voor maand** (keuze Geert): per maand rekent de app met de dagen als élke dag van die maand bekend is;
-  anders met de maandwaarde (SolarEdge-maandexport, Excel, handmatig); zonder maandwaarde met de dagen die er zijn
-  (gemarkeerd "niet elke dag"). De maandwaarde wordt niet overschreven, zodat ongedaan maken eenvoudig blijft en een
-  latere maandexport gewoon werkt. Alles zit in `zonPeriode()` in model.js; Overzicht, Analyse en Historie gebruiken die.
-- **Zelf gebruikt per dag**: max(0, opbrengst − teruglevering) per dag, dan opgeteld. Iets preciezer dan per maand
-  (een dag met meer teruglevering dan opbrengst kan niet negatief tellen). Bij Geert in oktober 2026: 124,4 kWh per dag
-  tegen 124,4 per maand, dus in de praktijk gelijk. Alleen dagen waarvan ook de stroom bekend is tellen voor zelf
-  gebruikt en het percentage.
-- **Per dag/week in Analyse alleen uit dagwaarden**: een maandtotaal is niet eerlijk over dagen te verdelen.
-  Per maand/jaar telt een maandwaarde voor de hele maand mee, ook als de maand maar deels in de periode valt (zoals
-  voorheen). Zelfvoorzienendheid in Analyse is alleen per dag/week/maand/jaar (een gemiddelde per weekdag van
-  percentages zou misleidend zijn).
-- **Herkennen**: kop met Meettijd/Time en een kolom Energy, Energie, Productie of Production. Dag- of maandbestand
-  aan de eerste tijdcel ("1 okt. 2026 00:00" tegenover "okt. 2026"). Datums ook Engels ("Oct 1, 2026"), ISO en
-  dd-mm-jjjj. Kleinere stappen (uur/kwartier) worden per dag opgeteld; de kolom Verbruik wordt genegeerd (0 zonder
-  verbruiksmeter bij de omvormer).
-- **Overslaan**: vandaag en later (onvolledig). Nullen aan het begin alleen bij minstens 7 dagen (vóór de
-  installatie); één sombere dag kan echt 0 zijn. Melding bij 3 of meer dagen 0 achter elkaar.
-- **Overzicht**: bij Dag/Week een kaart "Zonnepanelen · per dag/week" (zelfde kolomgrafiek met één reeks) zodra er
-  in die dagen/weken dagwaarden zijn; anders de vergelijking per kalendermaand.
+## D7 – 2026-11-05 – "null" in Historie (versie 1.3.3)
+- **Centraal opgelost in app.js** (`inhoud.filter(Boolean)`) in plaats van alleen in scherm-historie.js, zodat
+  geen enkel scherm dit probleem nog kan krijgen. Core-bestanden niet aangepast.
+- **PATCH**: bugfix.
 
-## 2026-11-05 – Weergave Zwart voor OLED (versie 1.25.0)
-- **Vierde keuze naast Automatisch/Licht/Donker**, geen apart thema: zo werkt Zwart met elk kleurthema.
-  `data-modus="zwart"` zet color-scheme op dark (alle donkere kleuren) en overschrijft daarna alleen de vlakken.
-- Achtergrond echt **#000** zonder tint van de accentkleur (een tint zou de pixels weer aanzetten). Kaarten #0b0b0d,
-  vlakken #17181b met 4% accent, randen #24262b: net genoeg verschil om kaarten en knoppen te zien.
-- Automatisch kiest nooit Zwart: het systeem kent alleen licht en donker.
+## D8 – 2026-11-05 – Maandtotaal als tabelregel (versie 1.3.4)
+- **Zelfde vorm als Maanden** (klasse `jaar-rij`), op Geerts verzoek: totalen onder de kolommen in plaats van een
+  tekstregel erboven.
+- **m³/gd = totaal gas ÷ totaal graaddagen** (zoals eerder besloten), **°C = gemiddelde** van de dagen met een
+  temperatuur. Kosten cursief als er geschatte dagen in zitten.
+- **Totaalregel niet aantikbaar**; alleen dagregels openen het bewerkvak.
+- **PATCH**: verbetering van een bestaande weergave.
 
-## 2026-11-05 – Kleurthema's en licht/donker (versie 1.24.0)
-- **Zes thema's** (Groenblauw = standaard, Blauw, Groen, Paars, Framboos, Grafiet). Een thema zet de accentkleur en
-  geeft achtergrond, randen en vlakken 4–6% van die kleur. Geen oranje of rood thema: oranje is de kleur van
-  "vorig jaar" en van lijnen (--warn), rood van fouten (--danger). Waar een jaarkleur op de accentkleur lijkt,
-  krijgt dat thema een andere jaarkleur (groenblauw bij Blauw/Paars voor jaar 2, bij Framboos voor jaar 3).
-- **Licht/donker via `light-dark()`** in de CSS-variabelen in plaats van `@media (prefers-color-scheme: dark)`.
-  Zo werkt "vast licht/donker" door alleen `color-scheme` om te zetten (data-modus op `<html>`), zonder alle donkere
-  kleuren dubbel te hoeven schrijven. Vereist Safari 17.5+ / Chrome 123+ (iPhone met iOS 17.5 of nieuwer).
-  Template-afwijking: base.css (de basiskleuren) is hierop aangepast.
-- **Per apparaat** (localStorage `energieverbruik:weergave`), niet in de kluis: op de iPhone wil je misschien donker
-  en op de laptop licht. Zelfde aanpak als de ingeklapte zijbalk en de indeling van het Overzicht.
-- **js/thema.js is een gewoon script in `<head>`** (geen module), zodat het thema er staat vóór de pagina getekend
-  wordt (geen flits van de standaardkleur). Inline scripts mogen niet door de Content-Security-Policy.
-- Thema-regels gebruiken `[data-thema=…]` zonder `:root`, zodat de voorbeeldtegels in Instellingen met hetzelfde
-  attribuut hun eigen kleuren tonen.
-- Statusbalkkleur (`meta theme-color`) wordt gelijk gezet aan de achtergrond, omgezet naar rgb via een canvas
-  van 1 pixel (de browser geeft de berekende kleur als oklab(), wat niet elke browser in die meta-tag begrijpt).
+## D9 – 2026-11-05 – SolarEdge-import (versie 1.4.0)
+- **Maandbestand** (de export die Geert aanleverde: alle maanden van alle jaren in één bestand). Dagbestanden
+  worden geweigerd met een duidelijke melding; per dag staat op de wishlist.
+- **SolarEdge gaat voor de opbrengst**: een bestaande waarde (Excel of handmatig) wordt overschreven, het verschil
+  staat in het rapport (afwijkend bij > 1 kWh én > 2%). Reden: de Excel had maanden die halverwege waren overgetikt
+  (nov 2025: 35 i.p.v. 139). Handmatig invullen blijft mogelijk en wist de import-merker, zodat ongedaan maken
+  een handmatige correctie laat staan.
+- **Overslaan**: maanden met 0 vóór de eerste opbrengst (vóór de installatie) en de lopende/toekomstige maanden
+  (onvolledig, zelfde gedachte als de onvolledige dag bij meterbestanden). Een 0 tussen andere maanden wordt wel
+  ingelezen, met een melding.
+- **Herkennen aan de kopregel** (Meettijd/Time + Energy), zodat het bestand ook via "Export inlezen" kan. Maandnamen
+  Nederlands én Engels; eenheid uit de kop (Wh/kWh/MWh); punt als decimaalteken, komma's met groepjes van drie
+  als duizendtallen.
+- **Ongedaan maken herstelt de oude waarde**: `herstel.maanden[m].oud` bewaart waarde en import-merker. Oude
+  Excel-imports hebben geen `oud` en zetten zoals voorheen terug naar leeg.
+- **Geen schemawijziging**; alleen een nieuwe importsoort `solaredge`. **MINOR (1.4.0)**: nieuwe functie. Een apparaat
+  met een oudere versie toont deze import als "solaredge" in de lijst tot het is bijgewerkt.
 
-## 2026-11-05 – Soort analyse als tegels (versie 1.23.0)
-- **Eigen kaart bovenaan ("Wat wil je analyseren?") met tegels** in plaats van een keuzelijst in het blok Samenstellen
-  (verzoek Geert: het is de eerste keuze). Elke tegel heeft een korte naam en een regel uitleg, zodat je ziet wat er
-  is zonder de lijst open te klappen. 2 kolommen op de iPhone, 3 op de iPad, 5 op de laptop.
-- **Altijd zichtbaar**, ook na het kiezen (geen inklappen): wisselen blijft één tik. Kost op de iPhone ~5 rijen hoogte.
-- Het blok met de overige keuzes heet "Samenstellen" bij Zelf samenstellen en "Keuzes" bij de andere soorten, zodat
-  de titel niet dubbel staat met die van het resultaat.
+## D10 – 2026-11-05 – Uitleg SolarEdge (versie 1.4.1)
+- **Naam van het portaal overgenomen van Geert** ("SolarEdge Monitoring platform"), zodat de uitleg aansluit bij wat hij
+  op zijn scherm ziet. **PATCH**: alleen tekst.
+- **Melding over 0 kWh blijft**: aug 2025 klopt (panelen uit), maar bij een volgende import is zo'n melding nog steeds
+  nuttig om een echte storing op te merken.
 
-## 2026-11-05 – Uitbreiding Analyse (versies 1.10.0 t/m 1.22.1)
+## D11 – 2026-11-05 – Eén plek voor alle bestanden (versie 1.5.0)
+- **Op verzoek van Geert**: één knop (Invoer → Bestanden inlezen) voor alle bronnen; de app herkent het bestand aan de
+  inhoud (kopregel bij CSV, zip-kop of .xlsx bij Excel), niet aan de bestandsnaam.
+- **Excel ook via deze knop**, zodat er echt één plek is; de Excel-kaart in Instellingen is weg.
+- **Voorrang ongewijzigd** (Vattenfall > HomeWizard > Excel > handmatig voor stroom en gas; SolarEdge voor de
+  opbrengst). Vattenfall is bepalend, ongeacht de volgorde van inlezen. Bij meerdere bestanden tegelijk wordt
+  verwerkt in de volgorde Vattenfall → HomeWizard → Excel → SolarEdge.
+- **MINOR**: andere indeling van bestaande functies, geen schemawijziging.
+
+## D12 – 2026-11-05 – Analyse en één plek voor Instellingen (versie 1.6.0)
+- **Instellingen als paneel, niet als venster**: de secties van de schil (sync, beveiliging, back-up, over, wissen)
+  verhuizen in index.html van `<dialog>` naar `#settings-panel` onder de app-inhoud. Ze blijven dus altijd in het
+  document, zodat shell.js ze gewoon kan vinden en vullen. Het scherm Instellingen toont via
+  `ctx.toonSchilInstellingen(groep)` alleen de secties van het gekozen onderdeel (`data-groep`). Alternatief (de
+  elementen telkens in het scherm verplaatsen) viel af: bij opnieuw tekenen zouden ze uit het document verdwijnen.
+- **Drie onderdelen**: Tarieven (vaakst gebruikt), Gegevens (export, temperatuur, back-up: alles rond je data) en
+  App en sync (koppeling en beveiliging). Tandwiel verwijderd; de sync-knop opent bij geen koppeling App en sync
+  (`app.openSettings`).
+- **Wijziging in core** (shell.js, index.html): bewust, omdat het verzoek juist over de template-instellingen gaat.
+  Klein gehouden: `openSettings` delegeert naar de app als die `app.openSettings` heeft, anders toont hij alles.
+- **Analyse-keuzes** volgens Geerts antwoorden: verbruik, kosten, weer en tijdvakken/uur; vergelijken met vorig jaar,
+  een andere periode (zelfde lengte, eigen startdatum) of een tweede grootheid (lijn, as rechts); favorieten; CSV.
+- **Eén vergelijking tegelijk** (vorig jaar óf andere periode óf tweede grootheid): een grafiek met staven, grijze
+  staven én een lijn wordt op de iPhone onleesbaar.
+- **Per uur/tijdvak alleen stroom** (afname, terug, netto): gas en kosten zijn niet per uur opgeslagen. Per uur =
+  gemiddeld per dag; dagen zonder uurdata volgen het uurprofiel en zijn als geschat gemarkeerd. Zonne-opbrengst alleen
+  per maand/jaar (SolarEdge levert maanden).
+- **Vorig jaar bij week = 364 dagen eerder**, zodat weekdagen gelijk blijven; bij dag/maand/jaar dezelfde datum
+  (dag aangepast in 1.41.1, zie onder).
+- **Per dag maximaal 400 dagen**: meer staven zijn niet meer te lezen.
+- **Favorieten bewaren relatieve perioden** ("laatste 12 maanden"), zodat ze meegaan in de tijd; eigen datums worden
+  vast bewaard.
+- **Favorieten in de kluis** (collectie `analyses`, schema 3), zodat ze synchroniseren. Schema-ophoging zoals bij
+  1.1.0 als MINOR: de app werkt zich bij openen zelf bij, Geert hoeft niets te koppelen.
+
+## D13 – 2026-11-05 – Grafiek of lijst per kaart (versie 1.7.0)
+- **Keuze per kaart, niet één knop voor alles**: bij zonnepanelen wil je misschien de tabel en bij verbruik de
+  grafiek. Bewaard in localStorage (weergavevoorkeur, geen gegevens; niet gesynchroniseerd), standaard Grafiek.
+- **Zonnepanelen in één grafiek**: opbrengst en zelf gebruikt als staven (kWh), zelfvoorzienendheid als lijn met
+  eigen as rechts, met de bestaande `lijn`-optie van `staafGrafiek`. Altijd per maand (opbrengst is alleen per
+  maand bekend), los van de periodekeuze.
+- **Lopende periode in de lijst**: geen verschilpercentage, omdat de vergelijking met de hele periode vorig jaar
+  een vertekend beeld geeft. De Kerncijfers vergelijken wel netjes dezelfde dagen.
+
+## D14 – 2026-11-05 – Zonnepanelen per jaar vergelijken (versie 1.8.0)
+- **Overlappende kolommen** (keuze Geert): zelf gebruikt kan nooit hoger zijn dan de opbrengst, dus past het als
+  gevuld deel binnen de opbrengst-kolom. Percentage als bijschrift; geen tweede as. Vervangt de lijn uit 1.7.0.
+- **Kalenderjaar als x-as (jan–dec)** met de gekozen jaren naast elkaar, in plaats van de laatste 12 maanden; zo is
+  elke maand direct met dezelfde maand in andere jaren te vergelijken.
+- **Jaarkeuze als weergavevoorkeur** in localStorage (niet gesynchroniseerd). Standaard de laatste twee jaren met
+  opbrengst; hoogstens 4 (anders worden kolommen te smal en zijn de kleuren niet meer uit elkaar te houden).
+- **Kleuren per jaar**: nieuwste accent, dan grijs, oranje, paars. Percentage liggend als de kolom ≥18 px breed is,
+  staand vanaf 7 px, anders alleen in de tekst bij aantikken.
+
+## D15 – 2026-11-05 – Indeling Overzicht op de laptop (versie 1.9.0)
+- **Op verzoek van Geert drie brede varianten naast de bestaande**, te kiezen in Instellingen → App en sync (sinds 1.9.1 op het Overzicht), zodat hij
+  ze in de praktijk kan vergelijken. Weergavevoorkeur in localStorage (`energieverbruik.overzichtIndeling`), dus per
+  apparaat en niet gesynchroniseerd: op de iPhone heeft de keuze geen zin.
+- **Alleen vanaf 1200 px vensterbreedte** (`BREED_SCHERM`): daaronder past een tweede kolom niet goed naast de zijbalk
+  (256 px). Daaronder altijd één kolom. Bij het passeren van de grens tekent app.js het Overzicht opnieuw.
+- **Inhoud breder (max. 1640 px)** alleen bij een brede indeling en alleen op het Overzicht (`body[data-indeling]`);
+  de andere schermen houden 1040 px (tabellen en formulieren worden te breed niet beter leesbaar).
+- **Grafiekbreedte doorgeven** (`breedte` bij `staafGrafiek`/`zonGrafiek`), berekend uit vensterbreedte, zijbalk en
+  de vaste maten in app.css. Zo blijft de tekst in een halve kolom even groot als in een hele.
+- **Grafiek en lijst**: lijst vast 380 px rechts, met eigen scrollbalk (max. 320 px hoog) en vaste kop, zodat de kaart
+  niet hoger wordt dan de grafiek. De knop Grafiek/Lijst vervalt daar.
+- **Alles tegelijk** bouwt op Naast elkaar: vier aparte kaarten (elk met eigen Grafiek/Lijst-keuze, ids `alles-<soort>`),
+  daarna gas per graaddag, zonnepanelen en termijnen in hetzelfde raster. Een losse laatste kaart beslaat de hele breedte.
+- **MINOR**: nieuwe functie, geen schemawijziging.
+
+## D16 – 2026-11-05 – Indelingskeuze op het Overzicht (versie 1.9.1)
+- **Op verzoek van Geert op het Overzicht zelf**, niet in Instellingen: je ziet direct het effect van je keuze. Uit
+  Instellingen verwijderd, zodat er één plek is.
+- **Rechts naast de schermtitel**: app.js zet de titel in `.scherm-kop`; een scherm kan via `staat.titelExtra` iets
+  rechts naast de titel plaatsen (wordt bij elke render leeggemaakt). Zo staat de keuze niet tussen de andere knoppen
+  (Dag/Week… en Stroom/Terug…), die over de gegevens gaan in plaats van over de opmaak.
+- **Alleen vanaf 1200 px zichtbaar**: daaronder heeft de keuze geen effect.
+- **PATCH**: bestaande functie op een andere plek.
+
+## D17 – 2026-11-05 – Kaarten uitlijnen in twee kolommen (versie 1.9.2)
+- **CSS subgrid**: elke kaart heeft vier vaste vakken (kop, extra knoppen, inhoud, toelichting; `vakKaart`) en deelt
+  die rijen met de kaart ernaast. Daardoor gelijke hoogte en uitlijning zonder vaste pixelhoogtes. Een leeg vak is een
+  lege `div.kaart-leeg` (bij één kolom verborgen). Subgrid werkt in Safari 16+ en Chrome 117+.
+- **Rijafstand via marge, niet via row-gap** van het raster: in Chrome viel die afstand anders ook tussen de vakken
+  binnen een kaart.
+- **`.grafiek` met align-content: start**: anders rekte de regel boven de grafiek uit als de kaart ernaast hoger was
+  (bijv. door een legenda) en zakte de grafiek een stukje.
+- **Grafieken even hoog** in twee kolommen (`hoogte`-optie, 260 px; 220 px bij een smalle kolom).
+- **Losse laatste kaart** op volle breedte krijgt ook een grafiek op volle breedte. **Termijnen** (losse getallen)
+  staan buiten het raster, altijd over de hele breedte: naast een grafiek zou er veel lege ruimte in komen.
+- **PATCH**: verbetering van een bestaande weergave.
+
+## D18 – 2026-11-05 – Vaste terugleverkosten per maand verdelen (versie 1.9.3)
+- **Zoals Vattenfall**: jaarbedrag ÷ 12 ÷ dagen in de maand, in plaats van ÷ 365. Zo komen de dagkosten overeen met
+  wat Geert in Mijn Vattenfall ziet; het jaartotaal blijft € 462 (ook in schrikkeljaren).
+- **Wintertijd-afwijking van Vattenfall niet nagebootst**: de app deelt kwartieren in op de kloktijd, wat volgens het
+  contract juist is. Verschil is enkele centen op één dag per jaar.
+- **PATCH**: bugfix in de berekening, geen schemawijziging.
+
+## D19 – 2026-11-05 – Kleuren per jaar (versie 1.9.4)
+- **Vaste jaarpalet in CSS** (`--jaar-0` t/m `--jaar-3` in app.css): accent, oranje, indigo, magenta, met een eigen
+  donkere variant. Alle vier hebben minstens 3:1 contrast met de achtergrond (licht en donker), en de tinten liggen ver
+  uit elkaar, ook voor wie rood/groen slecht onderscheidt.
+- **Vorig jaar = `--jaar-1` (oranje)** in de gewone staafgrafieken, dezelfde kleur als het op één na nieuwste jaar bij
+  Zonnepanelen. Zo betekent een kleur overal hetzelfde: "het jaar ervoor". Grijs (vroeger) leek op "geen gegevens".
+- **Kleur hangt nog af van de plek (nieuwste = accent)**, niet van het kalenderjaar zelf. Zo is "dit jaar" altijd de
+  accentkleur. Nadeel: 2025 is oranje als 2026 ook gekozen is, anders accent.
+- **Oranje lijn (tweede grootheid in Analyse) en oranje vorig-jaarstaaf** komen nooit samen voor (één vergelijking
+  tegelijk), dus geen verwarring.
+
+## D20 – 2026-11-05 – Uitbreiding Analyse (versies 1.10.0 t/m 1.22.1)
 Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 
 ### 1.10.0 Sluipverbruik
@@ -223,147 +311,67 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 ### 1.22.1 Inline stijlen
 - De Content-Security-Policy (`style-src 'self'`) blokkeert style-attributen. Kleuren in de heatmap en breedtes van de top-10-balkjes worden daarom via CSSOM (`el.style.x = …`) gezet; dat is wel toegestaan. De testpagina draait nu met dezelfde CSP.
 
-## 2026-11-05 – Kleuren per jaar (versie 1.9.4)
-- **Vaste jaarpalet in CSS** (`--jaar-0` t/m `--jaar-3` in app.css): accent, oranje, indigo, magenta, met een eigen
-  donkere variant. Alle vier hebben minstens 3:1 contrast met de achtergrond (licht en donker), en de tinten liggen ver
-  uit elkaar, ook voor wie rood/groen slecht onderscheidt.
-- **Vorig jaar = `--jaar-1` (oranje)** in de gewone staafgrafieken, dezelfde kleur als het op één na nieuwste jaar bij
-  Zonnepanelen. Zo betekent een kleur overal hetzelfde: "het jaar ervoor". Grijs (vroeger) leek op "geen gegevens".
-- **Kleur hangt nog af van de plek (nieuwste = accent)**, niet van het kalenderjaar zelf. Zo is "dit jaar" altijd de
-  accentkleur. Nadeel: 2025 is oranje als 2026 ook gekozen is, anders accent.
-- **Oranje lijn (tweede grootheid in Analyse) en oranje vorig-jaarstaaf** komen nooit samen voor (één vergelijking
-  tegelijk), dus geen verwarring.
+## D21 – 2026-11-05 – Soort analyse als tegels (versie 1.23.0)
+- **Eigen kaart bovenaan ("Wat wil je analyseren?") met tegels** in plaats van een keuzelijst in het blok Samenstellen
+  (verzoek Geert: het is de eerste keuze). Elke tegel heeft een korte naam en een regel uitleg, zodat je ziet wat er
+  is zonder de lijst open te klappen. 2 kolommen op de iPhone, 3 op de iPad, 5 op de laptop.
+- **Altijd zichtbaar**, ook na het kiezen (geen inklappen): wisselen blijft één tik. Kost op de iPhone ~5 rijen hoogte.
+- Het blok met de overige keuzes heet "Samenstellen" bij Zelf samenstellen en "Keuzes" bij de andere soorten, zodat
+  de titel niet dubbel staat met die van het resultaat.
 
-## 2026-11-05 – Vaste terugleverkosten per maand verdelen (versie 1.9.3)
-- **Zoals Vattenfall**: jaarbedrag ÷ 12 ÷ dagen in de maand, in plaats van ÷ 365. Zo komen de dagkosten overeen met
-  wat Geert in Mijn Vattenfall ziet; het jaartotaal blijft € 462 (ook in schrikkeljaren).
-- **Wintertijd-afwijking van Vattenfall niet nagebootst**: de app deelt kwartieren in op de kloktijd, wat volgens het
-  contract juist is. Verschil is enkele centen op één dag per jaar.
-- **PATCH**: bugfix in de berekening, geen schemawijziging.
+## D22 – 2026-11-05 – Kleurthema's en licht/donker (versie 1.24.0)
+- **Zes thema's** (Groenblauw = standaard, Blauw, Groen, Paars, Framboos, Grafiet). Een thema zet de accentkleur en
+  geeft achtergrond, randen en vlakken 4–6% van die kleur. Geen oranje of rood thema: oranje is de kleur van
+  "vorig jaar" en van lijnen (--warn), rood van fouten (--danger). Waar een jaarkleur op de accentkleur lijkt,
+  krijgt dat thema een andere jaarkleur (groenblauw bij Blauw/Paars voor jaar 2, bij Framboos voor jaar 3).
+- **Licht/donker via `light-dark()`** in de CSS-variabelen in plaats van `@media (prefers-color-scheme: dark)`.
+  Zo werkt "vast licht/donker" door alleen `color-scheme` om te zetten (data-modus op `<html>`), zonder alle donkere
+  kleuren dubbel te hoeven schrijven. Vereist Safari 17.5+ / Chrome 123+ (iPhone met iOS 17.5 of nieuwer).
+  Template-afwijking: base.css (de basiskleuren) is hierop aangepast.
+- **Per apparaat** (localStorage `energieverbruik:weergave`), niet in de kluis: op de iPhone wil je misschien donker
+  en op de laptop licht. Zelfde aanpak als de ingeklapte zijbalk en de indeling van het Overzicht.
+- **js/thema.js is een gewoon script in `<head>`** (geen module), zodat het thema er staat vóór de pagina getekend
+  wordt (geen flits van de standaardkleur). Inline scripts mogen niet door de Content-Security-Policy.
+- Thema-regels gebruiken `[data-thema=…]` zonder `:root`, zodat de voorbeeldtegels in Instellingen met hetzelfde
+  attribuut hun eigen kleuren tonen.
+- Statusbalkkleur (`meta theme-color`) wordt gelijk gezet aan de achtergrond, omgezet naar rgb via een canvas
+  van 1 pixel (de browser geeft de berekende kleur als oklab(), wat niet elke browser in die meta-tag begrijpt).
 
-## 2026-11-05 – Kaarten uitlijnen in twee kolommen (versie 1.9.2)
-- **CSS subgrid**: elke kaart heeft vier vaste vakken (kop, extra knoppen, inhoud, toelichting; `vakKaart`) en deelt
-  die rijen met de kaart ernaast. Daardoor gelijke hoogte en uitlijning zonder vaste pixelhoogtes. Een leeg vak is een
-  lege `div.kaart-leeg` (bij één kolom verborgen). Subgrid werkt in Safari 16+ en Chrome 117+.
-- **Rijafstand via marge, niet via row-gap** van het raster: in Chrome viel die afstand anders ook tussen de vakken
-  binnen een kaart.
-- **`.grafiek` met align-content: start**: anders rekte de regel boven de grafiek uit als de kaart ernaast hoger was
-  (bijv. door een legenda) en zakte de grafiek een stukje.
-- **Grafieken even hoog** in twee kolommen (`hoogte`-optie, 260 px; 220 px bij een smalle kolom).
-- **Losse laatste kaart** op volle breedte krijgt ook een grafiek op volle breedte. **Termijnen** (losse getallen)
-  staan buiten het raster, altijd over de hele breedte: naast een grafiek zou er veel lege ruimte in komen.
-- **PATCH**: verbetering van een bestaande weergave.
+## D23 – 2026-11-05 – Weergave Zwart voor OLED (versie 1.25.0)
+- **Vierde keuze naast Automatisch/Licht/Donker**, geen apart thema: zo werkt Zwart met elk kleurthema.
+  `data-modus="zwart"` zet color-scheme op dark (alle donkere kleuren) en overschrijft daarna alleen de vlakken.
+- Achtergrond echt **#000** zonder tint van de accentkleur (een tint zou de pixels weer aanzetten). Kaarten #0b0b0d,
+  vlakken #17181b met 4% accent, randen #24262b: net genoeg verschil om kaarten en knoppen te zien.
+- Automatisch kiest nooit Zwart: het systeem kent alleen licht en donker.
 
-## 2026-11-05 – Indelingskeuze op het Overzicht (versie 1.9.1)
-- **Op verzoek van Geert op het Overzicht zelf**, niet in Instellingen: je ziet direct het effect van je keuze. Uit
-  Instellingen verwijderd, zodat er één plek is.
-- **Rechts naast de schermtitel**: app.js zet de titel in `.scherm-kop`; een scherm kan via `staat.titelExtra` iets
-  rechts naast de titel plaatsen (wordt bij elke render leeggemaakt). Zo staat de keuze niet tussen de andere knoppen
-  (Dag/Week… en Stroom/Terug…), die over de gegevens gaan in plaats van over de opmaak.
-- **Alleen vanaf 1200 px zichtbaar**: daaronder heeft de keuze geen effect.
-- **PATCH**: bestaande functie op een andere plek.
+## D24 – 2026-11-06 – Zonne-opbrengst per dag (versie 1.26.0)
+- **Dagwaarden in een eigen collectie `zon`** (`{ id: 'z:yyyy-mm-dd', datum, zon, imp }`), niet als veld op `dagen`.
+  Een dag in `dagen` is een meetdag: hij krijgt vaste kosten, telt mee voor "ontbrekende dagen" en de eerste dag
+  bepaalt het begin van alle overzichten. Een dag met alleen zon (bijv. een SolarEdge-export vanaf 2020) zou dat
+  allemaal verstoren. **Schema 5**, MINOR (zoals 1.6.0 en 1.22.0): niets opnieuw koppelen, wel eerst andere
+  apparaten bijwerken voordat je daar iets wijzigt.
+- **Dag gaat voor maand** (keuze Geert): per maand rekent de app met de dagen als élke dag van die maand bekend is;
+  anders met de maandwaarde (SolarEdge-maandexport, Excel, handmatig); zonder maandwaarde met de dagen die er zijn
+  (gemarkeerd "niet elke dag"). De maandwaarde wordt niet overschreven, zodat ongedaan maken eenvoudig blijft en een
+  latere maandexport gewoon werkt. Alles zit in `zonPeriode()` in model.js; Overzicht, Analyse en Historie gebruiken die.
+- **Zelf gebruikt per dag**: max(0, opbrengst − teruglevering) per dag, dan opgeteld. Iets preciezer dan per maand
+  (een dag met meer teruglevering dan opbrengst kan niet negatief tellen). Bij Geert in oktober 2026: 124,4 kWh per dag
+  tegen 124,4 per maand, dus in de praktijk gelijk. Alleen dagen waarvan ook de stroom bekend is tellen voor zelf
+  gebruikt en het percentage.
+- **Per dag/week in Analyse alleen uit dagwaarden**: een maandtotaal is niet eerlijk over dagen te verdelen.
+  Per maand/jaar telt een maandwaarde voor de hele maand mee, ook als de maand maar deels in de periode valt (zoals
+  voorheen). Zelfvoorzienendheid in Analyse is alleen per dag/week/maand/jaar (een gemiddelde per weekdag van
+  percentages zou misleidend zijn).
+- **Herkennen**: kop met Meettijd/Time en een kolom Energy, Energie, Productie of Production. Dag- of maandbestand
+  aan de eerste tijdcel ("1 okt. 2026 00:00" tegenover "okt. 2026"). Datums ook Engels ("Oct 1, 2026"), ISO en
+  dd-mm-jjjj. Kleinere stappen (uur/kwartier) worden per dag opgeteld; de kolom Verbruik wordt genegeerd (0 zonder
+  verbruiksmeter bij de omvormer).
+- **Overslaan**: vandaag en later (onvolledig). Nullen aan het begin alleen bij minstens 7 dagen (vóór de
+  installatie); één sombere dag kan echt 0 zijn. Melding bij 3 of meer dagen 0 achter elkaar.
+- **Overzicht**: bij Dag/Week een kaart "Zonnepanelen · per dag/week" (zelfde kolomgrafiek met één reeks) zodra er
+  in die dagen/weken dagwaarden zijn; anders de vergelijking per kalendermaand.
 
-## 2026-11-05 – Indeling Overzicht op de laptop (versie 1.9.0)
-- **Op verzoek van Geert drie brede varianten naast de bestaande**, te kiezen in Instellingen → App en sync (sinds 1.9.1 op het Overzicht), zodat hij
-  ze in de praktijk kan vergelijken. Weergavevoorkeur in localStorage (`energieverbruik.overzichtIndeling`), dus per
-  apparaat en niet gesynchroniseerd: op de iPhone heeft de keuze geen zin.
-- **Alleen vanaf 1200 px vensterbreedte** (`BREED_SCHERM`): daaronder past een tweede kolom niet goed naast de zijbalk
-  (256 px). Daaronder altijd één kolom. Bij het passeren van de grens tekent app.js het Overzicht opnieuw.
-- **Inhoud breder (max. 1640 px)** alleen bij een brede indeling en alleen op het Overzicht (`body[data-indeling]`);
-  de andere schermen houden 1040 px (tabellen en formulieren worden te breed niet beter leesbaar).
-- **Grafiekbreedte doorgeven** (`breedte` bij `staafGrafiek`/`zonGrafiek`), berekend uit vensterbreedte, zijbalk en
-  de vaste maten in app.css. Zo blijft de tekst in een halve kolom even groot als in een hele.
-- **Grafiek en lijst**: lijst vast 380 px rechts, met eigen scrollbalk (max. 320 px hoog) en vaste kop, zodat de kaart
-  niet hoger wordt dan de grafiek. De knop Grafiek/Lijst vervalt daar.
-- **Alles tegelijk** bouwt op Naast elkaar: vier aparte kaarten (elk met eigen Grafiek/Lijst-keuze, ids `alles-<soort>`),
-  daarna gas per graaddag, zonnepanelen en termijnen in hetzelfde raster. Een losse laatste kaart beslaat de hele breedte.
-- **MINOR**: nieuwe functie, geen schemawijziging.
-
-## 2026-11-05 – Analyse en één plek voor Instellingen (versie 1.6.0)
-- **Instellingen als paneel, niet als venster**: de secties van de schil (sync, beveiliging, back-up, over, wissen)
-  verhuizen in index.html van `<dialog>` naar `#settings-panel` onder de app-inhoud. Ze blijven dus altijd in het
-  document, zodat shell.js ze gewoon kan vinden en vullen. Het scherm Instellingen toont via
-  `ctx.toonSchilInstellingen(groep)` alleen de secties van het gekozen onderdeel (`data-groep`). Alternatief (de
-  elementen telkens in het scherm verplaatsen) viel af: bij opnieuw tekenen zouden ze uit het document verdwijnen.
-- **Drie onderdelen**: Tarieven (vaakst gebruikt), Gegevens (export, temperatuur, back-up: alles rond je data) en
-  App en sync (koppeling en beveiliging). Tandwiel verwijderd; de sync-knop opent bij geen koppeling App en sync
-  (`app.openSettings`).
-- **Wijziging in core** (shell.js, index.html): bewust, omdat het verzoek juist over de template-instellingen gaat.
-  Klein gehouden: `openSettings` delegeert naar de app als die `app.openSettings` heeft, anders toont hij alles.
-- **Analyse-keuzes** volgens Geerts antwoorden: verbruik, kosten, weer en tijdvakken/uur; vergelijken met vorig jaar,
-  een andere periode (zelfde lengte, eigen startdatum) of een tweede grootheid (lijn, as rechts); favorieten; CSV.
-- **Eén vergelijking tegelijk** (vorig jaar óf andere periode óf tweede grootheid): een grafiek met staven, grijze
-  staven én een lijn wordt op de iPhone onleesbaar.
-- **Per uur/tijdvak alleen stroom** (afname, terug, netto): gas en kosten zijn niet per uur opgeslagen. Per uur =
-  gemiddeld per dag; dagen zonder uurdata volgen het uurprofiel en zijn als geschat gemarkeerd. Zonne-opbrengst alleen
-  per maand/jaar (SolarEdge levert maanden).
-- **Vorig jaar bij week = 364 dagen eerder**, zodat weekdagen gelijk blijven; bij dag/maand/jaar dezelfde datum
-  (dag aangepast in 1.41.1, zie onder).
-- **Per dag maximaal 400 dagen**: meer staven zijn niet meer te lezen.
-- **Favorieten bewaren relatieve perioden** ("laatste 12 maanden"), zodat ze meegaan in de tijd; eigen datums worden
-  vast bewaard.
-- **Favorieten in de kluis** (collectie `analyses`, schema 3), zodat ze synchroniseren. Schema-ophoging zoals bij
-  1.1.0 als MINOR: de app werkt zich bij openen zelf bij, Geert hoeft niets te koppelen.
-
-## 2026-11-05 – Eén plek voor alle bestanden (versie 1.5.0)
-- **Op verzoek van Geert**: één knop (Invoer → Bestanden inlezen) voor alle bronnen; de app herkent het bestand aan de
-  inhoud (kopregel bij CSV, zip-kop of .xlsx bij Excel), niet aan de bestandsnaam.
-- **Excel ook via deze knop**, zodat er echt één plek is; de Excel-kaart in Instellingen is weg.
-- **Voorrang ongewijzigd** (Vattenfall > HomeWizard > Excel > handmatig voor stroom en gas; SolarEdge voor de
-  opbrengst). Vattenfall is bepalend, ongeacht de volgorde van inlezen. Bij meerdere bestanden tegelijk wordt
-  verwerkt in de volgorde Vattenfall → HomeWizard → Excel → SolarEdge.
-- **MINOR**: andere indeling van bestaande functies, geen schemawijziging.
-
-## 2026-11-05 – Uitleg SolarEdge (versie 1.4.1)
-- **Naam van het portaal overgenomen van Geert** ("SolarEdge Monitoring platform"), zodat de uitleg aansluit bij wat hij
-  op zijn scherm ziet. **PATCH**: alleen tekst.
-- **Melding over 0 kWh blijft**: aug 2025 klopt (panelen uit), maar bij een volgende import is zo'n melding nog steeds
-  nuttig om een echte storing op te merken.
-
-## 2026-11-05 – SolarEdge-import (versie 1.4.0)
-- **Maandbestand** (de export die Geert aanleverde: alle maanden van alle jaren in één bestand). Dagbestanden
-  worden geweigerd met een duidelijke melding; per dag staat op de wishlist.
-- **SolarEdge gaat voor de opbrengst**: een bestaande waarde (Excel of handmatig) wordt overschreven, het verschil
-  staat in het rapport (afwijkend bij > 1 kWh én > 2%). Reden: de Excel had maanden die halverwege waren overgetikt
-  (nov 2025: 35 i.p.v. 139). Handmatig invullen blijft mogelijk en wist de import-merker, zodat ongedaan maken
-  een handmatige correctie laat staan.
-- **Overslaan**: maanden met 0 vóór de eerste opbrengst (vóór de installatie) en de lopende/toekomstige maanden
-  (onvolledig, zelfde gedachte als de onvolledige dag bij meterbestanden). Een 0 tussen andere maanden wordt wel
-  ingelezen, met een melding.
-- **Herkennen aan de kopregel** (Meettijd/Time + Energy), zodat het bestand ook via "Export inlezen" kan. Maandnamen
-  Nederlands én Engels; eenheid uit de kop (Wh/kWh/MWh); punt als decimaalteken, komma's met groepjes van drie
-  als duizendtallen.
-- **Ongedaan maken herstelt de oude waarde**: `herstel.maanden[m].oud` bewaart waarde en import-merker. Oude
-  Excel-imports hebben geen `oud` en zetten zoals voorheen terug naar leeg.
-- **Geen schemawijziging**; alleen een nieuwe importsoort `solaredge`. **MINOR (1.4.0)**: nieuwe functie. Een apparaat
-  met een oudere versie toont deze import als "solaredge" in de lijst tot het is bijgewerkt.
-
-## 2026-11-05 – Maandtotaal als tabelregel (versie 1.3.4)
-- **Zelfde vorm als Maanden** (klasse `jaar-rij`), op Geerts verzoek: totalen onder de kolommen in plaats van een
-  tekstregel erboven.
-- **m³/gd = totaal gas ÷ totaal graaddagen** (zoals eerder besloten), **°C = gemiddelde** van de dagen met een
-  temperatuur. Kosten cursief als er geschatte dagen in zitten.
-- **Totaalregel niet aantikbaar**; alleen dagregels openen het bewerkvak.
-- **PATCH**: verbetering van een bestaande weergave.
-
-## 2026-11-05 – "null" in Historie (versie 1.3.3)
-- **Centraal opgelost in app.js** (`inhoud.filter(Boolean)`) in plaats van alleen in scherm-historie.js, zodat
-  geen enkel scherm dit probleem nog kan krijgen. Core-bestanden niet aangepast.
-- **PATCH**: bugfix.
-
-## 2026-11-05 – Logo en versienummer (versie 1.3.2)
-- **Zelfde opbouw als Vaste Lasten**: logo + naam + versie bovenin de zijbalk, inklapknop rechts ernaast.
-  Ingeklapt: alleen logo met de knop eronder.
-- **Logo = het app-icoon** (`icons/icon-192.png`), zodat het overeenkomt met het icoon op het beginscherm en al
-  offline in de cache staat.
-- **iPhone/iPad**: geen zijbalk, dus logo, naam en versie in de kopbalk. Op de laptop wordt dat deel van de kopbalk
-  verborgen (staat al in de zijbalk); de knoppen rechts blijven.
-- **Versie via `data-app-version`**, ingevuld vanuit `APP.version` in app.js; zo blijft config.js de enige plek
-  waar het nummer staat. Core-bestanden (shell.js) niet aangepast.
-- **Zijbalk 216 → 256 px**: anders werd "Energieverbruik" afgekapt.
-- **PATCH**: kleine verbetering, geen nieuwe functie.
-
-## 2026-11-06 – Terug in de tijd op het Overzicht (versie 1.27.0)
+## D25 – 2026-11-06 – Terug in de tijd op het Overzicht (versie 1.27.0)
 - **Eén stap = één dag/week/maand/jaar** (de gekozen periode), niet een heel scherm (31 dagen, 13 weken …): zo
   horen de kerncijfers bij één duidelijke periode en is die altijd de laatste staaf in de grafieken.
 - **Gekozen datum blijft bij wisselen van periode**: van september naar Week toont de week waarin die datum valt.
@@ -377,7 +385,143 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - **Zelfde vormgeving als de maandkeuze in Historie** (‹ titel ›), met "Naar nu" onder de titel.
 - **MINOR**: nieuwe functie, geen schemawijziging.
 
-## 2026-11-09 – Gasprognose met de weersverwachting (versie 1.40.0)
+## D26 – 2026-11-06 – Heatmap stoplichtkleuren en gas (versie 1.28.0)
+- **Stoplichtkleuren** (keuze Geert): vaste schaal groen → lichtgroen → geel → oranje → rood (ColorBrewer RdYlGn),
+  in grafiek.js berekend, los van het kleurthema. Richting per grootheid: afname en gas laag = groen; teruglevering
+  hoog = groen; netto loopt symmetrisch van teruglevering (groen) via 0 (geel) naar afname (rood). De legenda loopt
+  altijd van groen (links) naar rood (rechts).
+- **Schaal tot het 95e percentiel** in plaats van het maximum: één uur auto laden zou anders alles groen maken.
+  Lineair in plaats van de wortelschaal van eerst; met het percentiel is die niet meer nodig.
+- **`uurGas` op de dag** (24 waarden, m³), in groep `g`. Zelfde aanpak als `uurAfname`: hogere bron met alleen een
+  dagtotaal krijgt de uurverdeling van de lagere bron geschaald; handmatig gas wijzigen wist `uurGas`. Excel zet
+  geen `uurGas` (zetGroep wist het bij overschrijven). Geen schemawijziging: oudere versies laten het veld staan
+  (zoals `piek`), dus MINOR.
+
+## D27 – Kleur verschilkolom gasanalyse (1.28.1)
+- Besparing groen, meerverbruik rood, ook in de totaalregel, zodat de tabel dezelfde betekenis heeft als de kerncijfer 'Zuiniger/Minder zuinig' erboven. Gebruikt de bestaande class `min` (var(--ok)).
+
+## D28 – Kleur van verschillen in tabellen (1.28.2)
+- Elke maat heeft een richting (`beter: 'lager'` of `'hoger'`); de verschilkolom kleurt groen als het gunstig is, rood als het ongunstig is. Temperatuur en graaddagen hebben geen richting en blijven wit: aan het weer kun je niets doen.
+- Niet gekleurd: het scherm Controle (daar betekent de kleur klopt/klopt niet) en de lopende tekst bij Cumulatief verloop (kleur in een zin leest onrustig).
+
+## D29 – 2026-11-06 – Negen nieuwe analyses (versies 1.29.0 t/m 1.37.0)
+Geert vroeg om alle voorgestelde extra analyses. Zeven van de zestien voorstellen bestonden al (sluipverbruik, einde
+saldering, heatmap, stooklijn/weer-gecorrigeerd, eigen verbruik, piekvermogen, controle op afwijkende dagen); de negen
+nieuwe zijn elk een eigen soort met een eigen MINOR-versie. Rekenwerk in `analyse-watals.js` (geen DOM, met Node te
+testen), schermdeel in `analyse-watals-soorten.js`. Keuzes per soort staan in `WATALS_STANDAARD` en gaan mee in
+favorieten (getallen als tekst met komma, zoals in een invoerveld).
+- **Tegels in groepen** (`GROEPEN` in analyse-soorten.js, `groep` per soort): met 18 soorten werd één raster te lang.
+- **Opgehaalde gegevens alleen op het apparaat** (`extern.js`, localStorage `energieverbruik:straling` en
+  `energieverbruik:beursprijzen`): openbare gegevens die altijd opnieuw op te halen zijn, dus niet in de kluis en
+  niet gesynchroniseerd (scheelt honderden kB per sync). Pas ophalen bij het openen van de analyse; per sessie één
+  keer per maand/dag om een ophaal-lus te voorkomen. Resultaat wordt getekend zodra de gegevens binnen zijn
+  (`.analyse-laad` met `display: contents`).
+- **EnergyZero voor beursprijzen** (gratis, geen sleutel; ENTSO-E vraagt een sleutel). `connect-src` uitgebreid met
+  `https://api.energyzero.nl`. Kwartierprijzen en het dubbele uur bij wintertijd worden gemiddeld tot één uurprijs,
+  omdat de app per uur rekent. Niet getest tegen de echte dienst (geblokkeerd in de testomgeving): of EnergyZero
+  vanuit de browser (CORS) werkt, moet op de iPhone blijken.
+- **Opvallende dagen**: verwacht = mediaan van dezelfde weekdag in de 8 weken ervoor; drempel = max(minimum,
+  k × spreiding (MAD), percentage). Standaard "zonder grote verbruikers": uren met > 2 kWh afname tellen niet mee,
+  anders bestond de lijst vrijwel alleen uit laaddagen van de auto (77 van 321 dagen bij Geert).
+- **Goedkopere uren**: verschuiven binnen dezelfde dag naar het goedkoopste tijdvak; met en zonder saldering gelijk.
+- **Terugleverschaal**: grenzen als invoer (standaard 3.500–4.000, schaal 14) omdat de volledige tabel niet bekend is;
+  verwacht jaartotaal uit `jaarPrognose`. Bij Geerts data: verwacht ~2.860 kWh in 2026, dus onder schaal 14.
+- **Zon tegen weer**: instraling = shortwave_radiation_sum (horizontaal, MJ/m²). De verhouding opbrengst/instraling
+  verschilt per seizoen (hellende panelen), dus alleen vergelijken met dezelfde kalendermaand in andere jaren
+  (mediaan, minstens 2 jaren); onder 85% = gemarkeerd. Excel-november 2025 (35 kWh) komt er in de test meteen uit.
+- **Thuisbatterij**: per uur, laadt alleen met teruglevering, ontlaadt bij afname, vermogen min(5 kW, helft van de
+  capaciteit), 90% rendement heen en terug, leeg na een gat. Kosten via `kostenDag` met de uurwaarden, zonder vaste
+  kosten, met saldering en met het contract na saldering. Bij Geert (5 kWh): nu −€ 20, vanaf 2027 ~€ 370 per jaar.
+- **Dynamisch contract**: afname (beurs + inkoop) × 1,21 + energiebelasting; teruglevering beurs − opslag, zonder btw.
+  Vergeleken met het eigen contract na saldering; vaste kosten tellen niet mee (bij beide ongeveer gelijk).
+- **Warmtepomp**: vaste deel van de stooklijn = warm water/koken; 8,8 kWh warmte per m³; COP = 3,3 + 0,08 × T
+  (−0,6 bij gewone radiatoren, tussen 1,8 en 5); hybride tot vermogen × 20 uur per dag; volledig: ook warm water
+  (COP 2,5) en de vaste gaskosten vervallen. Stroom tegen het daggemiddelde van het tarief, zonder saldering.
+- **CO₂**: 0,20 kg/kWh (CBS 2024, integrale methode) en 1,78 kg/m³ aardgas, beide aan te passen; teruglevering telt als
+  vermeden.
+- **Gemiddeld huishouden**: CBS 2025 (voorlopig) per aantal personen en per woningtype, woningen met gasaansluiting;
+  vast in de code (`CBS_PERSONEN`, `CBS_WONING`). Bij Geert zowel afname van het net als totaal verbruik (met eigen
+  zonnestroom), omdat het CBS naar levering via het net kijkt.
+
+## D30 – 2026-11-09 – SolarEdge automatisch (versie 1.38.0)
+- **Ophalen door een GitHub Action in SyncData, niet door de app zelf.** Eis van Geert: de API-sleutel mag niet in
+  de publieke repo of code. In de app (kluis) zou hij wel privé zijn, maar SolarEdge staat browserverkeer vanaf een
+  andere site waarschijnlijk niet toe (CORS; niet te testen in de sandbox). De Action draait bij GitHub, heeft daar
+  geen last van en de sleutel staat als geheim `SOLAREDGE_API_KEY` (site-ID optioneel via `SOLAREDGE_SITE_ID`;
+  anders de eerste site van de sleutel). Elke nacht 04:17 UTC, en met de hand te starten.
+- **Onversleuteld CSV-bestand in de private repo** (`energieverbruik/solaredge-dag.csv`), in de opmaak van een
+  SolarEdge-dagexport. De Action kent het kluiswachtwoord niet, dus versleutelen kan niet; zonne-opbrengst is weinig
+  gevoelig en de repo is privé. Zelfde opmaak = dezelfde inleesroutine (`leesSolarEdge`), en het bestand is ook
+  met de hand in te lezen.
+- **Per dag, niet per kwartier**: past op wat de app nu bewaart (collectie `zon`). Kwartier blijft op de wishlist.
+- **Eerste keer alles vanaf de installatiedatum, daarna de laatste 14 dagen opnieuw** (SolarEdge vult soms later
+  aan). Per vraag maximaal een jaar (grens van de API). Alleen een commit als er iets veranderd is.
+- **App leest het bestand met het sync-token** (zelfde repo, zelfde rechten), via nieuwe `ctx.leesSyncBestand`
+  in shell.js (template-afwijking). Daarvoor eerst een sync, zodat een ander apparaat dat al heeft ingelezen niet
+  tot dubbele imports leidt. Hooguit eens per uur per sessie; sha van het verwerkte bestand per apparaat in
+  localStorage (`energieverbruik:solaredge-sha`), dus bij geen verandering ook geen werk.
+- **Alleen nieuwe of gewijzigde dagen als import** (`zetSolarEdge`, bestandsnaam "SolarEdge (automatisch)"), met
+  rapport en ongedaan maken zoals een gewone import. Geen verandering = geen importregel. Meldingen over reeksen
+  nullen alleen over die dagen (`nulReeksen` uit import-solaredge.js); "overgeslagen vóór installatie" alleen
+  bij de eerste keer.
+- **MINOR (1.38.0)**: geen schemawijziging; alleen een nieuwe bestandsnaam bij een bestaande importsoort.
+
+## D31 – 2026-11-09 – Gas per graaddag: weinig graaddagen toch tonen (versie 1.38.1)
+- **Aanleiding**: juli 2026 was leeg in het Overzicht maar had wel een waarde in Historie; dat verwarde.
+- **Keuze (Geert)**: tonen maar markeren. Onder het minimum (dag 1, week 3, maand/jaar 5 graaddagen) een lichte staaf
+  en * in de lijst. De schaal volgt alleen de gewone perioden, zodat zomeruitschieters de rest niet platdrukken;
+  wat erboven uitkomt wordt afgekapt met een ↑ en de echte waarde staat in de info bij aantikken.
+- **PATCH**: verbetering van een bestaande grafiek.
+
+## D32 – 2026-11-09 – Template-restanten opgeruimd (versie 1.38.2)
+- **Setup-bestanden weg**: `docs/STARTPROMPT.md`, `docs/CLAUDE-INSTRUCTIES.md` en `tools/setup.mjs` dienden alleen om
+  een nieuwe app uit de template te maken. De werkinstructies staan in de projectinstructies; de template-repo houdt
+  de originelen.
+- **`js/core/` blijft een kopie van de template**, op twee ongebruikte functies na (`findById`, `isSyncing`). Bij
+  het overnemen van template-updates die twee niet terugzetten, tenzij er iets is dat ze gebruikt.
+- **Settings als venster (`dialog.sheet`) uit de CSS**: de instellingen zijn sinds 1.6.0 een paneel.
+
+## D33 – Knoppen synchroniseren/vergrendelen op de titelregel (1.38.3)
+- Op de laptop kostte de kopbalk een hele strook hoogte voor alleen twee pictogrammen (logo en naam staan al in de
+  zijbalk). Daarom verbergt de CSS de kopbalk vanaf 900 px en verplaatst app.js het element `.header-actions`
+  naar rechts op de titelregel (`.scherm-kop-rechts`, na de keuze Indeling).
+- Het element wordt verplaatst, niet nagemaakt: de schil (core/shell.js) koppelt de klikken en de syncstatus aan
+  `#btn-sync`/`#btn-lock`. app.js houdt een vaste verwijzing bij, omdat het oude scherm bij opnieuw tekenen wordt
+  weggegooid. Onder 900 px gaat het terug in de kopbalk.
+- Bewust geaccepteerd: de knoppen scrollen op de laptop mee weg.
+
+## D34 – Indeling-keuze op de keuzeregel (1.38.4)
+- Drie groepen van elk vier knoppen in een flex-rij: elke groep `flex: 1 1 500px; max-width: 520px`, zodat ze
+  even breed zijn en dus alle knoppen even groot. De indeling krijgt `margin-left: auto` (rechts uitgelijnd) en
+  schuift bij te weinig ruimte naar de volgende regel. Geen vaste drie kolommen: dan werden knopteksten afgekapt
+  of stond bij 'Alles tegelijk' de indeling midden in de rij.
+- Het label "Indeling" vervalt (zou de groepen ongelijk maken); de uitleg per knop staat als tooltip.
+
+## D35 – Brede schermen buiten het Overzicht (1.39.0)
+- Vanaf 1200 px krijgen alle schermen behalve het Overzicht dezelfde maximale breedte (1640 px). Het Overzicht houdt
+  zijn eigen keuze Indeling (bij 'Eén kolom' blijft het smal). app.js zet `body[data-scherm]` vóór het tekenen.
+- Kaarten naast elkaar via `kolommen(soort, links, rechts)` in ui.js. Smaller dan 1200 px zijn `.kolommen`/`.kolom`
+  `display: contents`: dan staat alles onder elkaar, precies zoals eerder, zonder aparte code voor smalle schermen.
+  Twee kolommen met elk hun eigen stapel (geen gedeeld raster), zodat een lange kaart links geen gaten rechts maakt.
+- 'paneel-rechts' (Historie, aangetikte dag): het paneel staat in de pagina vóór de tabel, zodat het op iPhone/iPad
+  bovenaan blijft; op de laptop zet CSS het rechts (sticky). 
+- Analyse: tegelgroepen als zeven kolommen naast elkaar. Groepstitels krijgen een vaste hoogte (ook 'Zelf samenstellen'
+  zonder titel), zodat de eerste tegels op één lijn staan.
+- Grafieken zonder opgegeven breedte rekenden met hoogstens 960 eenheden; in een kaart van ~1500 px werd de tekst dan
+  anderhalf keer zo groot. grafiek.js rekent op brede schermen (niet het Overzicht) nu met de echte kaartbreedte;
+  bij het passeren van 1200 px tekent app.js elk scherm opnieuw (was alleen het Overzicht).
+- Instellingen → App en sync: de secties van de schil (#settings-panel) in een raster van twee; de back-up (Gegevens)
+  over de hele breedte.
+
+## D36 – Uitlijning Analyse-tegels (1.39.1)
+- De groepen delen één raster van rijen via CSS `subgrid`: rij 1 = titels (onderaan uitgelijnd), daarna één rij per
+  tegel met `1fr`, zodat elke tegel even hoog is als de hoogste. Het aantal rijen (`--rijen`) zet scherm-analyse.js
+  op de grootste groep. Vervangt de vaste titelhoogte van 1.39.0 (die gaf ongelijke tegels en een groot gat onder
+  de titels). Zonder subgrid-ondersteuning blijft de oude weergave.
+- Container query op de kaart: smaller dan 1250 px vier kolommen in twee banden, omdat zeven kolommen dan te smal
+  zijn en tekst over de volgende kolom liep.
+
+## D37 – 2026-11-09 – Gasprognose met de weersverwachting (versie 1.40.0)
 - Model: de stooklijn van de laatste 365 dagen met gegevens (zelfde als Jaarprognose), met de gemiddelde
   dagtemperatuur. Eén model in de hele app, zodat Stooklijn, Jaarprognose en Gasprognose elkaar niet tegenspreken.
 - Temperatuur per dag: gemeten (dagen vóór vandaag) → Open-Meteo-voorspelling (16 dagen vooruit, het maximum) →
@@ -394,167 +538,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   verbinding toont hij de laatst opgehaalde voorspelling met een melding.
 - Kosten: alleen variabel (m³ × levering + energiebelasting van het contract van die dag).
 
-## 2026-11-09 – Gas per graaddag: weinig graaddagen toch tonen (versie 1.38.1)
-- **Aanleiding**: juli 2026 was leeg in het Overzicht maar had wel een waarde in Historie; dat verwarde.
-- **Keuze (Geert)**: tonen maar markeren. Onder het minimum (dag 1, week 3, maand/jaar 5 graaddagen) een lichte staaf
-  en * in de lijst. De schaal volgt alleen de gewone perioden, zodat zomeruitschieters de rest niet platdrukken;
-  wat erboven uitkomt wordt afgekapt met een ↑ en de echte waarde staat in de info bij aantikken.
-- **PATCH**: verbetering van een bestaande grafiek.
-
-## 2026-11-05 – Gas per graaddag volgt de periode (versie 1.3.1)
-- **Zelfde perioden als de hoofdgrafiek** (31 dagen, 13 weken, 12 maanden, 5 jaar), met vorig jaar ter vergelijking.
-- **Minimum graaddagen per periode**: dag 1, week 3, maand en jaar 5. In de grafiek zouden zachte dagen met een
-  graaddag van bijv. 0,1 enorme staven geven en de rest platdrukken. In de dagtabel van Historie staat de
-  waarde wel bij elke graaddag boven 0 (zoals de Excel).
-- **PATCH**: verbetering van een bestaande grafiek.
-
-## 2026-11-05 – Gas per graaddag per dag (versie 1.3.0)
-- **Zelf berekend, niet uit de Excel**: gas ÷ gewogen graaddag, alleen als er gas is en de graaddag boven 0 ligt
-  (anders –; de Excel toont dan 0). Zelfde uitkomst als kolom O voor alle 268 vergeleken dagen.
-- **Afwijking van de Excel bij precies 0,0 °C**: de Excel laat de graaddag dan leeg (`IF(G=0,"",…)`); de app rekent
-  gewoon (18 × weegfactor). Komt voor op 18-1-2025.
-- **Maandwaarde = totaal gas ÷ totaal graaddagen** (alleen stookdagen), niet het gemiddelde van de dagwaarden:
-  zachte dagen met een kleine graaddag geven per dag grote uitschieters die een gemiddelde scheeftrekken.
-- **Kolom ook op de iPhone zichtbaar** (niet `verberg-smal`), omdat Geert dit dagelijks wil zien.
-- **MINOR**: nieuwe weergave, geen schemawijziging; de waarde wordt berekend, niet opgeslagen.
-
-## 2026-11-05 – Uitgangspunten (versie 1.0.0)
-- **Invoer via HomeWizard CSV-export** (hoofdroute), handmatig als reserve. Geert tikte de dagwaarden
-  eerst over van de Vattenfall-website; de export is nauwkeuriger en levert kwartierdata.
-- **Per dag 24 uurwaarden** (afname en teruglevering) opslaan. Alle tijdvakgrenzen vallen op hele uren;
-  zo blijft de kluis klein (~110 kB per jaar) en kunnen kosten met een ander contract opnieuw berekend worden.
-  Een dag = 00:00 tot 00:00 lokale tijd. Gaten in de metingen worden gelijk over de uren verdeeld.
-- **Vaste id's per datum** (`d:yyyy-mm-dd`, `w:…`, `m:yyyy-mm`), zodat dezelfde dag op twee apparaten
-  bij het synchroniseren één record wordt.
-- **Voorrang bij import**: HomeWizard overschrijft Excel; Excel vult alleen aan. Opmerkingen blijven staan.
-- **Kosten per tijdvak**: exact met uurdata; zonder uurdata verdeeld volgens het gemiddelde uurprofiel
-  (seizoen × week/weekend) en gemarkeerd als schatting.
-- **Seizoenen**: zomer 1 april t/m 30 september, winter 1 oktober t/m 31 maart.
-- **Tijdvakken stroom** (Vattenfall): zomer normaal 00–12 en 16–24; zomer dal week/weekend 12–16;
-  winter normaal 06–12 en 16–01; winter dal dag 12–16; winter dal nacht 01–06.
-- **Saldering (aanname)**: teruggeleverde kWh worden verrekend tegen levering + energiebelasting van
-  hetzelfde tijdvak; vaste terugleverkosten (€462/jaar) per dag verdeeld. Een jaaroverschot (meer terug dan
-  afgenomen) wordt nog niet apart tegen de terugleververgoeding verrekend — bij Geert niet aan de orde.
-- **Na saldering (vanaf 1-1-2027)**: teruglevering × (terugleverkosten − vergoeding) per kWh.
-- **Energiebelasting-staffels** worden niet apart berekend: het tarief is gelijk tot 10.000 kWh / 170.000 m³.
-- **Tarieven als getal in euro's met 6 decimalen** (centen zijn niet precies genoeg); kosten worden pas bij
-  het tonen afgerond. Termijnbedragen staan wel in centen (template-regel).
-- **Temperatuur via Open-Meteo** (geen sleutel nodig; KNMI vereist een API-sleutel). Temperaturen uit de
-  Excel (KNMI) blijven staan. Graaddag: (18 − Tgem) × weging 1,1 (nov–feb) / 1,0 (mrt, okt) / 0,8 (apr–sep).
-- **Excel-import zonder library**: eigen .xlsx-lezer (zip via DecompressionStream), conform de template-regel
-  "geen externe scripts".
-- **Termijnen vs kosten**: over de laatste 12 maanden; schatting. Sinds 1.27.1 krijgt een maand zonder bedrag
-  het laatst bekende bedrag (een termijn geldt tot hij verandert; bij een tussentijdse aanpassing hoeft Geert
-  alleen de maand van de wijziging in te vullen). Maanden vóór het eerste bekende bedrag tellen niet mee.
-  Zo rekenen Overzicht en jaarprognose op dezelfde manier.
-- **Zelfvoorzienendheid**: zelf gebruikt = zonne-opbrengst − teruglevering; aandeel = zelf gebruikt /
-  (afname + zelf gebruikt).
-- **Ingeklapte zijbalk** wordt als weergavevoorkeur in localStorage bewaard (geen gegevens).
-- **P1 automatisch uitlezen staat op de wishlist**: vanaf een https-site blokkeert de browser
-  waarschijnlijk het contact met de dongle op het thuisnetwerk.
-
-## 2026-11-05 – Zonnepanelen per jaar vergelijken (versie 1.8.0)
-- **Overlappende kolommen** (keuze Geert): zelf gebruikt kan nooit hoger zijn dan de opbrengst, dus past het als
-  gevuld deel binnen de opbrengst-kolom. Percentage als bijschrift; geen tweede as. Vervangt de lijn uit 1.7.0.
-- **Kalenderjaar als x-as (jan–dec)** met de gekozen jaren naast elkaar, in plaats van de laatste 12 maanden; zo is
-  elke maand direct met dezelfde maand in andere jaren te vergelijken.
-- **Jaarkeuze als weergavevoorkeur** in localStorage (niet gesynchroniseerd). Standaard de laatste twee jaren met
-  opbrengst; hoogstens 4 (anders worden kolommen te smal en zijn de kleuren niet meer uit elkaar te houden).
-- **Kleuren per jaar**: nieuwste accent, dan grijs, oranje, paars. Percentage liggend als de kolom ≥18 px breed is,
-  staand vanaf 7 px, anders alleen in de tekst bij aantikken.
-
-## 2026-11-05 – Grafiek of lijst per kaart (versie 1.7.0)
-- **Keuze per kaart, niet één knop voor alles**: bij zonnepanelen wil je misschien de tabel en bij verbruik de
-  grafiek. Bewaard in localStorage (weergavevoorkeur, geen gegevens; niet gesynchroniseerd), standaard Grafiek.
-- **Zonnepanelen in één grafiek**: opbrengst en zelf gebruikt als staven (kWh), zelfvoorzienendheid als lijn met
-  eigen as rechts, met de bestaande `lijn`-optie van `staafGrafiek`. Altijd per maand (opbrengst is alleen per
-  maand bekend), los van de periodekeuze.
-- **Lopende periode in de lijst**: geen verschilpercentage, omdat de vergelijking met de hele periode vorig jaar
-  een vertekend beeld geeft. De Kerncijfers vergelijken wel netjes dezelfde dagen.
-
-## 2026-11-05 – Vattenfall-import (versie 1.2.0)
-- **Vattenfall is leidend** (keuze Geert): dat zijn de officiële meetgegevens waarop de rekening gebaseerd is.
-  Rangorde Vattenfall > HomeWizard > Excel > handmatig. Een import overschrijft alleen waarden van een bron met
-  gelijke of lagere rang; anders alleen vergelijken (`behouden: true` in het overlap-overzicht). Vervangt de
-  regel "HomeWizard overschrijft Excel" uit 1.0.0.
-- **Zelfde omrekening als HomeWizard**: kwartier- en uurbestanden worden omgezet naar de stand aan het begin van elk
-  uur en gaan door `standenNaarDagen`. Zo worden zomer-/wintertijd en gaten precies zo behandeld.
-  Getest met Geerts bestanden (5-5 t/m 4-11-2026): alle 33 stroomdagen en 62 gasdagen gelijk aan de Excel.
-- **Herkennen aan de kopregel** (`Datum;Tijd;…Meterstand levering…`), niet aan de bestandsnaam. Het gasbestand is
-  Windows-1252 (m³); alleen de kop raakt daardoor verminkt en die wordt niet op ³ gecontroleerd.
-- **Dagbestanden**: geen uurverdeling. Bestaat er al een HomeWizard-uurverdeling (of komt die later), dan wordt die
-  geschaald naar het Vattenfall-dagtotaal; de bron blijft `vattenfall`. Bij een keuze van meerdere bestanden
-  worden Vattenfall-bestanden eerst verwerkt. Maandbestanden worden geweigerd.
-- **MINOR (1.2.0)**: geen schemawijziging; alleen een nieuwe bronwaarde `vattenfall` en nieuwe importsoorten
-  `vattenfall-stroom`/`vattenfall-gas`. Een apparaat met 1.1.0 toont die als "onbekend" tot het is bijgewerkt.
-
-## 2026-11-05 – Importcontrole (versie 1.1.0)
-- **Schema 2**: nieuwe collectie `importen` (logboek met rapport en herstelgegevens), op dagen `imp`
-  (per groep stroom `s`, gas `g`, opmerking `o`: welke import de waarde het laatst zette) en `gecontroleerd`.
-  Migratie voegt alleen een lege lijst toe. Gekozen voor MINOR (1.1.0): er hoeft niets opnieuw gekoppeld te
-  worden; een ander apparaat moet alleen bijgewerkt worden voordat daar iets gewijzigd kan worden.
-- **Ongedaan maken per groep velden**: een import bewaart hoe elke groep er vóór de import uitzag. Terugzetten
-  gebeurt alleen als `imp` nog naar deze import wijst, zodat latere imports en handmatige correcties blijven staan.
-  Handmatig wijzigen wist de `imp`-merker van die groep.
-- **Alleen de laatste 10 imports terug te draaien**: oudere herstelgegevens worden gewist, zodat de kluis klein blijft.
-  Ongewijzigde waarden worden niet opgeslagen, dus een overlappende export kost bijna niets.
-- **Overlap vergelijken**: bestaande waarde tegenover de nieuwe; afwijkend bij meer dan 0,1 kWh / 0,05 m³ én meer
-  dan 2%. Bij Excel na HomeWizard blijft de HomeWizard-waarde staan, maar het verschil wordt wel getoond.
-- **Controles worden berekend, niet opgeslagen**: "normaal" = mediaan van ±15 dagen (minimaal 7 waarden);
-  uitschieter bij meer dan 3× normaal én een minimaal verschil (stroom 5 kWh, teruglevering 10 kWh, gas 3 m³);
-  ≥300× wijst op komma/punt of eenheid. Gas per graaddag tegenover de mediaan van ±30 dagen. Teruglevering
-  tussen 23 en 05 uur > 0,1 kWh. Reeksen nullen: gas ≥3 dagen in okt–mrt, teruglevering ≥3 dagen in apr–sep.
-- **Afvinken met vingerafdruk** (`afname|terug|gas`): verandert een waarde, dan komt de melding vanzelf terug.
-- **Vergelijking met de jaarafrekening wordt niet bewaard**: alleen voor dat moment.
-
-## Kleur verschilkolom gasanalyse (1.28.1)
-- Besparing groen, meerverbruik rood, ook in de totaalregel, zodat de tabel dezelfde betekenis heeft als de kerncijfer 'Zuiniger/Minder zuinig' erboven. Gebruikt de bestaande class `min` (var(--ok)).
-
-## Kleur van verschillen in tabellen (1.28.2)
-- Elke maat heeft een richting (`beter: 'lager'` of `'hoger'`); de verschilkolom kleurt groen als het gunstig is, rood als het ongunstig is. Temperatuur en graaddagen hebben geen richting en blijven wit: aan het weer kun je niets doen.
-- Niet gekleurd: het scherm Controle (daar betekent de kleur klopt/klopt niet) en de lopende tekst bij Cumulatief verloop (kleur in een zin leest onrustig).
-
-## Knoppen synchroniseren/vergrendelen op de titelregel (1.38.3)
-- Op de laptop kostte de kopbalk een hele strook hoogte voor alleen twee pictogrammen (logo en naam staan al in de
-  zijbalk). Daarom verbergt de CSS de kopbalk vanaf 900 px en verplaatst app.js het element `.header-actions`
-  naar rechts op de titelregel (`.scherm-kop-rechts`, na de keuze Indeling).
-- Het element wordt verplaatst, niet nagemaakt: de schil (core/shell.js) koppelt de klikken en de syncstatus aan
-  `#btn-sync`/`#btn-lock`. app.js houdt een vaste verwijzing bij, omdat het oude scherm bij opnieuw tekenen wordt
-  weggegooid. Onder 900 px gaat het terug in de kopbalk.
-- Bewust geaccepteerd: de knoppen scrollen op de laptop mee weg.
-
-## Indeling-keuze op de keuzeregel (1.38.4)
-- Drie groepen van elk vier knoppen in een flex-rij: elke groep `flex: 1 1 500px; max-width: 520px`, zodat ze
-  even breed zijn en dus alle knoppen even groot. De indeling krijgt `margin-left: auto` (rechts uitgelijnd) en
-  schuift bij te weinig ruimte naar de volgende regel. Geen vaste drie kolommen: dan werden knopteksten afgekapt
-  of stond bij 'Alles tegelijk' de indeling midden in de rij.
-- Het label "Indeling" vervalt (zou de groepen ongelijk maken); de uitleg per knop staat als tooltip.
-
-## Brede schermen buiten het Overzicht (1.39.0)
-- Vanaf 1200 px krijgen alle schermen behalve het Overzicht dezelfde maximale breedte (1640 px). Het Overzicht houdt
-  zijn eigen keuze Indeling (bij 'Eén kolom' blijft het smal). app.js zet `body[data-scherm]` vóór het tekenen.
-- Kaarten naast elkaar via `kolommen(soort, links, rechts)` in ui.js. Smaller dan 1200 px zijn `.kolommen`/`.kolom`
-  `display: contents`: dan staat alles onder elkaar, precies zoals eerder, zonder aparte code voor smalle schermen.
-  Twee kolommen met elk hun eigen stapel (geen gedeeld raster), zodat een lange kaart links geen gaten rechts maakt.
-- 'paneel-rechts' (Historie, aangetikte dag): het paneel staat in de pagina vóór de tabel, zodat het op iPhone/iPad
-  bovenaan blijft; op de laptop zet CSS het rechts (sticky). 
-- Analyse: tegelgroepen als zeven kolommen naast elkaar. Groepstitels krijgen een vaste hoogte (ook 'Zelf samenstellen'
-  zonder titel), zodat de eerste tegels op één lijn staan.
-- Grafieken zonder opgegeven breedte rekenden met hoogstens 960 eenheden; in een kaart van ~1500 px werd de tekst dan
-  anderhalf keer zo groot. grafiek.js rekent op brede schermen (niet het Overzicht) nu met de echte kaartbreedte;
-  bij het passeren van 1200 px tekent app.js elk scherm opnieuw (was alleen het Overzicht).
-- Instellingen → App en sync: de secties van de schil (#settings-panel) in een raster van twee; de back-up (Gegevens)
-  over de hele breedte.
-
-## Uitlijning Analyse-tegels (1.39.1)
-- De groepen delen één raster van rijen via CSS `subgrid`: rij 1 = titels (onderaan uitgelijnd), daarna één rij per
-  tegel met `1fr`, zodat elke tegel even hoog is als de hoogste. Het aantal rijen (`--rijen`) zet scherm-analyse.js
-  op de grootste groep. Vervangt de vaste titelhoogte van 1.39.0 (die gaf ongelijke tegels en een groot gat onder
-  de titels). Zonder subgrid-ondersteuning blijft de oude weergave.
-- Container query op de kaart: smaller dan 1250 px vier kolommen in twee banden, omdat zeven kolommen dan te smal
-  zijn en tekst over de volgende kolom liep.
-
-## Kleur per soort in grafieken (1.41.0)
+## D38 – Kleur per soort in grafieken (1.41.0)
 - Vaste kleuren per soort gegeven in app.css (`--kleur-stroom/terug/zon/gas/kosten/temp`), los van het kleurthema,
   zodat stroom altijd geel en gas altijd rood is. Teruglevering en zon delen groen (beide 'eigen opwek').
 - `staafGrafiek` en `puntenGrafiek` krijgen `soort` (en optioneel `vergelijkSoort`, `lijn.soort`); `soortVanMaat()` in
@@ -565,8 +549,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - Vorig jaar = lichtere tint van dezelfde kleur. Geschat kreeg daardoor een stippelrand (anders gelijk aan vorig jaar).
 - Grafieken met jaren als lijnen (Analyse) houden de jaarkleuren; in de zonnegrafiek is het nieuwste jaar nu groen.
 
-
-## Vorig jaar per dag = zelfde datum (1.41.1)
+## D39 – Vorig jaar per dag = zelfde datum (1.41.1)
 - Geert verwacht bij een dag dezelfde kalenderdatum vorig jaar, niet 52 weken eerder (dat gaf een dag verschil).
   `vorigJaar('dag', …)` gebruikt nu `sameDayLastYear`; alleen weken schuiven nog 364 dagen (hele week ma–zo).
 - In Analyse → Samenstellen worden dagen op datum gekoppeld (niet op volgorde), zodat een schrikkeldag de rest
@@ -574,7 +557,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - Overzicht-grafieken: standaardnamen in `staafGrafiek` zijn "Deze periode" / "Een jaar eerder", want de reeks
   (bijv. laatste 12 maanden) loopt vaak over twee kalenderjaren.
 
-## Gemiddelde-lijnen in het Overzicht (1.42.0)
+## D40 – Gemiddelde-lijnen in het Overzicht (1.42.0)
 - `staafGrafiek` en `zonGrafiek` krijgen de optie `gemiddelde`; per reeks een gestippelde lijn op het gewone
   (rekenkundige) gemiddelde van de getoonde staven. Kleur via `--gemkl`, afgeleid van `--staaf`/`--vgl`/`--c`, zodat
   de lijn altijd de kleur van zijn reeks volgt (ook in licht/donker).
@@ -588,8 +571,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - (1.42.1) Lijndikte 1,25 met een rand van 2,5 in de achtergrondkleur: Geert vond 2 te dik; dunner dan 1,25 valt
   de lichte lijn van een jaar eerder in donkere modus weg.
 
-
-## Ruimte bovenin op de iPad en uitlijning knoppen (1.42.2)
+## D41 – Ruimte bovenin op de iPad en uitlijning knoppen (1.42.2)
 - **Extra marge alleen als er een veilige zone is**: `--boven-veilig` = veilige zone + 40 px (1.42.2: 24 px, voor de zijbalk te weinig verschil), maar 0 als de zone 0 is
   (laptop). De vervaging van iPadOS reikt verder dan de veilige zone (die alleen de statusbalk dekt). Zijbalk en
   inhoud krijgen dezelfde bovenmarge, zodat logo en schermtitel op één hoogte beginnen. Ook het meeschuivende paneel
@@ -599,7 +581,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   brede kolommen (minimaal 460 px) lijnt de groepen altijd op met elkaar en met de kaarten eronder. De knoppen worden
   daardoor op een volledig laptopscherm iets breder dan 128 px; dat is bewust.
 
-## Veiligheidsmarge iPad via --safe-top (1.42.4)
+## D42 – Veiligheidsmarge iPad via --safe-top (1.42.4)
 - **Zelfde regel als Games Backlog** (1.21.1): bovenaan app.css krijgt `--safe-top` minimaal 24 px als de app op het
   beginscherm draait (`display-mode: standalone`) met een aanraakscherm in een hoog venster (min. 700 × 600 px).
   Zo niet op de iPhone liggend en niet op de laptop. Eén plek voor de marge: alle CSS gebruikt `var(--safe-top)`,
@@ -610,7 +592,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - Niet aangepast: `scroll-margin-top: 76px` van Instellingen-secties onder de kopbalk (iPhone/iPad staand). Op de iPad
   staand is de kopbalk nu 24 px hoger; een sectie kan bij springen iets onder de kopbalk vallen.
 
-## App-icoon: bliksem + vlam (1.42.5, 9 november 2026)
+## D43 – App-icoon: bliksem + vlam (1.42.5, 9 november 2026)
 - Gekozen uit vier voorstellen (stroom + gas, zon op huis, meter, vlam met bliksem). Bliksem + vlam laat in één
   oogopslag zien dat de app over stroom én gas gaat en blijft op 32 px leesbaar.
 - Achtergrond blijft de accentkleur #0f766e; vlam in #f5b82e.
@@ -618,7 +600,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   vierkant zonder ronde hoeken (iOS rondt zelf af); het maskable-icoon heeft het symbool kleiner in het midden,
   zodat Android het in elke vorm kan uitsnijden zonder iets af te knippen.
 
-## Overzicht per maand = kalenderjaar (1.42.6, 10 november 2026)
+## D44 – Overzicht per maand = kalenderjaar (1.42.6, 10 november 2026)
 - Keuze: de maandgrafieken in het Overzicht tonen januari t/m december van het jaar van de gekozen datum, met
   dezelfde maand een jaar eerder ernaast. Maanden die nog moeten komen blijven leeg.
 - Waarom: met de laatste 12 maanden stond december van vorig jaar als "Deze periode" vooraan, terwijl Geert december
@@ -626,7 +608,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   zonnepanelen-grafiek (ook per kalendermaand).
 - De vergelijking termijnbedrag ↔ werkelijke kosten blijft over de laatste 12 maanden (dat is een doorlopende schatting).
 
-## Overzicht: altijd alle vier grafieken (1.42.7, 10 november 2026)
+## D45 – Overzicht: altijd alle vier grafieken (1.42.7, 10 november 2026)
 - Keuze: stroom, teruglevering, gas en kosten staan altijd tegelijk in het Overzicht; de knoppen Stroom/Terug/Gas/Kosten
   zijn verwijderd. Waarom: Geert wil alles in één keer zien zonder te wisselen.
 - Daardoor was de laptop-indeling "Alles tegelijk" hetzelfde als "Naast elkaar"; die is geschrapt. Een bewaarde waarde
@@ -634,7 +616,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
   zodat eerder gekozen weergaven blijven werken).
 - Dag/Week/Maand/Jaar staat nu alleen op de regel (keuzes-een, max. 520 px breed), ook tussen 640 en 1200 px.
 
-## Jaarprognose: kosten verdeeld over stroom en gas (1.43.0, 10 november 2026)
+## D46 – Jaarprognose: kosten verdeeld over stroom en gas (1.43.0, 10 november 2026)
 - Keuze: de maandkolommen in de Jaarprognose zijn gestapeld: gas onderaan, stroom erop. Nieuwe grafiekfunctie
   `stapelGrafiek` in grafiek.js (positieve delen stapelen omhoog, negatieve omlaag vanaf de nullijn).
 - Verdeling: stroom = afname + teruglevering (verrekening/vergoeding) + vaste kosten stroom (levering, netbeheer,
@@ -644,8 +626,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - `kostenDag` geeft daarvoor ook `vastStroom` en `vastGas` terug (naast `vast`); bestaande velden zijn ongewijzigd.
 - Percentages alleen als beide delen ≥ 0; anders (stroom negatief door teruglevering) zijn ze misleidend.
 
-
-## Analyse-keuze inklappen op de telefoon (1.43.1, 10 november 2026)
+## D47 – Analyse-keuze inklappen op de telefoon (1.43.1, 10 november 2026)
 - Keuze: op telefoonbreedte (max. 699 px, dezelfde grens als de tegels in twee kolommen) klapt de kaart "Wat wil je
   analyseren?" na een keuze in tot één regel (gekozen analyse + "Andere kiezen ▾") en scrollt het scherm zo dat die regel
   net onder de kopbalk staat, met de analyse direct eronder. Waarom: de tegels vullen op de iPhone meer dan een scherm,
@@ -653,8 +634,7 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - Ingeklapt of open is schermtoestand (`staat.analyseKeuzeDicht`), niet in de kluis; het blijft ingeklapt als je
   tussen tabs wisselt. Op iPad en laptop altijd open (daar passen de tegels compact).
 
-
-## Passkey hergebruiken na opnieuw installeren (1.43.2, 10 november 2026)
+## D48 – Passkey hergebruiken na opnieuw installeren (1.43.2, 10 november 2026)
 - Keuze: het kluisbestand krijgt een optioneel veld `passkeys` met de id's van passkeys die voor deze kluis zijn
   ingesteld. Bij "Inschakelen" vraagt de app eerst om één van die passkeys (Face ID); alleen als dat niet lukt maakt hij
   een nieuwe. Het PRF-zout en de ingepakte sleutel blijven per apparaat lokaal (met een nieuw zout bij hergebruik).
@@ -665,3 +645,37 @@ Geert vroeg om 13 uitbreidingen, elk met een eigen versie.
 - Niet gekozen: een vaste gebruikers-id per app (dan vervangt een nieuwe passkey de oude). Dat zou de passkey op je
   andere apparaten (via iCloud gedeeld) ongeldig maken.
 - Oudere app-versies negeren het veld; geen actie van Geert nodig (dus geen MAJOR).
+
+## D49 – 2026-11-11 – Navigatie en Instellingen uit de kern (versie 1.45.0)
+- **Geen eigen navigatie en instellingenpaneel meer.** Schermen staan in `app.screens`; de schil tekent tabbalk,
+  tabbladen (iPad rechtop) of zijbalk en het scherm Instellingen met het vaste overzicht (template D6). Geert wil
+  al zijn apps dezelfde indeling geven. Vervangt "instellingen als paneel" (1.6.0) en de kopknoppen op de titelregel.
+- **Eigen instellingen als pagina's van de schil**: Tarieven, Gegevens en Weergave via `app.renderSettings()`.
+- **`js/core/` is weer een exacte kopie van de template** (ook `findById` en `isSyncing`); vervangt de uitzondering
+  van 1.38.2. Zo blijft de kern in alle apps gelijk.
+
+## D50 – 2026-11-17 – PWA-Core v1.2.2 (appversie 1.45.3)
+- Energieverbruik pint exact PWA-Core v1.2.2 via tag, commit en SHA-256 van het Core-manifest.
+- De Core-kopie in de app is een exacte distributiekopie volgens de v1.2.2-allowlist; de vaste storagePrefix, dataPath en schema 5 blijven ongewijzigd.
+- De deletion-ledger laat een vaste-ID-record alleen herleven als de recordtimestamp strikt nieuwer is dan de tombstone. Gelijke, oudere of ontbrekende timestamps blijven fail-closed.
+- Regressiecontract: import ongedaan maken, dezelfde vaste IDs opnieuw importeren en synchroniseren tussen twee apparaten voor dagen, weer, maanden en zon.
+- Praktijkacceptatie op bestaande apparaten blijft vereist; geen merge zonder expliciet akkoord.
+
+## D51 – 2026-11-20 – Documenten naar verleden, heden en toekomst
+- Vier bestanden houden de app bij. Heden: `README.md`, met een blok "Stand" en de importformaten (vervangt `NOTES.md`; geen sessielog en geen stand per versie meer). Toekomst: `ROADMAP.md`, de enige takenlijst met genummerde punten (vervangt `WISHLIST.md` en de openstaande punten uit NOTES). Verleden: `CHANGELOG.md` (wat) en `DECISIONS.md` (waarom).
+- Een wijziging alleen aan deze documenten krijgt geen nieuwe appversie.
+- Waarom: NOTES was uitgegroeid tot een sessielog van ruim 450 regels dat de changelog herhaalde; open punten, wensen en stand stonden door elkaar. Dezelfde indeling geldt voor al Geerts projecten.
+
+## D52 – Uniforme opbouw van de documenten (20 november 2026, geen appversie)
+- **Zes documenten, elk onderwerp op één plek**, zoals in al Geerts apps: `README.md` (wat de app doet, blok "Stand"),
+  `ARCHITECTUUR.md` (nieuw: opbouw, aansluiting op PWA-Core, datamodel, conventies, stijl, importformaten),
+  `ROADMAP.md`, `CHANGELOG.md`, `DECISIONS.md` en `CLAUDE.md`. Vult D51 aan: de technische delen uit README
+  ("Structuur", "Bronbestanden", "Lokaal testen") staan nu in ARCHITECTUUR.
+- **Vaste nummers**: roadmappunten heten W1, W2, … (waren #1, #2, …, zelfde getallen); besluiten heten D1, D2, …, het
+  oudste bovenaan, nieuwe onderaan. Vervangt de eigen opbouw "per datum, nieuwste bovenaan". De bestaande besluiten
+  zijn alleen op volgorde van versie gezet en genummerd; de tekst is niet veranderd.
+- **Werkwijze via branch en pull request** (vervangt "rechtstreeks naar main" uit de oude CLAUDE.md): elke wijziging
+  op een eigen branch `claude/…`, pas na akkoord van Geert naar `main`.
+- **Kopie in de projectkennis**: README, ARCHITECTUUR, ROADMAP en DECISIONS staan ook als `claude/*.md` in het
+  Claude-project, zodat een nieuwe chat ze zonder de code kan lezen.
+- **W32 vervallen** (template-afwijking shell.js/index.html): `js/core/` is sinds D49/D50 een exacte kopie van PWA-Core.
