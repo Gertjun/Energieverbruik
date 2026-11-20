@@ -50,5 +50,6 @@ Overgenomen uit de oude notities (5 tot en met 19 november 2026). Een deel is wa
 - W35 Controleren of temperaturen automatisch verschijnen (Historie → tik op een dag).
 - W36 Tarieven nalopen: de app start met de tarieven van de tariefkaart, geldig vanaf 1-1-2025. De oudere tarieven uit Blad1 (linkerkolom) zijn niet ingevoerd; als die voor een eerdere periode gelden, een extra contract met de juiste data toevoegen.
 - W37 Saldering met tijdvakken is een aanname (zie DECISIONS.md); vergelijken met de volgende jaarafrekening.
+- W38 Bestaande schermen nalopen met de checklist uit `ui-ux-richtlijnen.md` (projectkennis), vooral contrast in licht/donker/Zwart, tekst tot 200% en lege/laad/fout/offline-toestanden; gevonden punten als eigen W-nummers.
 
-Volgende vrije nummer: W38.
+Volgende vrije nummer: W39.
