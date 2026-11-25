@@ -3,6 +3,12 @@
 > **Dit bestand (verleden):** per versie in gewone taal wat er voor Geert veranderde, met de W-nummers uit de roadmap. Nieuwste bovenaan.
 > **Niet hier:** waarom → [`DECISIONS.md`](DECISIONS.md); wat nog moet → [`ROADMAP.md`](ROADMAP.md).
 
+## 1.46.0 – 2026-11-25
+
+- PWA-Core v1.4.0: koppel een nieuw apparaat met een QR-code of tekstcode zonder pincode of kluiswachtwoord. De code geeft volledige toegang; deel hem uitsluitend met je eigen apparaat. Oude codes blijven werken.
+- Bestaande kluis, synchronisatieconfiguratie en passkeys blijven behouden bij de update.
+- Core-pin en offlinecache bijgewerkt.
+
 ## 1.45.5 – 2026-11-19
 
 **Beveiliging**
